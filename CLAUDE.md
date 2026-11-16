@@ -1,10 +1,10 @@
 # GUIA DO DESENVOLVEDOR & GUARDIÃO DA MEMÓRIA: CLAUDE CODE (ORION TN)
 
-> **Status Vigente:** BASE V3.2.0 + PIPELINE DE AUDITORIA V2.3 (DOM Real Live + Streaming STDIN + Zero Coordenadas Estáticas + Zona Semântica e União Geométrica + Rota de Menu com Auto-Cura + Multi-Demarcação + RBAC Gate + Evidência Estrita + Taxonomia `[ATT]`/`[DDD]`/`[XRX]` com Auto-Seed e Alvos Implícitos — ADR-021)  
+> **Status Vigente:** BASE V3.2.0 + PIPELINE DE AUDITORIA V2.4 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[DDD]`/`[XRX]` + GitHub Seguro + Write-Through & Supabase Realtime — ADR-023)  
 > **Papel do Claude Code:** Arquiteto de Software Co-Executor & Guardião da Memória Técnica Integrada  
 > **Parceiro no Workspace:** Google Antigravity 2.0  
-> **Repositório:** Local Windows 10/11 (`d:\marcu\Videos\OrionTN\OrionTN`), **SEM CONTROLE GIT**  
-> **Camada Canônica de Memória:** `.agents/memory/` (`decisions/` ADR-001 a ADR-021; `standards/`)
+> **Repositório:** Windows 10/11 (`d:\marcu\Videos\OrionTN\OrionTN`), conectado ao remoto privado `https://github.com/marcusvpo/oriontnagentbrowser.git` com `.gitignore` blindado (ADR-023)  
+> **Camada Canônica de Memória:** `.agents/memory/` (`decisions/` ADR-001 a ADR-023; `standards/`)
 
 ---
 
@@ -87,6 +87,8 @@ O pipeline de auditoria visual (`auditoria/src/`) opera de forma 100% autônoma,
 * [`review-taxonomy.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/review-taxonomy.ts), [`review-classifier.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/review-classifier.ts), [`kb-dependency-graph.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/kb-dependency-graph.ts), [`empty-state.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/empty-state.ts), [`auto-seed.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/auto-seed.ts) e [`implicit-targets.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/implicit-targets.ts): taxonomia `[ATT]`/`[DDD]`/`[XRX]`, árvore de decisão, grafo do KB, detector de estado vazio, auto-seed mock e alvos implícitos (ADR-021).
 * [`modal-scope.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/modal-scope.ts): seletor único de modal ativo (Bootstrap `.modal.in` e modal leve `orion-lightweight-modal`), `closeActiveModals` e, em `dom-geometry.ts`, a checagem `elementFromPoint` que rejeita alvo por trás de modal. Passo de vários alvos só clica o nó cujo texto é um dos alvos citados.
 * [`verify-all-phase2-boxes.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/verify-all-phase2-boxes.ts): Script de homologação estrita que valida matematicamente os 8 invariantes em 100% das prints (os 5 geométricos/estruturais + Zona Semântica + União Geométrica + Multi-Demarcação), lendo a telemetria do manifesto e a do executor do KB (`cache/kb-telemetry/`).
+* [`sync-supabase.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/sync-supabase.ts), [`governance-disk.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/governance-disk.ts) e [`server.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/server.ts): Sincronização Write-Through por rotina (`syncSingleRoutineToSupabase`), dupla via no `*-revisado.md` em disco, API do Orion Audit Console e fila real de reexecução (ADR-023).
+* [`Orion Audit Console/src/hooks/useSupabaseRealtime.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/Orion%20Audit%20Console/src/hooks/useSupabaseRealtime.ts): Assinatura WebSocket de `postgres_changes` (Supabase Realtime) invalidando automaticamente o TanStack Query na UI.
 * [`types.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/types.ts): Contratos TypeScript para geometria, anotação, relatórios e telemetria.
 
 ---
@@ -95,9 +97,10 @@ O pipeline de auditoria visual (`auditoria/src/`) opera de forma 100% autônoma,
 
 O Claude Code **DEVE SEGUIR RIGOROSAMENTE** estas regras em qualquer intervenção:
 
-1. **PROIBIÇÃO TOTAL DE COMANDOS GIT (ADR-010):**
-   - Este repositório é 100% local e **não possui controle de versão `.git`**.
-   - É expressamente vedado rodar `git status`, `git diff`, `git add`, `git commit` ou qualquer comando git.
+1. **VERSIONAMENTO GIT SEGURO & BLINDAGEM DE SEGREDOS (ADR-023 — Revoga ADR-010 §2.3):**
+   - O repositório utiliza Git + GitHub privado (`https://github.com/marcusvpo/oriontnagentbrowser.git`) com `.gitignore` blindado na raiz.
+   - **ALERTA MÁXIMO:** É terminantemente proibido commitar `auditoria/auth/`, `session-*.json`, `.env`, `.env.*` (exceto `.env.example`), `auditoria/backups/`, `auditoria/cache/` ou `auditoria/rotinas/**/*.png`. Nunca grave senhas, tokens ou URLs/credenciais sensíveis hardcoded em código ou documentação. Sempre confira `git status` antes de `git commit`/`git push`.
+   - **Sincronização Write-Through & Realtime (ADR-023):** `executor.ts`, `hardware-pretriage.ts` e os endpoints de mutação do `server.ts` sincronizam automaticamente cada rotina com o Supabase (`syncSingleRoutineToSupabase`); use `--no-sync` no `cli.ts` apenas para testes offline. O Orion Audit Console recebe atualizações ao vivo via Supabase Realtime (`004_supabase_realtime.sql` + `useSupabaseRealtime.ts`).
 2. **ZERO COORDENADAS ESTÁTICAS E ANTI-MOCK (ADR-010, ADR-012, ADR-014):**
    - É terminantemente proibido inserir qualquer objeto com coordenadas literais manuais (`{ x: ..., y: ..., width: ..., height: ... }`), tabelas fixas como `NAVBAR` ou imagens de fundo `baseImage`.
    - **Toda geometria provém exclusivamente de medição ao vivo no Chromium via `getBoundingClientRect()`**.
@@ -178,9 +181,11 @@ O Claude Code não precisa adivinhar regras ou duplicar conhecimento. Antes de t
 * [`ADR-016`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-016-rota-de-menu-encadeada-passos-sem-alvo-e-classificacao-mutation.md): Navegação encadeada por segmentos com Auto-Cura de Rota, screenshot limpo em passos sem alvo e classificação `mutation` por comando de gravação.
 
 * [`ADR-017`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-017-cascata-com-hover-persistente-multi-demarcacao-rbac-gate-e-evidencia-estrita.md): Cascata com hover persistente por ponteiro real, multi-demarcação numerada, RBAC Gate e Regra da Evidência Estrita.
+* [`ADR-019`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-019-exploracao-investigativa-trava-de-mutacao-rbac-por-evidencia-e-sub-capturas.md): RBAC por evidência de DOM, Exploração Investigativa pré-bloqueio, Trava Segura de Mutação (`--dry-run-mutations`), sub-capturas `passo-NN-b` e 8 invariantes em módulo único.
 * [`ADR-020`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-020-acoes-iconicas-de-grade-ajuda-contextual-e-confronto-semantico-de-tela.md): Resolvedor de botões icônicos em grades, coleta de tooltips "i" e Confronto Semântico com evidência dupla.
 * [`ADR-021`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-021-taxonomia-att-ddd-xrx-grade-vazia-auto-seed-e-alvos-implicitos.md): Taxonomia `[ATT]`/`[DDD]`/`[XRX]` (aposenta `[!!!]`), detector de estado vazio, auto-seed mock, alvos implícitos e grafo de dependências do KB.
-* [`ADR-019`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-019-exploracao-investigativa-trava-de-mutacao-rbac-por-evidencia-e-sub-capturas.md): RBAC por evidência de DOM, Exploração Investigativa pré-bloqueio, Trava Segura de Mutação (`--dry-run-mutations`), sub-capturas `passo-NN-b` e 8 invariantes em módulo único.
+* [`ADR-022`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-022-hook-de-tipagem-pos-edicao-e-testes-offline-de-alvos-implicitos.md): Hook `PostToolUse` de tipagem (`typecheck-ts.mjs`) e testes offline de alvos implícitos.
+* [`ADR-023`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-023-github-seguro-e-sincronizacao-supabase-tempo-real.md): GitHub privado seguro com `.gitignore` blindado e sincronização Write-Through + Supabase Realtime (revoga proibição de Git e sync manual em lote).
 
 ### 4.2. Padrões e Especificações (`.agents/memory/standards/`):
 * [`design_system_siplan.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/design_system_siplan.md): Paleta Siplan (Carmesim `#ad0505`, Bordô `#5a0000`), tipografia Oswald/Lato e seletores CSS.
@@ -210,11 +215,15 @@ O Claude Code não precisa adivinhar regras ou duplicar conhecimento. Antes de t
 
 Antes de declarar qualquer tarefa ou lote como concluído, execute obrigatoriamente os seguintes comandos a partir da raiz do repositório:
 
-### 1. Checagem Estrita de Tipos TypeScript:
+### 1. Checagem Estrita de Tipos TypeScript & Suítes de Testes:
 ```powershell
 npx --prefix auditoria tsc -p auditoria/tsconfig.json --noEmit
+npm --prefix auditoria test
+npx --prefix "Orion Audit Console" tsc -p "Orion Audit Console/tsconfig.json" --noEmit
+npm --prefix "Orion Audit Console" test
+npm --prefix "Orion Audit Console" run build
 ```
-*(Critério de aceite: Código de retorno 0 e zero erros).*
+*(Critério de aceite: Código de retorno 0 e zero erros em motor e Console).*
 
 ### 2. Validação Geométrica dos 8 Invariantes Matemáticos:
 ```powershell
@@ -236,8 +245,8 @@ npx --prefix auditoria tsx auditoria/src/cli.ts --phase 3 --concurrency 4 --dry-
 # Validação restrita à Fase 3 (completude, pastas gêmeas, [!!!], pré-triadas sem prints):
 npx --prefix auditoria tsx auditoria/src/verify-all-phase2-boxes.ts --phase 3
 
-# Execução de Rotina Individual:
-npx --prefix auditoria tsx auditoria/src/cli.ts --routine M-16.2
+# Execução de Rotina Individual (sincroniza automaticamente no Supabase via Write-Through; use --no-sync só offline):
+npx --prefix auditoria tsx auditoria/src/cli.ts --routine M-16.2 --dry-run-mutations
 
 # Regeneração seletiva de rotinas do manifesto da Fase 2 (mescla com a telemetria existente):
 npx --prefix auditoria tsx auditoria/src/run-phase2-master.ts --only=M-16.2,M-16.6

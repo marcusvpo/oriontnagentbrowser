@@ -1,8 +1,8 @@
 # Especificação Técnica: Auditoria Visual de Rotinas via Agent-Browser & Sharp
 
 **Status:** ATIVO / HOMOLOGADO  
-**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.2 (DOM Real Live + Streaming STDIN + Zero Coordenadas Estáticas + Zona Semântica e União Geométrica)  
-**Normas Vinculantes:** ADR-007, ADR-008, ADR-009, ADR-010, ADR-011, ADR-012, ADR-013, ADR-014, ADR-015, ADR-016, ADR-017, ADR-019 e ADR-020  
+**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.4 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime)  
+**Normas Vinculantes:** ADR-007 a ADR-023  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -99,6 +99,9 @@ auditoria/
     ├── icon-action-resolver.ts # Ações icônicas de grade: olho/lápis/X na 1ª linha (ADR-020)
     ├── help-tooltips.ts      # Ajuda contextual "i": hover não destrutivo (ADR-020)
     ├── screen-snapshot.ts    # Snapshot da tela + Confronto Semântico com evidência dupla (ADR-020)
+    ├── governance-disk.ts    # Dupla via de edição/governança em disco (*-revisado.md, ADR-023)
+    ├── sync-supabase.ts      # Write-Through por rotina (syncSingleRoutineToSupabase) + sync em lote (ADR-023)
+    ├── server.ts             # API REST do Console com dupla via + fila real de reexecução (ADR-023)
     └── verify-all-phase2-boxes.ts # Validação matemática dos 8 invariantes
 ```
 
@@ -392,9 +395,11 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 
 `invariants.ts` e `verify-all-phase2-boxes.ts` conferem, além dos 8 invariantes: nenhuma pasta com prefixo `[!!!]`; prefixo da pasta ≡ `auditoria_ui.status` ≡ `tipo_bloqueio` presente; contagem por tag. Frontend: `lib/status.ts` (`AUDIT_STATUS`, `REVIEW_STATES`, `reviewPrefix`) alimenta badges, filtros, KPIs e o gráfico por fase.
 
-### 11.5. Banco (Supabase)
+### 11.5. Banco (Supabase), Write-Through e Realtime (ADR-021 / ADR-023)
 
-`supabase/migrations/003_review_taxonomy.sql` (idempotente) troca o CHECK `routines_status_auditoria_check` e migra as linhas legadas `requer_revisao_humana` pelo `bloqueio->>'tipo'`. `sync-supabase.ts` mapeia o legado pela tag do prefixo da pasta. **A migração foi escrita, mas só roda quando o usuário executar `supabase:migrate` / `supabase:sync` (ADR-018).**
+* **Migrations aplicadas:** `003_review_taxonomy.sql` (CHECK `routines_status_auditoria_check` para `[ATT]`/`[DDD]`/`[XRX]` + migração de linhas legadas) e `004_supabase_realtime.sql` (publication `supabase_realtime` para `routines`, `routine_steps`, `governance_events`, `runner_jobs` e `routine_reviews`).
+* **Write-Through por rotina:** `syncSingleRoutineToSupabase(routineId)` em `sync-supabase.ts` é chamada automaticamente dentro de `try/catch` ao final de `executor.ts` (`executeRoutineAudit`), `hardware-pretriage.ts` (`writePreTriagedDddReport`) e das mutações do `server.ts` (`aprovar`, `revisao`, `texto`, `revisoes` e conclusão de `reexecutar`), em dupla via com `governance-disk.ts` (`*-revisado.md`). O comando `npm --prefix auditoria run supabase:sync` fica reservado para carga inicial/recuperação em massa, e `--no-sync` no `cli.ts` desliga o sync apenas em testes offline.
+* **Frontend Realtime:** `Orion Audit Console/src/hooks/useSupabaseRealtime.ts` assina `postgres_changes` e invalida com debounce o TanStack Query para atualização ao vivo do Dashboard, Explorador, Estúdio e Fila.
 
 ## 12. Fase 3 (118 rotinas) e Recuperação de Worker
 

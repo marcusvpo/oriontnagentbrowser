@@ -9,6 +9,7 @@ import { ModuleBarChart } from "@/components/dashboard/ModuleBarChart";
 import { DivergenceLayers } from "@/components/dashboard/DivergenceLayers";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { useRotinas } from "@/hooks/useRotinas";
+import { isRealtimeConfigured } from "@/lib/supabase";
 import { fmtPct } from "@/lib/format";
 import { REVIEW_FILTER } from "@/lib/status";
 
@@ -27,7 +28,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const { data, isLoading, error } = useRotinas({ pageSize: 1 }, { refetchInterval: 10000 });
+  const { data, isLoading, error } = useRotinas(
+    { pageSize: 1 },
+    { refetchInterval: isRealtimeConfigured() ? 60000 : 10000 },
+  );
   const s = data?.meta.stats;
   return (
     <AppShell crumbs={[{ label: "Dashboard" }]}>

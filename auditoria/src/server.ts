@@ -1,16 +1,22 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { getSupabaseAdmin, isSupabaseConfigured, SUPABASE_URL } from './supabase.js';
 import { REVIEW_TAGS, isReviewStatus } from './review-taxonomy.js';
+import { persistRoutineGovernanceToDisk, type GovernanceDiskUpdate } from './governance-disk.js';
+import { syncSingleRoutineToSupabase } from './sync-supabase.js';
+import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
+import { findRoutineFileById } from './phases.js';
+import { writePreTriagedDddReport } from './hardware-pretriage.js';
 import type { ReviewStatus, RoutineAuditStatus, WorkloadType } from './types.js';
 
 const PORT = parseInt(process.env.API_PORT || '3333', 10);
 const HOST = process.env.API_HOST || '0.0.0.0';
 
-const auditoriaRoot = path.resolve(
-  process.cwd().endsWith('auditoria') ? process.cwd() : path.join(process.cwd(), 'auditoria')
-);
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const auditoriaRoot = path.resolve(moduleDir, '..');
 const rotinasDir = path.join(auditoriaRoot, 'rotinas');
 
 export type Modulo =
@@ -462,25 +468,94 @@ async function fetchRoutineDetail(id: string) {
   };
 }
 
-function scheduleRunnerTransition(routineId: string, jobId: string) {
-  const supabase = getSupabaseAdmin();
-  setTimeout(async () => {
-    try {
-      const { data: job } = await supabase.from('runner_jobs').select('estado').eq('job_id', jobId).maybeSingle();
-      if (job && job.estado === 'na_fila') {
-        await supabase
-          .from('runner_jobs')
-          .update({ estado: 'em_execucao', posicao_fila: null, iniciado_em: new Date().toISOString() })
-          .eq('job_id', jobId);
-      }
-    } catch {}
-  }, 5000);
+/**
+ * Dupla via na governança (ADR-022/023): grava as alterações/status no `*-revisado.md` em disco
+ * e dispara imediatamente `syncSingleRoutineToSupabase` para manter o Supabase 100% espelhado.
+ */
+async function mirrorGovernanceToDiskAndSupabase(routineId: string, update: GovernanceDiskUpdate): Promise<void> {
+  try {
+    await persistRoutineGovernanceToDisk(routineId, update);
+  } catch (diskErr: any) {
+    console.warn(`⚠ [Dupla Via Disco] Falha ao atualizar *-revisado.md de ${routineId}: ${diskErr?.message || diskErr}`);
+  }
+  try {
+    await syncSingleRoutineToSupabase(routineId, {
+      skipMedia: true,
+      preserveExistingGovernance: true,
+      statusGovernancaOverride: update.statusGovernanca,
+      quiet: true,
+    });
+  } catch (syncErr: any) {
+    console.warn(`⚠ [Dupla Via Supabase] Falha ao sincronizar ${routineId}: ${syncErr?.message || syncErr}`);
+  }
+}
 
-  setTimeout(async () => {
+let mutationRunnerChain: Promise<void> = Promise.resolve();
+
+function runCliRoutine(routineId: string, modo: string): Promise<{ ok: boolean; error?: string }> {
+  return new Promise(resolve => {
+    const tsxCli = path.join(auditoriaRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+    const cliArgs = [tsxCli, 'src/cli.ts', '--routine', routineId];
+    if (modo === 'headed') cliArgs.push('--headed');
+    if (process.env.ORION_DRY_RUN_MUTATIONS !== 'false') cliArgs.push('--dry-run-mutations');
+
+    const child = spawn(process.execPath, cliArgs, {
+      cwd: auditoriaRoot,
+      shell: false,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stderrTail = '';
+    child.stderr?.on('data', chunk => {
+      stderrTail = (stderrTail + String(chunk)).slice(-800);
+    });
+    child.on('error', err => resolve({ ok: false, error: err.message }));
+    child.on('close', code => {
+      if (code === 0) resolve({ ok: true });
+      else resolve({ ok: false, error: stderrTail.trim() || `Runner encerrou com código ${code}` });
+    });
+  });
+}
+
+function enqueueRunnerExecution(
+  routineId: string,
+  jobId: string,
+  opts: { lane?: string; modo?: string } = {}
+) {
+  const executeJob = async () => {
+    const supabase = getSupabaseAdmin();
     try {
-      const { data: job } = await supabase.from('runner_jobs').select('estado').eq('job_id', jobId).maybeSingle();
-      if (job && job.estado === 'em_execucao') {
-        const fim = new Date().toISOString();
+      await supabase
+        .from('runner_jobs')
+        .update({ estado: 'em_execucao', posicao_fila: null, iniciado_em: new Date().toISOString() })
+        .eq('job_id', jobId);
+
+      const hwEntry = PHASE3_MANIFEST.find(e => e.id === routineId && e.hardwarePreTriage.isHardwareDependent);
+      let ok = false;
+      let errMessage = '';
+
+      if (hwEntry) {
+        const kbFile = findRoutineFileById(routineId);
+        if (!kbFile) {
+          errMessage = `Arquivo KB não encontrado para ${routineId}`;
+        } else {
+          await writePreTriagedDddReport(hwEntry, kbFile, { syncToSupabase: true });
+          ok = true;
+        }
+      } else {
+        const res = await runCliRoutine(routineId, opts.modo || 'headless');
+        ok = res.ok;
+        errMessage = res.error || '';
+        if (ok) {
+          await syncSingleRoutineToSupabase(routineId, {
+            onlyWebp: true,
+            preserveExistingGovernance: false,
+            quiet: true,
+          });
+        }
+      }
+
+      const fim = new Date().toISOString();
+      if (ok) {
         await supabase
           .from('runner_jobs')
           .update({ estado: 'concluida', finalizado_em: fim })
@@ -491,11 +566,45 @@ function scheduleRunnerTransition(routineId: string, jobId: string) {
           tipo: 'reexecucao_concluida',
           autor: 'runner',
           em: fim,
-          descricao: 'Reexecução concluída com sucesso no Worker Pool.',
+          descricao: 'Reexecução concluída e sincronizada com o Supabase em tempo real.',
+        });
+      } else {
+        await supabase
+          .from('runner_jobs')
+          .update({ estado: 'falhou', finalizado_em: fim, erro: errMessage.slice(0, 500) })
+          .eq('job_id', jobId);
+        await supabase.from('governance_events').insert({
+          id: `ev-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+          routine_id: routineId,
+          tipo: 'reexecucao_falhou',
+          autor: 'runner',
+          em: fim,
+          descricao: `Falha na reexecução: ${errMessage.slice(0, 300)}`,
         });
       }
-    } catch {}
-  }, 12000);
+    } catch (err: any) {
+      const fim = new Date().toISOString();
+      const msg = String(err?.message || err);
+      await supabase
+        .from('runner_jobs')
+        .update({ estado: 'falhou', finalizado_em: fim, erro: msg.slice(0, 500) })
+        .eq('job_id', jobId);
+      await supabase.from('governance_events').insert({
+        id: `ev-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+        routine_id: routineId,
+        tipo: 'reexecucao_falhou',
+        autor: 'runner',
+        em: fim,
+        descricao: `Falha inesperada na reexecução: ${msg.slice(0, 300)}`,
+      });
+    }
+  };
+
+  if (opts.lane === 'mutation') {
+    mutationRunnerChain = mutationRunnerChain.then(executeJob, executeJob);
+  } else {
+    void executeJob();
+  }
 }
 
 // --- INICIALIZAÇÃO ---
@@ -745,8 +854,98 @@ const server = http.createServer(async (req, res) => {
       };
       await supabase.from('governance_events').insert(evt);
 
+      await mirrorGovernanceToDiskAndSupabase(id, {
+        statusGovernanca: 'aprovada',
+        revisor: body.revisor,
+        comentario: body.comentario,
+        descricao: body.descricao,
+        edicoes: body.edicoes,
+        updatedAt: now,
+      });
+
       const updated = await fetchRoutineDetail(id);
       sendJson(200, { rotina: updated, evento: mapEventRow(evt) });
+      return;
+    }
+
+    // 4b. PUT /api/rotinas/:id/texto (Edição direta de descrição/passos com dupla via)
+    const editTextMatch = pathname.match(/^\/api\/rotinas\/([^/]+)\/texto$/);
+    if ((req.method === 'PUT' || req.method === 'PATCH') && editTextMatch) {
+      const id = decodeURIComponent(editTextMatch[1]);
+      const body = await readBody();
+      const supabase = getSupabaseAdmin();
+
+      const { data: existing, error: exErr } = await supabase.from('routines').select('*').eq('id', id).maybeSingle();
+      if (exErr) throw exErr;
+      if (!existing) {
+        sendJson(404, { error: { code: 'not_found', message: `Rotina ${id} não encontrada.` } });
+        return;
+      }
+
+      if (
+        body.edicoes?.some((e: any) => /\bvideo_id\b/.test(e.validatedText)) ||
+        (body.descricao && /\bvideo_id\b/.test(body.descricao))
+      ) {
+        sendJson(422, {
+          error: { code: 'forbidden_field', message: 'Campo proibido: video_id. Use bunny_video_id.' },
+        });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const revisor = body.revisor?.trim() || 'Revisor';
+      let editedCount = 0;
+
+      if (Array.isArray(body.edicoes) && body.edicoes.length > 0) {
+        for (const ed of body.edicoes) {
+          const { data: stepRow } = await supabase
+            .from('routine_steps')
+            .select('original_text, validated_text')
+            .eq('routine_id', id)
+            .eq('step_number', ed.stepNumber)
+            .maybeSingle();
+          if (stepRow && stepRow.validated_text !== ed.validatedText) {
+            await supabase
+              .from('routine_steps')
+              .update({
+                validated_text: ed.validatedText,
+                is_modified: ed.validatedText !== stepRow.original_text,
+                updated_at: now,
+              })
+              .eq('routine_id', id)
+              .eq('step_number', ed.stepNumber);
+            editedCount++;
+          }
+        }
+      }
+
+      const updateFields: any = { updated_at: now };
+      if (body.descricao && body.descricao !== existing.descricao_revisada) {
+        updateFields.descricao_revisada = body.descricao;
+        editedCount++;
+      }
+      await supabase.from('routines').update(updateFields).eq('id', id);
+
+      if (editedCount > 0) {
+        await supabase.from('governance_events').insert({
+          id: `ev-ed-${Date.now()}`,
+          routine_id: id,
+          tipo: 'texto_editado',
+          autor: revisor,
+          em: now,
+          descricao: `${editedCount} trecho(s) editado(s) no Console.`,
+        });
+      }
+
+      await mirrorGovernanceToDiskAndSupabase(id, {
+        revisor,
+        descricao: body.descricao,
+        edicoes: body.edicoes,
+        updatedAt: now,
+      });
+
+      const updated = await fetchRoutineDetail(id);
+      sendJson(200, { rotina: updated });
       return;
     }
 
@@ -822,6 +1021,12 @@ const server = http.createServer(async (req, res) => {
         meta: { categoria, reviewId, versao: 1 },
       };
       await supabase.from('governance_events').insert(evt);
+
+      await mirrorGovernanceToDiskAndSupabase(id, {
+        statusGovernanca: 'revisao_solicitada',
+        revisor,
+        updatedAt: now,
+      });
 
       const updated = await fetchRoutineDetail(id);
       const createdReviews = await fetchReviewsList({ routineId: id });
@@ -942,6 +1147,11 @@ const server = http.createServer(async (req, res) => {
         meta: { reviewId, versao: nextVersion, status },
       });
 
+      await mirrorGovernanceToDiskAndSupabase(existing.routine_id, {
+        revisor: alteradoPor,
+        updatedAt: now,
+      });
+
       const items = await fetchReviewsList({ routineId: existing.routine_id });
       const revisao = items.find((i: any) => i.id === reviewId);
       sendJson(200, { revisao });
@@ -1000,7 +1210,7 @@ const server = http.createServer(async (req, res) => {
         descricao: `Reexecução enfileirada na lane ${lane} (${body.modo || 'headless'}, prioridade ${body.prioridade || 'normal'}).${body.motivo ? ' Motivo: ' + body.motivo : ''}`,
       });
 
-      scheduleRunnerTransition(id, jobId);
+      enqueueRunnerExecution(id, jobId, { lane, modo: body.modo || 'headless' });
 
       sendJson(202, { jobId, lane, posicaoFila, estimativaSegundos: 15, enfileiradoEm });
       return;
@@ -1044,7 +1254,7 @@ const server = http.createServer(async (req, res) => {
           enfileirado_em: enfileiradoEm,
         });
 
-        scheduleRunnerTransition(id, jobId);
+        enqueueRunnerExecution(id, jobId, { lane, modo: body.modo || 'headless' });
         jobs.push({ id, jobId, lane, posicaoFila, estimativaSegundos: 15 + jobs.length * 10, enfileiradoEm });
       }
 

@@ -4,6 +4,7 @@ import { Badge, EmptyState, Skeleton, Table } from "@/design-system/orion-audit-
 import { AppShell } from "@/components/layout/AppShell";
 import { RunnerBadge } from "@/components/badges/RunnerBadge";
 import { useRotinas } from "@/hooks/useRotinas";
+import { isRealtimeConfigured } from "@/lib/supabase";
 import { fmtDate } from "@/lib/format";
 import type { RoutineSummary } from "@/types/api";
 import type { WorkloadType } from "@/types/audit";
@@ -41,7 +42,10 @@ function Lane({ lane, rows }: { lane: WorkloadType; rows: RoutineSummary[] }) {
 }
 
 function Fila() {
-  const { data, isLoading } = useRotinas({ pageSize: 500 }, { refetchInterval: 4000 });
+  const { data, isLoading } = useRotinas(
+    { pageSize: 500 },
+    { refetchInterval: isRealtimeConfigured() ? 30000 : 4000 },
+  );
   const rows = data?.data ?? [];
   const ativos = rows.filter((r) => r.runner.estado === "na_fila" || r.runner.estado === "em_execucao").sort((a, b) => (a.runner.posicaoFila ?? 0) - (b.runner.posicaoFila ?? 0));
   const recentes = rows.filter((r) => r.runner.estado === "concluida" || r.runner.estado === "falhou");

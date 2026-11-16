@@ -36,10 +36,13 @@ async function main() {
   // Trava Segura de Mutação (ADR-018): comandos de gravação são demarcados, mas não acionados
   const dryRunMutations = args.includes('--dry-run-mutations') || process.env.ORION_DRY_RUN_MUTATIONS === 'true';
   // Auto-seed de registro mock (ADR-021): ligado por padrão; --no-auto-seed desliga
+  // Write-through para o Supabase (ADR-022/023): ligado por padrão; --no-sync desliga em testes offline
+  const noSync = args.includes('--no-sync') || process.env.ORION_NO_SYNC === 'true';
   const executorOptions: ExecutorOptions = {
     dryRunMutations,
     explore: !args.includes('--no-explore'),
-    autoSeed: !args.includes('--no-auto-seed')
+    autoSeed: !args.includes('--no-auto-seed'),
+    syncToSupabase: !noSync
   };
 
   const phaseArg = argValue(args, '--phase');
@@ -55,6 +58,9 @@ async function main() {
 
   console.log(
     `  Trava Segura de Mutação: ${dryRunMutations ? 'ATIVA — Salvar/Gravar/Confirmar/Concluir/Excluir/Inativar não serão acionados' : 'DESLIGADA — comandos de gravação serão acionados'}`
+  );
+  console.log(
+    `  Sync Supabase em Tempo Real: ${noSync ? 'DESLIGADO (--no-sync)' : 'ATIVO (Write-Through por rotina)'}`
   );
 
   /** Executa um lote de rotinas do KB no Worker Pool, com reinício de estado por rotina. */
@@ -256,7 +262,7 @@ async function main() {
             console.error(`✕ [Fase 3] Pré-triada ${entry.id} sem arquivo no KB (ignorada)`);
             continue;
           }
-          preTriaged.push(await writePreTriagedDddReport(entry, file));
+          preTriaged.push(await writePreTriagedDddReport(entry, file, { syncToSupabase: !noSync }));
         }
         if (args.includes('--pretriage-only')) {
           console.log(`\n✓ Pré-triagem [DDD] concluída: ${preTriaged.length} rotinas de hardware/serviço local (sem navegador).`);
@@ -287,6 +293,7 @@ async function main() {
       console.log('  --dry-run-mutations  demarca comandos de gravação sem acioná-los | --no-explore  desliga a exploração pré-bloqueio');
       console.log('  --phase 3 --pretriage-only  gera apenas os 7 relatórios [DDD] de hardware (sem navegador)');
       console.log('  --no-auto-seed      não cria registro mock quando a grade está vazia (ADR-021)');
+      console.log('  --no-sync           desliga sincronização automática com o Supabase (apenas testes offline)');
     }
   } catch (err: any) {
     console.error(`✕ Erro na execução: ${err.message}`);

@@ -3,6 +3,7 @@ import { Outlet, createRootRouteWithContext, HeadContent, Scripts, Link } from "
 import type { ReactNode } from "react";
 import { FileQuestion } from "lucide-react";
 import { Button, EmptyState } from "@/design-system/orion-audit-console---design-system-bdbb01";
+import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 
 import appCss from "../styles.css?url";
 import themeCss from "../design-system/orion-audit-console---design-system-bdbb01/design-system/theme.css?url";
@@ -56,12 +57,18 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function RealtimeBridge() {
+  useSupabaseRealtime();
+  return null;
+}
+
 // Keep this root providers-only: canvas preview routes (/__mockup,
 // /__component) render inside it, so any chrome leaks into every frame.
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+      <RealtimeBridge />
       <Outlet />
     </QueryClientProvider>
   );

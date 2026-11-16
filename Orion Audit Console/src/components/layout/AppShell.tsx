@@ -4,6 +4,7 @@ import { ChevronRight, Filter, Flag, LayoutDashboard, ListChecks, PanelLeftClose
 import { Badge, Button, Header, Tooltip } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { USE_MOCK } from "@/services/api";
 import { useRevisoes, useRotinas } from "@/hooks/useRotinas";
+import { useRealtimeStatus } from "@/hooks/useSupabaseRealtime";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { PRESETS } from "@/lib/search";
 import { isReviewState } from "@/lib/status";
@@ -70,6 +71,7 @@ function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 }
 
 function Topbar({ crumbs, onSearch }: { crumbs: Crumb[]; onSearch: () => void }) {
+  const realtime = useRealtimeStatus();
   return (
     <Header
       logo={
@@ -84,11 +86,23 @@ function Topbar({ crumbs, onSearch }: { crumbs: Crumb[]; onSearch: () => void })
       }
       actions={
         <>
-          {USE_MOCK && (
+          {USE_MOCK ? (
             <Tooltip content="Dados simulados localmente (VITE_USE_MOCK=true)">
               <Badge status="warning" tabIndex={0}>Mock</Badge>
             </Tooltip>
-          )}
+          ) : realtime === "connected" ? (
+            <Tooltip content="Sincronização em tempo real via Supabase Realtime ativa">
+              <Badge status="passed" tabIndex={0}>Ao vivo</Badge>
+            </Tooltip>
+          ) : realtime === "connecting" ? (
+            <Tooltip content="Conectando ao canal Supabase Realtime">
+              <Badge status="running" tabIndex={0}>Conectando</Badge>
+            </Tooltip>
+          ) : realtime === "error" ? (
+            <Tooltip content="Oscilação no canal Supabase Realtime">
+              <Badge status="warning" tabIndex={0}>Realtime offline</Badge>
+            </Tooltip>
+          ) : null}
           <Button variant="ghost" onClick={onSearch} aria-label="Buscar rotina (Ctrl+K)">
             <Search size={16} strokeWidth={1.5} /> <span className="app-search-label">Buscar rotina</span>
           </Button>

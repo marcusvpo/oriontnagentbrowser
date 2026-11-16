@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Badge, Field, Input } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { AppShell } from "@/components/layout/AppShell";
 import { API_BASE_URL, CONTRACTS_VERSION, USE_MOCK } from "@/services/api";
+import { useRealtimeStatus } from "@/hooks/useSupabaseRealtime";
 
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/configuracoes")({
 });
 
 function Configuracoes() {
+  const realtime = useRealtimeStatus();
   return (
     <AppShell crumbs={[{ label: "Dashboard", to: "/" }, { label: "Configurações" }]}>
       <div className="page-head">
@@ -34,6 +36,24 @@ function Configuracoes() {
           <div className="section-heading"><h2 id="connection-title" className="t-h3 icon-inline"><Cable size={20} strokeWidth={1.5} />Conexão</h2>{USE_MOCK ? <Badge status="warning">Dados simulados</Badge> : <Badge status="passed">Conexão real</Badge>}</div>
           <Field label="Endereço da API" hint={USE_MOCK ? "Ignorada enquanto o modo mock estiver ativo." : undefined}>
             {(p) => <Input {...p} font="mono" readOnly value={API_BASE_URL} />}
+          </Field>
+          <Field label="Supabase Realtime (postgres_changes)">
+            {(p) => (
+              <Input
+                {...p}
+                font="mono"
+                readOnly
+                value={
+                  realtime === "connected"
+                    ? "Conectado (routines, routine_steps, governance_events, runner_jobs, routine_reviews)"
+                    : realtime === "connecting"
+                      ? "Conectando..."
+                      : realtime === "error"
+                        ? "Erro de conexão no canal Realtime"
+                        : "Desabilitado"
+                }
+              />
+            )}
           </Field>
         </section>
         <section className="settings-section" aria-labelledby="contract-title">

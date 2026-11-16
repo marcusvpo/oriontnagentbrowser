@@ -5,6 +5,7 @@ import { removeTwinRoutineFolders } from './executor.js';
 import { parseRoutineMarkdown } from './parser.js';
 import { buildRevisedRoutineDocument } from './report.js';
 import { ENVIRONMENT_BLOCK_TYPE, REVIEW_TAGS, stripReviewPrefix } from './review-taxonomy.js';
+import { syncSingleRoutineToSupabase } from './sync-supabase.js';
 import type { Phase3RoutineEntry } from './manifests/phase3-types.js';
 import type { AuditRoutineReport, RoutineBlockInfo } from './types.js';
 
@@ -19,7 +20,11 @@ import type { AuditRoutineReport, RoutineBlockInfo } from './types.js';
  * O texto dos passos é o do manual, 100% original (Regra da Evidência Estrita): o gerador único do
  * `-revisado.md` (`report.ts`) é o mesmo do executor do KB.
  */
-export async function writePreTriagedDddReport(entry: Phase3RoutineEntry, routineFile: string): Promise<AuditRoutineReport> {
+export async function writePreTriagedDddReport(
+  entry: Phase3RoutineEntry,
+  routineFile: string,
+  options: { syncToSupabase?: boolean } = {}
+): Promise<AuditRoutineReport> {
   const started = Date.now();
   const parsed = parseRoutineMarkdown(routineFile);
   parsed.workloadType = entry.workloadType;
@@ -64,6 +69,17 @@ export async function writePreTriagedDddReport(entry: Phase3RoutineEntry, routin
   // Telemetria antiga (execução anterior com prints) não pode sobreviver a um relatório sem prints
   await fs.promises.rm(path.join(config.rootDir, 'auditoria', 'cache', 'kb-telemetry', `${parsed.id}.json`), { force: true });
   console.log(`[Pré-triagem] ${parsed.id} -> [DDD] ${ENVIRONMENT_BLOCK_TYPE} (sem navegador): ${revisedPath}`);
+
+  if (options.syncToSupabase !== false) {
+    try {
+      await syncSingleRoutineToSupabase(parsed.id, {
+        skipMedia: true,
+        preserveExistingGovernance: false
+      });
+    } catch (syncErr: any) {
+      console.warn(`⚠ [Supabase Write-Through] Falha ao sincronizar pré-triagem ${parsed.id}: ${syncErr?.message || syncErr}`);
+    }
+  }
 
   return {
     id: parsed.id,

@@ -38,6 +38,7 @@ import {
   stripPrerequisiteRoles
 } from './rbac.js';
 import { config } from './config.js';
+import { syncSingleRoutineToSupabase } from './sync-supabase.js';
 import type {
   AnnotationLayoutResult,
   AuditStepResult,
@@ -133,6 +134,11 @@ export interface ExecutorOptions {
    * pré-requisito (grava mesmo com `dryRunMutations`). Default: ligado; `--no-auto-seed` desliga.
    */
   autoSeed?: boolean;
+  /**
+   * Sincronização automática (Write-Through) da rotina concluída com o Supabase (ADR-022/023).
+   * Default: ligado; `--no-sync` desliga apenas para testes offline.
+   */
+  syncToSupabase?: boolean;
 }
 
 const framePrintName = (padStep: string, letter: string) => (letter === 'a' ? `passo-${padStep}.png` : `passo-${padStep}-${letter}.png`);
@@ -1281,6 +1287,18 @@ export async function executeRoutineAudit(
     JSON.stringify(telemetry, null, 2),
     'utf-8'
   );
+
+  // Sincronização em tempo real (Write-Through) com o Supabase sem derrubar lotes em oscilações de rede
+  if (options.syncToSupabase !== false) {
+    try {
+      await syncSingleRoutineToSupabase(parsed.id, {
+        onlyWebp: true,
+        preserveExistingGovernance: false
+      });
+    } catch (syncErr: any) {
+      console.warn(`⚠ [Supabase Write-Through] Falha ao sincronizar ${parsed.id} (execução continua): ${syncErr?.message || syncErr}`);
+    }
+  }
 
   const durationSeconds = Math.round((Date.now() - startTime) / 1000);
 
