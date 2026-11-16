@@ -366,6 +366,11 @@ export interface MissingTargetBlockInput {
   relocationHints: string[];
   /** Comandos de gravação que a Trava Segura de Mutação deixou de acionar antes deste passo */
   skippedCommits: Array<{ stepNumber: number; label: string }>;
+  /**
+   * Evidência lida da árvore de navegação real de que o caminho de menu documentado não existe (ADR-024).
+   * Quando presente, a causa é a defasagem do manual com prova de DOM, sem depender do perfil da sessão.
+   */
+  menuEvidence?: string;
 }
 
 /**
@@ -391,6 +396,20 @@ export function buildMissingTargetBlock(input: MissingTargetBlockInput): Routine
       : '';
   const preserved = ' Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.';
   const head = `No passo ${input.stepNumber}, o manual cita ${list}, que ${scope}.`;
+
+  // ADR-024: caminho de menu inexistente na árvore real. A prova é a própria árvore lida ao vivo: o item
+  // não existe nem marcado como bloqueado/oculto (esses casos viram bloqueio por privilégio antes).
+  if (input.menuEvidence) {
+    return {
+      kind: 'manual_outdated',
+      tipo: MANUAL_OUTDATED_BLOCK_TYPE,
+      motivo: `No passo ${input.stepNumber}, o manual cita um caminho de menu que não existe na versão atual. ${input.menuEvidence}${preserved}`,
+      roteiro: [
+        `Abrir a barra de menus do Orion TN no ambiente de homologação e localizar onde a tela do passo ${input.stepNumber} fica na versão atual.`,
+        'Reescrever o passo no manual com o caminho real e reexecutar a auditoria.'
+      ]
+    };
+  }
 
   if (input.skippedCommits.length > 0) {
     const cmds = input.skippedCommits.map(c => `"${c.label}" (passo ${c.stepNumber})`).join(', ');

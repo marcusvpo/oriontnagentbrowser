@@ -4,7 +4,7 @@ import type {
   RequestReviewResponse, RoutineDetail, RoutineReviewItem, UpdateReviewPayload, UpdateReviewResponse,
 } from "@/types/api";
 import { ApiError, type ReexecuteBatchPayload, type ReexecuteBatchResponse } from "@/services/api";
-import { isReviewState } from "@/lib/status";
+import { isReviewState, tagsOf } from "@/lib/status";
 import { buildRotinas } from "./rotinas.mock";
 import { baseStats } from "./stats.mock";
 
@@ -88,6 +88,7 @@ export const mockApi = {
     if (q.secao?.length) rows = rows.filter((r) => q.secao!.includes(r.secao));
     if (q.statusAuditoria?.length) rows = rows.filter((r) => q.statusAuditoria!.includes(r.statusAuditoria));
     if (q.statusGovernanca?.length) rows = rows.filter((r) => q.statusGovernanca!.includes(r.statusGovernanca));
+    if (q.tagRevisao?.length) rows = rows.filter((r) => tagsOf(r.statusAuditoria, r.tagsRevisao).some((t) => q.tagRevisao!.includes(t)));
     if (q.carga) rows = rows.filter((r) => r.workloadType === q.carga);
     if (q.temVideo !== undefined) rows = rows.filter((r) => r.temVideo === q.temVideo);
     if (q.comDivergencias !== undefined) rows = rows.filter((r) => (r.divergenciasCount > 0) === q.comDivergencias);

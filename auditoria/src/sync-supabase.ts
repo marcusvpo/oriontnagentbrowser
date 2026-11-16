@@ -4,14 +4,24 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'yaml';
 import { parseRoutineMarkdown } from './parser.js';
 import { classifyRoutineWorkload } from './worker-pool.js';
-import { auditPrint, loadPrintTelemetry, printNameOf, type PrintTelemetry } from './invariants.js';
+import { auditPrint, externalStepsFromMd, loadPrintTelemetry, printNameOf, type PrintTelemetry } from './invariants.js';
 import {
   getSupabaseAdmin,
   isSupabaseConfigured,
   SUPABASE_STORAGE_BUCKET,
   SUPABASE_URL,
 } from './supabase.js';
-import { LEGACY_PREFIX_RE, isReviewStatus, statusFromPrefix, stripReviewPrefix } from './review-taxonomy.js';
+import {
+  EXTERNAL_PORTAL_BLOCK_TYPE,
+  LEGACY_PREFIX_RE,
+  isBlockingReviewStatus,
+  isReviewStatus,
+  normalizeReviewTags,
+  reviewTagsFor,
+  statusFromPrefix,
+  stripReviewPrefix,
+  tagsFromPrefix
+} from './review-taxonomy.js';
 import type {
   AnnotationLayoutResult,
   DOMResolvedGeometry,
@@ -429,8 +439,28 @@ async function buildRoutineRecords(params: {
 
   const stepsCount = Math.max(parsedKb?.steps?.length || 0, printsGeradas, telSteps.length);
 
+  // ADR-024: lista completa de tags (ordem canônica) e passos externos ao Orion TN, lidos do relatório
+  const tagsRevisao: string[] = !auditedInfo
+    ? []
+    : Array.isArray(auditoriaUi?.review_tags)
+      ? normalizeReviewTags(auditoriaUi.review_tags)
+      : tagsFromPrefix(auditedInfo.slug).length > 0
+        ? tagsFromPrefix(auditedInfo.slug)
+        : reviewTagsFor(statusAuditoria);
+  const externalByStep = new Map(externalStepsFromMd(revMdContent).map(e => [e.stepNumber, e.portal] as const));
+
   let bloqueio: any = null;
-  if (isReviewStatus(statusAuditoria)) {
+  if (statusAuditoria === 'comunicacao_externa') {
+    // `[CCC]` sozinha: nenhuma etapa do Orion TN bloqueou; só há etapas em portal externo a validar por humano
+    const summary = revMdContent.match(/ROTINA COM ETAPAS EM AMBIENTE EXTERNO[^\n]*\n>\s*(.+)/)?.[1]?.trim();
+    bloqueio = {
+      tipo: auditoriaUi?.tipo_bloqueio || EXTERNAL_PORTAL_BLOCK_TYPE,
+      motivo: summary || 'Parte do passo a passo ocorre em portal externo ao Orion TN e não foi executada pelo agente.',
+      roteiroManual: Array.from(externalByStep.entries()).map(
+        ([n, portal]) => `Validar manualmente, no ambiente externo (${portal}), o passo ${n} do manual.`
+      )
+    };
+  } else if (isReviewStatus(statusAuditoria)) {
     const tipo = auditoriaUi?.tipo_bloqueio || 'Revisão Técnica Necessária';
     let motivo = 'Esta rotina atua fora do escopo do navegador Chromium ou exige acesso a hardware/rede.';
     const cautionMatch = revMdContent.match(/> \*\*Motivo Técnico:\*\*\s*(.+)/);
@@ -467,6 +497,7 @@ async function buildRoutineRecords(params: {
     tem_video: temVideo,
     workload_type: workloadType,
     status_auditoria: statusAuditoria,
+    tags_revisao: tagsRevisao,
     status_governanca: statusGovernanca,
     pasta_auditoria: pastaAuditoria,
     total_passos: stepsCount || 1,
@@ -576,9 +607,13 @@ async function buildRoutineRecords(params: {
       }
     }
 
+    // ADR-024: passo em portal externo não tem print por desenho: nunca é "blocked" por falta de mídia
+    const externalPortal = externalByStep.get(s);
     let stepStatus = 'nao_executado';
     if (statusAuditoria !== 'nao_auditada') {
-      if (telItem?.status === 'blocked' || (isReviewStatus(statusAuditoria) && !media)) {
+      if (externalPortal !== undefined) {
+        stepStatus = 'ok';
+      } else if (telItem?.status === 'blocked' || (isBlockingReviewStatus(statusAuditoria) && !media)) {
         stepStatus = 'blocked';
       } else if (divergence || isModified) {
         stepStatus = 'modified';
@@ -637,6 +672,8 @@ async function buildRoutineRecords(params: {
       validated_text: validatedText,
       is_modified: isModified,
       status: stepStatus,
+      step_scope: externalPortal !== undefined ? 'external_portal' : 'orion_tn',
+      portal_externo: externalPortal ?? null,
       media,
       dom_geometry: domGeometry || null,
       layout_result: layoutResult || null,

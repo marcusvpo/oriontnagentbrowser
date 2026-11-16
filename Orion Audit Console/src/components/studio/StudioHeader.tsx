@@ -22,7 +22,7 @@ export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdi
       <div className="row-between">
         <div className="stack-1 grow">
           <div className="row">
-            <span className="t-mono crimson">{reviewPrefix(s.statusAuditoria)}{s.id}</span>
+            <span className="t-mono crimson">{reviewPrefix(s.statusAuditoria, s.tagsRevisao)}{s.id}</span>
             <span className="t-overline-xs">{rotina.auditoriaUi?.versao_homologacao ?? "—"}</span>
           </div>
           <h1 className="t-h2">{s.titulo}</h1>
@@ -36,7 +36,7 @@ export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdi
       </div>
       <div className="row-between">
         <div className="row">
-          <AuditStatusBadge status={s.statusAuditoria} divergencias={s.divergenciasCount} />
+          <AuditStatusBadge status={s.statusAuditoria} divergencias={s.divergenciasCount} tags={s.tagsRevisao} />
           <GovernanceBadge status={s.statusGovernanca} />
           <RunnerBadge runner={s.runner} />
           <WorkloadChip type={s.workloadType} />

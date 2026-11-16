@@ -4,7 +4,8 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { getSupabaseAdmin, isSupabaseConfigured, SUPABASE_URL } from './supabase.js';
-import { REVIEW_TAGS, isReviewStatus } from './review-taxonomy.js';
+import { REVIEW_TAGS, isReviewStatus, normalizeReviewTags, reviewTagsFor } from './review-taxonomy.js';
+import { auditExternalSteps } from './invariants.js';
 import { persistRoutineGovernanceToDisk, type GovernanceDiskUpdate } from './governance-disk.js';
 import { syncSingleRoutineToSupabase } from './sync-supabase.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
@@ -34,10 +35,10 @@ export type Modulo =
 
 export type Secao = 'R' | 'V' | 'M' | 'D' | 'C';
 export type PhaseNumber = 1 | 2 | 3 | 4 | 5 | 6;
-// ADR-021: `[ATT]`/`[DDD]`/`[XRX]` substituem o `requer_revisao_humana` (`[!!!]`)
+// ADR-021/024: `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` substituem o `requer_revisao_humana` (`[!!!]`)
 export type RoutineAuditState = RoutineAuditStatus | 'nao_auditada';
 
-/** Os 3 status de revisão humana contam como "bloqueadas" nos painéis e exigem confirmação para aprovar. */
+/** Os 4 status de revisão humana contam como "em revisão" nos painéis e exigem confirmação para aprovar. */
 const isReview = (s: string | null | undefined): boolean => isReviewStatus(s);
 export type GovernanceStatus = 'pendente_aprovacao' | 'aprovada' | 'revisao_solicitada';
 export type RunnerJobState = 'idle' | 'na_fila' | 'em_execucao' | 'concluida' | 'falhou';
@@ -62,6 +63,8 @@ interface RoutineSummary {
   temVideo: boolean;
   workloadType: WorkloadType;
   statusAuditoria: RoutineAuditState;
+  /** Todas as tags da rotina em ordem canônica (ADR-024), ex.: `['ATT', 'CCC']`; vazio fora da revisão humana */
+  tagsRevisao: string[];
   statusGovernanca: GovernanceStatus;
   runner: RunnerJobInfo;
   pastaAuditoria: string | null;
@@ -102,6 +105,7 @@ function mapRoutineSummary(row: any, latestJob?: any): RoutineSummary {
     temVideo: Boolean(row.tem_video),
     workloadType: row.workload_type as WorkloadType,
     statusAuditoria: row.status_auditoria as RoutineAuditState,
+    tagsRevisao: normalizeReviewTags(Array.isArray(row.tags_revisao) && row.tags_revisao.length > 0 ? row.tags_revisao : reviewTagsFor(row.status_auditoria)),
     statusGovernanca: row.status_governanca as GovernanceStatus,
     runner: mapJobRow(latestJob),
     pastaAuditoria: row.pasta_auditoria || null,
@@ -223,7 +227,7 @@ async function fetchAllRoutinesSummary(): Promise<{ summaries: RoutineSummary[];
   const supabase = getSupabaseAdmin();
   const [{ data: rData, error: rErr }, { data: jData, error: jErr }] = await Promise.all([
     supabase.from('routines').select(
-      'id, titulo, modulo, secao, fase, tem_video, workload_type, status_auditoria, status_governanca, pasta_auditoria, total_passos, prints_geradas, divergencias_count, menor_confianca, rotas_hash, tags, data_execucao, worker_id, duration_seconds, thumbnail_url, auditoria_ui, updated_at'
+      'id, titulo, modulo, secao, fase, tem_video, workload_type, status_auditoria, tags_revisao, status_governanca, pasta_auditoria, total_passos, prints_geradas, divergencias_count, menor_confianca, rotas_hash, tags, data_execucao, worker_id, duration_seconds, thumbnail_url, auditoria_ui, updated_at'
     ),
     supabase.from('runner_jobs').select('*').order('enfileirado_em', { ascending: false }),
   ]);
@@ -276,6 +280,7 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
           validado_inalterado: aprovadas,
           validado_com_ajustes: 0,
           atualizacao_editorial: 0,
+          comunicacao_externa: 0,
           dependencia_dados_banco: 0,
           dependencia_cruzada_rotina: 0,
           nao_auditada: Math.max(0, total - aprovadas),
@@ -294,6 +299,7 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
         validado_inalterado: ok,
         validado_com_ajustes: adj,
         atualizacao_editorial: countStatus(rInPhase, 'atualizacao_editorial'),
+        comunicacao_externa: countStatus(rInPhase, 'comunicacao_externa'),
         dependencia_dados_banco: countStatus(rInPhase, 'dependencia_dados_banco'),
         dependencia_cruzada_rotina: countStatus(rInPhase, 'dependencia_cruzada_rotina'),
         nao_auditada: total - aud,
@@ -409,6 +415,9 @@ async function fetchRoutineDetail(id: string) {
     validatedText: s.validated_text,
     isModified: Boolean(s.is_modified),
     status: s.status,
+    // ADR-024: passo de portal externo não tem print por desenho (não é erro de paridade)
+    stepScope: s.step_scope ?? 'orion_tn',
+    portalExterno: s.portal_externo ?? undefined,
     media: s.media ? { ...s.media, subCapturas: undefined } : null,
     // Sub-capturas (passo-NN-b...): ficam em `media.subCapturas` para não exigir nova coluna (ADR-018)
     subCapturas: Array.isArray(s.media?.subCapturas) ? s.media.subCapturas : [],
@@ -458,6 +467,9 @@ async function fetchRoutineDetail(id: string) {
           }
         : null,
     auditoriaUi: rRow.auditoria_ui || null,
+    // ADR-024: passos de portal externo aceitos sem `passo-NN.png`; os problemas reais (print em passo externo,
+    // callout ausente, [CCC] faltando) vêm do mesmo validador usado em `verify-all-phase2-boxes.ts`
+    passosExternos: auditExternalSteps(rRow.markdown_revisado || ''),
     steps,
     frontmatterOriginalYaml: rRow.frontmatter_original_yaml || '',
     frontmatterRevisadoYaml: rRow.frontmatter_revisado_yaml || '',
@@ -682,6 +694,8 @@ const server = http.createServer(async (req, res) => {
       const secaoParam = params.getAll('secao');
       const statusAuditoriaParam = params.getAll('statusAuditoria');
       const statusGovernancaParam = params.getAll('statusGovernanca');
+      // ADR-024: filtro por tag (ATT, CCC, DDD, XRX), que enxerga também as tags adicionais de uma rotina multi-tag
+      const tagRevisaoParam = params.getAll('tagRevisao').map(t => t.toUpperCase());
       const cargaParam = params.get('carga');
       const temVideoParam = params.get('temVideo');
       const comDivergenciasParam = params.get('comDivergencias');
@@ -704,6 +718,7 @@ const server = http.createServer(async (req, res) => {
       if (secaoParam.length > 0) filtered = filtered.filter(r => secaoParam.includes(r.secao));
       if (statusAuditoriaParam.length > 0) filtered = filtered.filter(r => statusAuditoriaParam.includes(r.statusAuditoria));
       if (statusGovernancaParam.length > 0) filtered = filtered.filter(r => statusGovernancaParam.includes(r.statusGovernanca));
+      if (tagRevisaoParam.length > 0) filtered = filtered.filter(r => r.tagsRevisao.some(t => tagRevisaoParam.includes(t)));
       if (cargaParam) filtered = filtered.filter(r => r.workloadType === cargaParam);
       if (temVideoParam !== null && temVideoParam !== '') {
         const tv = temVideoParam === 'true';

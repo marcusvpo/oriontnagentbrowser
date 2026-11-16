@@ -306,9 +306,21 @@ export interface PrivilegeGateResult {
  * Taxonomia de revisão humana (ADR-021), que substitui o `[!!!]` genérico:
  * - `atualizacao_editorial` `[ATT]`: o manual cita tela/caminho/campo que não existe mais na versão atual;
  * - `dependencia_dados_banco` `[DDD]`: faltam registros no banco de homologação (ou o ambiente/hardware não permite);
- * - `dependencia_cruzada_rotina` `[XRX]`: depende da execução prévia de outra rotina.
+ * - `dependencia_cruzada_rotina` `[XRX]`: depende da execução prévia de outra rotina;
+ * - `comunicacao_externa` `[CCC]` (ADR-024): parte do passo a passo ocorre em portal externo ao Orion TN. Não
+ *   bloqueia a auditoria das etapas do Orion TN e pode vir junto de outra tag (`[ATT][CCC]`).
  */
-export type ReviewStatus = 'atualizacao_editorial' | 'dependencia_dados_banco' | 'dependencia_cruzada_rotina';
+export type ReviewStatus =
+  | 'atualizacao_editorial'
+  | 'comunicacao_externa'
+  | 'dependencia_dados_banco'
+  | 'dependencia_cruzada_rotina';
+
+/**
+ * Escopo de um passo (ADR-024): `external_portal` ocorre em portal/serviço externo ao Orion TN (SISCOAF,
+ * e-Notariado, CENSEC, CRC, CNB, Receita Federal...) e nunca é executado nem fotografado; `orion_tn` é auditado.
+ */
+export type StepScope = 'external_portal' | 'orion_tn';
 
 /** Status gravado no `-revisado.md` (`auditoria_ui.status`) e no banco. */
 export type RoutineAuditStatus = 'validado_inalterado' | 'validado_com_ajustes' | ReviewStatus;
@@ -376,6 +388,24 @@ export interface RoutineBlockInfo {
   emptyState?: EmptyStateEvidence;
 }
 
+/** Evidência real de um caminho de menu inexistente (ADR-024), lida da árvore de navegação ao vivo. */
+export interface MenuPathMissingEvidence {
+  /** Caminho citado no manual, `A > B > C` */
+  documented: string;
+  /** Maior prefixo do caminho que existe na árvore (`Notas > Certidões`); vazio se nem o menu raiz existe */
+  existingPrefix: string[];
+  /** Primeiro segmento que não existe (`Novo Pedido de Certidão`) */
+  missingSegment: string;
+  /** Itens reais do último nível existente (filhos do prefixo), para o relatório */
+  siblings: string[];
+  /** Menus raiz lidos da barra de navegação */
+  roots: string[];
+  /** Total de itens da árvore de navegação lidos */
+  treeSize: number;
+  /** Nome da folha encontrado em outro ponto da árvore (apenas pista), se houver */
+  leafElsewhere?: string[];
+}
+
 /**
  * Resultado retornado pelo `smart-locator.ts` após resolver um passo.
  */
@@ -390,6 +420,13 @@ export interface SmartLocatorResult {
   validatedText?: string;
   /** O alvo existe, mas está bloqueado/oculto para o perfil logado: bloqueio por privilégio (ADR-017) */
   permissionBlocked?: { target: string; detail: string; domEvidence?: string };
+  /**
+   * Caminho de menu documentado que NÃO existe na árvore de navegação real (ADR-024): o passo não é curado
+   * para outro elemento; a evidência lida da árvore vai para o bloqueio `[ATT]`.
+   */
+  menuPathMissing?: MenuPathMissingEvidence;
+  /** O caminho existe na árvore, mas a cascata não pôde ser aberta/mantida: falha técnica, não defasagem do manual */
+  menuPathOpenFailed?: string;
   /**
    * Divergências de alvos individuais de um passo com múltiplos alvos (ADR-016): rótulos curados para
    * o nome real da tela ou não localizados na zona de conteúdo, mesmo quando o passo foi demarcado.
@@ -522,6 +559,10 @@ export interface RoutineStep {
   mainTargetCount?: number;
   /** Política de zona explícita; se ausente, é inferida do texto via `inferStepZone()` (ADR-015) */
   zone?: StepZonePolicy;
+  /** Escopo do passo, decidido na pré-análise da rotina inteira antes de abrir o navegador (ADR-024) */
+  scope?: StepScope;
+  /** Portal/serviço externo do passo `external_portal` (ex.: `SISCOAF`) */
+  externalPortal?: string;
 }
 
 export interface ParsedRoutine {
@@ -542,6 +583,10 @@ export interface AuditStepResult {
   stepNumber: number;
   /** Rótulo do manual casado com o nome real da tela sem mudar o texto (ADR-020): rotina vira `validado_com_ajustes` */
   adjusted?: boolean;
+  /** `external_portal`: passo fora do Orion TN, não executado nem fotografado (ADR-024) */
+  stepScope?: StepScope;
+  /** Portal externo do passo `external_portal` */
+  externalPortal?: string;
   /** Balões de ajuda "i" lidos ao vivo na tela do passo (ADR-020) */
   helpTooltips?: import('./help-tooltips.js').HelpTooltip[];
   originalText: string;
@@ -592,6 +637,10 @@ export interface AuditRoutineReport {
   divergences?: SmartLocatorDivergence[];
   /** Bloqueio estruturado (RBAC Gate, alvo sem evidência...) quando a rotina é `[ATT]`/`[DDD]`/`[XRX]` */
   block?: RoutineBlockInfo;
+  /** Todas as tags da rotina em ordem canônica (ADR-024), ex.: `['ATT', 'CCC']` */
+  reviewTags?: Array<'ATT' | 'CCC' | 'DDD' | 'XRX'>;
+  /** Passos executados fora do Orion TN (ADR-024) */
+  externalSteps?: Array<{ stepNumber: number; portal: string }>;
   /** Registros mock criados pelo auto-seed durante a rotina (ADR-021) */
   seededRecords?: SeededRecord[];
   /** Resultado do RBAC Gate executado antes do passo 1 (ADR-017) */

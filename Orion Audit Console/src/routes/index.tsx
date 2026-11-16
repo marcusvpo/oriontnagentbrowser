@@ -57,7 +57,7 @@ function Dashboard() {
             <KpiCard label="Auditadas" value={String(s.auditadas)} delta={`${fmtPct(s.auditadas / s.totalRotinas)} do total`} trend="up" search={{ status: `validado_inalterado,validado_com_ajustes,${REVIEW_FILTER}` }} />
             <KpiCard label="Taxa de aprovação" value={fmtPct(s.taxaAprovacao)} delta={`${s.aprovadas} aprovadas ÷ ${s.auditadas} auditadas`} trend="up" search={{ gov: "aprovada" }} />
             <KpiCard label="Auto-curadas" value={String(s.autoCuradas)} delta="Divergências corrigidas" search={{ status: "validado_com_ajustes" }} />
-            <KpiCard label="Em revisão [ATT][DDD][XRX]" value={String(s.bloqueadas)} delta="Exigem validação manual" trend="down" search={{ status: REVIEW_FILTER }} />
+            <KpiCard label="Em revisão [ATT][CCC][DDD][XRX]" value={String(s.bloqueadas)} delta="Exigem validação manual" trend="down" search={{ status: REVIEW_FILTER }} />
             <KpiCard label="Não auditadas" value={String(s.naoAuditadas)} delta={`${fmtPct(s.naoAuditadas / s.totalRotinas)} restantes`} search={{ status: "nao_auditada" }} />
           </div>
 

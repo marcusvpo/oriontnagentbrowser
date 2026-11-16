@@ -10,7 +10,7 @@ import { listRoutineBoldTargets, probeTargetsPresence } from './evidence.js';
 import { buildRevisedRoutineDocument, type EvidencePrint } from './report.js';
 import { RBAC_BLOCK_TYPE, buildPrivilegeGateBlock, runPrivilegeGate } from './rbac.js';
 import { classifyBlock } from './review-classifier.js';
-import { REVIEW_TAGS, isReviewStatus, reviewPrefix } from './review-taxonomy.js';
+import { isReviewStatus, reviewPrefix, stripReviewPrefix } from './review-taxonomy.js';
 import { config } from './config.js';
 import type {
   RoutineAuditStatus,
@@ -1208,9 +1208,10 @@ async function runSingleRoutineLive(
     }
   }
   // Variantes antigas da mesma rotina (prefixo legado [!!!] ou outra tag) ficariam duplicadas
-  for (const variant of [`[!!!] ${routine.slug}`, routine.slug, ...Object.values(REVIEW_TAGS).map(m => `${m.prefix}${routine.slug}`)]) {
+  // (ADR-024: varredura da pasta do módulo, pois a combinação de tags é aberta: `[ATT][CCC] ...`)
+  for (const variant of await fs.promises.readdir(baseModuleDir)) {
     const stale = path.join(baseModuleDir, variant);
-    if (variant !== finalSlug && stale !== targetDir && fs.existsSync(stale)) {
+    if (variant !== finalSlug && stale !== targetDir && stripReviewPrefix(variant) === routine.slug) {
       await fs.promises.rm(stale, { recursive: true, force: true });
     }
   }

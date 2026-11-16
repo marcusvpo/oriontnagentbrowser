@@ -37,7 +37,7 @@ export function CommandSearch({ open, onClose }: { open: boolean; onClose: () =>
           {rows.map((r, i) => (
             <li key={r.id}>
               <button className="cmd-item" role="option" aria-selected={i === sel} onMouseEnter={() => setSel(i)} onClick={() => go(r.id)}>
-                <span className="t-mono nowrap">{reviewPrefix(r.statusAuditoria)}{r.id}</span>
+                <span className="t-mono nowrap">{reviewPrefix(r.statusAuditoria, r.tagsRevisao)}{r.id}</span>
                 <span className="grow">{r.titulo}</span>
                 {q.startsWith("#/") && <span className="chip"><Hash size={12} strokeWidth={1.5} />{r.rotasHash[0]}</span>}
                 <AuditStatusBadge status={r.statusAuditoria} />

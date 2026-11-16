@@ -4,9 +4,9 @@ import sharp from 'sharp';
 import { parseRoutineMarkdown } from './parser.js';
 import { annotateScreenshot } from './annotator.js';
 import { AgentBrowserClient } from './browser.js';
-import { ensureAuthenticated } from './auth.js';
+import { ensureAuthenticated, isSessionActiveInPage, noteFullReset, noteLightReset } from './auth.js';
 import { locateAndCaptureWithSelfHealing, hasNavigationIntent, buildCalloutsFromGroup, inferStepZone } from './smart-locator.js';
-import { extractMenuPaths } from './menu-path.js';
+import { describeMenuPathMissing, extractMenuPaths } from './menu-path.js';
 import { classifyRoutineWorkload } from './worker-pool.js';
 import { generateMockPerson } from './mock-generator.js';
 import { lockStepText, revealTextChange } from './evidence.js';
@@ -19,7 +19,9 @@ import { autoSeedMockRecord, routineNeedsExistingRows } from './auto-seed.js';
 import { ACTIVE_MODAL_SELECTOR, closeActiveModals } from './modal-scope.js';
 import { detectImplicitTargets } from './implicit-targets.js';
 import { classifyBlock, describeStatus } from './review-classifier.js';
-import { REVIEW_TAGS, reviewPrefix, stripReviewPrefix } from './review-taxonomy.js';
+import { describeTags, reviewPrefix, reviewTagsFor, stripReviewPrefix, type ReviewTag } from './review-taxonomy.js';
+import { stampStepScopes, stripProductNameTargets } from './step-scope.js';
+import { isGlobalSearchName, isStrictNavigationStep } from './navigation-guard.js';
 import {
   readScreenSnapshot,
   snapshotKey,
@@ -51,6 +53,7 @@ import type {
   SmartLocatorResult,
   DOMResolvedGeometry,
   ExecutedStepAction,
+  PrivilegeGateResult,
   RevealExplorationLog,
   RevealTriggerInfo,
   RoutineBlockInfo,
@@ -111,6 +114,10 @@ export interface KbStepTelemetry {
   implicitTargets?: string[];
   /** Tag de revisão final da rotina (só na 1ª entrada): `atualizacao_editorial`, `dependencia_dados_banco`... */
   reviewStatus?: string;
+  /** Todas as tags da rotina em ordem canônica (só na 1ª entrada; ADR-024), ex.: `['ATT', 'CCC']` */
+  reviewTags?: string[];
+  /** Passos executados fora do Orion TN, sem print por desenho (só na 1ª entrada; ADR-024) */
+  externalSteps?: Array<{ stepNumber: number; portal: string }>;
   status: 'ok' | 'blocked';
   /** `rbac`: bloqueio por privilégio — não é discrepância geométrica */
   blockKind?: RoutineBlockInfo['kind'];
@@ -144,13 +151,61 @@ export interface ExecutorOptions {
 const framePrintName = (padStep: string, letter: string) => (letter === 'a' ? `passo-${padStep}.png` : `passo-${padStep}-${letter}.png`);
 
 /**
+ * Reset leve entre rotinas (ADR-024): com a sessão já ativa na página (`isSessionActiveInPage`), só fecha os
+ * modais abertos (`.orion-lightweight-modal` e Bootstrap) e volta ao início por hash. Não passa por
+ * `about:blank`, não recarrega `/webFirmas` e não repete o login WildFly SSO. Se a página é o portal
+ * (`/webPortal`), entra no módulo Orion TN com a mesma sessão (sem login). Devolve `false` quando o estado
+ * não ficou limpo (modal persistente, rota diferente da inicial, tela com erro): o reset completo assume.
+ */
+async function tryLightReset(client: AgentBrowserClient): Promise<boolean> {
+  try {
+    const probe = await isSessionActiveInPage(client);
+    if (!probe.active) return false;
+    const homeHash = (() => {
+      try {
+        return new URL(config.appHomeUrl).hash || '#/inicio';
+      } catch {
+        return '#/inicio';
+      }
+    })();
+
+    const modals = await closeActiveModals(client);
+    if (modals.remaining > 0) return false;
+
+    if (probe.where === 'orion_tn') {
+      await client.eval(`window.location.hash = ${JSON.stringify(homeHash)}; true`);
+    } else {
+      await client.open(config.appHomeUrl);
+    }
+    await client.wait(probe.where === 'orion_tn' ? 1200 : 2500);
+    if (await client.ensureViewport(config.viewportWidth, config.viewportHeight)) await client.wait(800);
+
+    const screen = await client.probeScreenLoaded();
+    if (!screen.ok || screen.hash !== homeHash) {
+      console.log(`[Auditoria] Reset leve não deixou o início limpo (${screen.reason || `rota ${screen.hash}`}); usando o reset completo.`);
+      return false;
+    }
+    noteLightReset();
+    console.log(
+      `[Auditoria] Reset leve: sessão ativa reaproveitada (${probe.where}); ${modals.closed} modal(is) fechado(s) e navegação por hash ${homeHash}, sem recarga nem login.`
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Leva o worker à tela inicial autenticada com a página recarregada: a rotina anterior do lote pode
  * ter deixado um modal, um formulário ou um menu aberto. Reautentica se a sessão caiu.
+ * Com a sessão já ativa, o reset é leve (ADR-024) e só o recurso de recarga completa recorre a `about:blank`.
  */
 async function resetToHome(client: AgentBrowserClient): Promise<void> {
   // Rotina anterior que falhou no meio de um formulário pode ter deixado um diálogo nativo
   // (`beforeunload`/alert) pendente: ele travaria o `open`/`reload` seguinte.
   await client.dismissPendingDialog();
+  if (await tryLightReset(client)) return;
+  noteFullReset();
 
   /**
    * Reinicia o daemon do worker (a sessão e o estado de login voltam do arquivo `--state`). Último
@@ -286,6 +341,20 @@ export async function executeRoutineAudit(
     );
   }
 
+  // ADR-024: pré-análise da rotina completa ANTES de abrir o navegador. Passos em portal externo ao Orion TN
+  // (SISCOAF, e-Notariado, CENSEC...) não são executados nem fotografados; a execução ao vivo começa no
+  // primeiro passo `orion_tn`.
+  const scope = stampStepScopes(parsed);
+  if (scope.hasExternal) {
+    console.log(
+      `[Escopo de Passos] ${scope.externalSteps.length} passo(s) externo(s) ao Orion TN (${scope.portals.join(', ')}): ${scope.externalSteps.map(s => s.stepNumber).join(', ')}. ` +
+        (scope.firstInternalStep != null
+          ? `A execução no navegador começa no passo ${scope.firstInternalStep}.`
+          : 'Nenhum passo roda no Orion TN: o navegador não é aberto.')
+    );
+  }
+  const internalSteps = parsed.steps.filter(s => s.scope !== 'external_portal');
+
   const fileName = path.basename(routineFilePath, '.md');
   const baseModuleDir = path.join(config.outputDir, parsed.modulo);
   let routineDir = path.join(baseModuleDir, fileName);
@@ -305,9 +374,11 @@ export async function executeRoutineAudit(
   const cacheDir = path.join(config.rootDir, 'auditoria', 'cache', 'raw');
   await fs.promises.mkdir(cacheDir, { recursive: true });
 
-  if (options.resetToHome) await resetToHome(client);
+  // ADR-024: rotina inteira externa não toca o navegador (nada a navegar, medir ou fotografar)
+  const usesBrowser = internalSteps.length > 0;
+  if (usesBrowser && options.resetToHome) await resetToHome(client);
   // ADR-021 §2: observador de toasts instalado antes de qualquer navegação (o toast some em poucos segundos)
-  await installToastObserver(client).catch(() => undefined);
+  if (usesBrowser) await installToastObserver(client).catch(() => undefined);
 
   const stepResults: AuditStepResult[] = [];
   const divergences: SmartLocatorDivergence[] = [];
@@ -447,7 +518,18 @@ export async function executeRoutineAudit(
   // RBAC GATE (ADR-017/ADR-018): o perfil exigido pelo manual é conferido contra a identidade real da
   // sessão ANTES de qualquer passo. Só uma sessão comprovadamente restrita bloqueia aqui.
   // =========================================================================
-  const gate = await runPrivilegeGate(client, parsed);
+  // ADR-024: o requisito de perfil só vale para os passos do Orion TN ("o Tabelião Titular acessa o portal
+  // SISCOAF" é privilégio do portal, não da conta de homologação do Orion TN).
+  const gate: PrivilegeGateResult = usesBrowser
+    ? await runPrivilegeGate(client, { ...parsed, steps: internalSteps })
+    : {
+        satisfied: true,
+        requirement: null,
+        identity: null,
+        reason: 'Nenhum passo da rotina roda no Orion TN; o RBAC Gate não se aplica.',
+        state: 'not_required',
+        fullAccess: false
+      };
   const sessionLabel = gate.identity
     ? `${gate.identity.login} (cargo ${gate.identity.position || '-'}; ${gate.identity.profiles.join(', ') || 'sem perfil'})`
     : 'não identificada';
@@ -459,11 +541,13 @@ export async function executeRoutineAudit(
   if (!gate.satisfied) {
     block = buildPrivilegeGateBlock(gate);
     console.warn(`⛔ [RBAC Gate] ${RBAC_BLOCK_TYPE}: ${gate.reason}`);
-    const first = parsed.steps[0];
+    // O 1º passo do Orion TN (ADR-024): um passo externo nunca recebe a print da tela do sistema
+    const first = internalSteps[0];
     if (first) {
-      const printFileName = 'passo-01.png';
+      const firstPad = String(first.stepNumber).padStart(2, '0');
+      const printFileName = `passo-${firstPad}.png`;
       const finalPrintPath = path.join(routineDir, printFileName);
-      const rawStepPath = path.join(cacheDir, `${fileName}-passo-01-raw.png`);
+      const rawStepPath = path.join(cacheDir, `${fileName}-passo-${firstPad}-raw.png`);
       await client.screenshot(rawStepPath);
       const webp = await saveCleanPrint(rawStepPath, finalPrintPath);
       generatedPrints.push(printFileName);
@@ -489,8 +573,32 @@ export async function executeRoutineAudit(
   }
 
   for (const originalStep of gate.satisfied ? parsed.steps : []) {
+    // ADR-024: passo em portal externo — sem ação no navegador e sem print. O resultado fica registrado (por
+    // número do passo) para o relatório, que preserva o texto original e acrescenta o callout informativo.
+    if (originalStep.scope === 'external_portal') {
+      console.log(`\n-> Passo ${originalStep.stepNumber} [externo: ${originalStep.externalPortal}] não executado: ${originalStep.rawText}`);
+      stepResults.push({
+        stepNumber: originalStep.stepNumber,
+        originalText: originalStep.rawText,
+        validatedText: originalStep.rawText,
+        isModified: false,
+        screenshotRawPath: '',
+        screenshotAnnotatedPath: '',
+        printFiles: [],
+        stepScope: 'external_portal',
+        externalPortal: originalStep.externalPortal,
+        status: 'ok'
+      });
+      continue;
+    }
+
     // Passo de pré-requisito de perfil (ADR-018): os papéis em negrito não são elementos de tela
-    const { step: manualStep, removedRoles } = stripPrerequisiteRoles(originalStep, gate.requirement);
+    const { step: roleStrippedStep, removedRoles } = stripPrerequisiteRoles(originalStep, gate.requirement);
+    // ADR-024: "No **Orion TN**, ..." cita o produto, não um elemento de tela
+    const { step: manualStep, removed: removedProduct } = stripProductNameTargets(roleStrippedStep);
+    if (removedProduct.length > 0) {
+      console.log(`   [Retorno ao Orion TN] "${removedProduct.join('", "')}" é o nome do produto, não um alvo de tela; removido da lista de alvos.`);
+    }
     await installToastObserver(client).catch(() => undefined);
 
     // ADR-021 §4: passo sem negrito com verbo de ação + substantivo de controle ("localize a cidade pelo
@@ -738,9 +846,11 @@ export async function executeRoutineAudit(
       names: string[],
       partial: boolean,
       exploration: RevealExplorationLog | undefined,
-      skippedReason?: string
+      skippedReason?: string,
+      menuEvidence?: string
     ): Promise<RoutineBlockInfo> =>
       buildMissingTargetBlock({
+        menuEvidence,
         stepNumber: step.stepNumber,
         targets: names,
         partial,
@@ -1033,6 +1143,11 @@ export async function executeRoutineAudit(
         // gatilhos reveladores seguros. Se um deles revelar o alvo, o passo é validado com o sub-passo
         // real: print principal no gatilho e sub-captura no alvo.
         // =====================================================================
+        // ADR-024: o caminho existe na árvore, mas a cascata não abriu — falha técnica (retentável), não [ATT]
+        if (locResult.menuPathOpenFailed) {
+          throw new Error(`Rota de menu não verificável no passo ${step.stepNumber}: ${locResult.menuPathOpenFailed}`);
+        }
+        const menuEvidence = locResult.menuPathMissing ? describeMenuPathMissing(locResult.menuPathMissing) : undefined;
         const wanted = mainTargets.length > 0 ? mainTargets : step.targets;
         let exploration: RevealExplorationLog | undefined;
         let success: RevealSuccess | undefined;
@@ -1110,8 +1225,10 @@ export async function executeRoutineAudit(
         if (exploration && exploration.explored.length > 0) await client.screenshot(rawStepPath);
         const webpBlocked = await saveCleanPrint(rawStepPath, finalPrintPath);
         generatedPrints.push(printFileName);
-        block = await missingBlock(wanted, false, exploration, explorationSkippedReason);
-        const errorMessage = `Elemento visual [${step.targets.join(', ')}] não localizado no DOM nem na Árvore de Acessibilidade${
+        block = await missingBlock(wanted, false, exploration, explorationSkippedReason, menuEvidence);
+        const errorMessage = menuEvidence
+          ? `Caminho de menu não encontrado na árvore de navegação real: ${locResult.menuPathMissing!.documented}`
+          : `Elemento visual [${step.targets.join(', ')}] não localizado no DOM nem na Árvore de Acessibilidade${
           !exploration
             ? ''
             : exploration.explored.length > 0
@@ -1223,14 +1340,21 @@ export async function executeRoutineAudit(
   }
   for (const e of editorial) console.log(`   [Confronto Semântico] ${e.kind}: ${e.message}`);
   const hasMods = stepResults.some(r => r.isModified || r.adjusted) || editorial.length > 0;
+  // ADR-024: `[CCC]` acompanha a rotina que tem etapas em portal externo, sozinha (sem bloqueio no Orion TN)
+  // ou junto de um bloqueio (`[ATT][CCC]`). O status principal é o do bloqueio, se houver.
+  const extraTags: ReviewTag[] = scope.hasExternal ? ['CCC'] : [];
   const overallStatus: AuditReportStatus = hasBlocks
     ? (reviewStatus as NonNullable<typeof reviewStatus>)
-    : hasMods
-      ? 'validado_com_ajustes'
-      : 'validado_inalterado';
+    : scope.hasExternal
+      ? 'comunicacao_externa'
+      : hasMods
+        ? 'validado_com_ajustes'
+        : 'validado_inalterado';
+  const reviewTags = reviewTagsFor(overallStatus, extraTags);
 
-  // ADR-021: sinalização obrigatória [ATT]/[DDD]/[XRX] no nome da pasta e do arquivo (substitui o [!!!])
-  const tagPrefix = reviewPrefix(overallStatus);
+  // ADR-021/ADR-024: sinalização obrigatória no nome da pasta e do arquivo, em ordem canônica e sem espaço
+  // entre os colchetes (`[ATT][CCC] C-CENTRAL-02-...`). Substitui o [!!!].
+  const tagPrefix = reviewPrefix(overallStatus, extraTags);
   const finalFileName = `${tagPrefix}${fileName}`;
   const finalDir = path.join(baseModuleDir, finalFileName);
   if (routineDir !== finalDir) {
@@ -1240,11 +1364,10 @@ export async function executeRoutineAudit(
     await fs.promises.rename(routineDir, finalDir);
     routineDir = finalDir;
   }
-  // Variantes antigas da mesma rotina (prefixo legado [!!!] ou outra tag) ficariam duplicadas
-  for (const variant of [`[!!!] ${fileName}`, ...Object.values(REVIEW_TAGS).map(m => `${m.prefix}${fileName}`)]) {
-    if (variant === finalFileName) continue;
-    const stale = path.join(baseModuleDir, variant);
-    if (fs.existsSync(stale)) await fs.promises.rm(stale, { recursive: true, force: true });
+  // Variantes antigas da mesma rotina (prefixo legado [!!!], outra tag ou outra combinação de tags) ficariam duplicadas
+  for (const variant of await fs.promises.readdir(baseModuleDir)) {
+    if (variant === finalFileName || stripReviewPrefix(variant) !== fileName) continue;
+    await fs.promises.rm(path.join(baseModuleDir, variant), { recursive: true, force: true });
   }
 
   const revisedDocPath = path.join(routineDir, `${finalFileName}-revisado.md`);
@@ -1258,7 +1381,8 @@ export async function executeRoutineAudit(
     workerId: workerSessionId,
     dryRunMutations,
     editorial,
-    seededRecords
+    seededRecords,
+    extraTags
   });
   for (const v of lockViolations) console.warn(`🔒 [Trava de Evidência] ${v}`);
   await fs.promises.writeFile(revisedDocPath, revisedDocContent, 'utf-8');
@@ -1281,6 +1405,11 @@ export async function executeRoutineAudit(
     }
   }
   if (telemetry.length > 0 && hasBlocks) telemetry[0].reviewStatus = String(reviewStatus);
+  if (telemetry.length > 0) {
+    if (reviewTags.length > 0) telemetry[0].reviewTags = reviewTags;
+    if (scope.hasExternal) telemetry[0].externalSteps = scope.externalSteps;
+  }
+  if (reviewTags.length > 0) console.log(`   [Taxonomia] Tags da rotina: ${describeTags(reviewTags)} -> pasta "${finalFileName}"`);
   await fs.promises.mkdir(KB_TELEMETRY_DIR, { recursive: true });
   await fs.promises.writeFile(
     path.join(KB_TELEMETRY_DIR, `${parsed.id}.json`),
@@ -1312,6 +1441,8 @@ export async function executeRoutineAudit(
     steps: stepResults,
     divergences,
     block: hasBlocks ? block : undefined,
+    reviewTags: reviewTags.length > 0 ? reviewTags : undefined,
+    externalSteps: scope.hasExternal ? scope.externalSteps : undefined,
     seededRecords: seededRecords.length > 0 ? seededRecords : undefined,
     privilegeGate: gate,
     dryRunMutations,
@@ -1440,7 +1571,7 @@ export async function executeStepAction(
   if (!targetRef) {
     const snapshot = await client.snapshotInteractive();
     for (const t of [locResult.matchedTargetName, ...step.targets]) {
-      const refMatch = findRefByNameInSnapshot(snapshot, t);
+      const refMatch = findRefByNameInSnapshot(snapshot, t, isStrictNavigationStep(step));
       if (refMatch) {
         targetRef = refMatch;
         refName = t;
@@ -1465,11 +1596,13 @@ export async function executeStepAction(
   return { kind, via: 'a11y-ref', selector: targetRef, zone: geometry.zone };
 }
 
-function findRefByNameInSnapshot(snapshotText: string, targetName: string): string | null {
+function findRefByNameInSnapshot(snapshotText: string, targetName: string, skipInputs = false): string | null {
   const cleanTarget = targetName.toLowerCase().trim();
   const lines = snapshotText.split('\n');
 
   for (const line of lines) {
+    // ADR-024: passo de navegação estrita nunca aciona campo de texto nem a busca global (CTRL + B)
+    if (skipInputs && (/^\s*-?\s*(textbox|searchbox|combobox|spinbutton)\b/i.test(line) || isGlobalSearchName(line))) continue;
     if (line.toLowerCase().includes(cleanTarget)) {
       const match = line.match(/\[ref=(e\d+)\]/) || line.match(/@(e\d+)/);
       if (match) {

@@ -1,6 +1,6 @@
 import type { AgentBrowserClient } from './browser.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
-import type { BoundingBox, RoutineStep, SmartLocatorDivergence, SmartLocatorResult } from './types.js';
+import type { BoundingBox, MenuPathMissingEvidence, RoutineStep, SmartLocatorDivergence, SmartLocatorResult } from './types.js';
 
 /**
  * Navegação Encadeada por Segmentos com Auto-Cura de Rota (ADR-016) e Cascata com Hover Persistente
@@ -255,6 +255,57 @@ export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[
   return null;
 }
 
+/**
+ * Evidência real de um caminho documentado que não existe na árvore de navegação (ADR-024). Percorre a
+ * hierarquia lida do DOM segmento a segmento (`Notas` -> `Certidões` -> `Novo Pedido de Certidão`) e
+ * registra o maior prefixo que existe, o que há nesse nível e onde a folha aparece, se aparecer.
+ */
+export function buildMenuPathMissingEvidence(paths: DocumentedMenuPath[], items: MenuTreeItem[]): MenuPathMissingEvidence {
+  const documented = paths.reduce((a, b) => (b.segments.length > a.segments.length ? b : a), paths[0]);
+  const segs = documented.segments;
+  const roots = items.filter(i => i.chain.length === 1).map(i => i.chain[0]);
+
+  let existing: string[] = [];
+  for (let k = 1; k < segs.length; k++) {
+    if (!items.some(i => sameChain(i.chain, segs.slice(0, k)))) break;
+    existing = segs.slice(0, k);
+  }
+  const siblings = items
+    .filter(i => i.chain.length === existing.length + 1 && existing.every((seg, idx) => normalizeText(seg) === normalizeText(i.chain[idx])))
+    .map(i => i.chain[i.chain.length - 1]);
+
+  const leaf = segs[segs.length - 1];
+  const leafElsewhere = items
+    .filter(i => {
+      const l = i.chain[i.chain.length - 1];
+      return normalizeText(l) === normalizeText(leaf) || computeDiceSimilarity(l, leaf) >= LEAF_MIN_SIMILARITY;
+    })
+    .map(i => i.chain.join(' > '));
+
+  return {
+    documented: segs.join(' > '),
+    existingPrefix: existing,
+    missingSegment: segs[existing.length] ?? leaf,
+    siblings,
+    roots,
+    treeSize: items.length,
+    leafElsewhere: leafElsewhere.length > 0 ? leafElsewhere : undefined
+  };
+}
+
+/** Frase de evidência (relatório e bloqueio `[ATT]`) de um caminho de menu inexistente, só com fatos lidos da árvore. */
+export function describeMenuPathMissing(e: MenuPathMissingEvidence): string {
+  const found = e.existingPrefix.length > 0 ? `**${e.existingPrefix.join(' > ')}**` : null;
+  const where = found
+    ? `O menu ${found} existe na barra de navegação e contém: ${e.siblings.length > 0 ? e.siblings.map(s => `"${s}"`).join(', ') : '(nenhum subitem)'}; "${e.missingSegment}" não está entre eles.`
+    : `O menu raiz "${e.missingSegment}" não existe na barra de navegação (menus lidos: ${e.roots.map(r => `"${r}"`).join(', ') || 'nenhum'}).`;
+  const elsewhere =
+    e.leafElsewhere && e.leafElsewhere.length > 0
+      ? ` Item de nome igual ou parecido em outra rota (apenas pista, não validado como equivalente): ${e.leafElsewhere.map(r => `"${r}"`).join('; ')}.`
+      : ` Nenhum item de nome igual ou parecido existe em outro ponto da árvore (${e.treeSize} itens lidos).`;
+  return `O caminho "${e.documented}" não existe na árvore de navegação real do Orion TN. ${where}${elsewhere} Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto.`;
+}
+
 interface CascadeRect {
   vis: boolean;
   x: number;
@@ -385,12 +436,21 @@ export async function resolveAndNavigateMenuPath(
   if (paths.length === 0) return null;
 
   const items = parseMenuTreeResponse(await client.eval(buildMenuTreeScript()));
+  const documentedLabel = paths.map(p => p.segments.join(' > ')).join(' | ');
+  if (items.length === 0) {
+    // Sem barra de navegação na tela (portal, página em branco, erro): é falha técnica, não defasagem do manual
+    const detail = 'a árvore de navegação (barra de menus) não foi encontrada na tela atual';
+    console.warn(`   ⚠ [Rota de Menu] ${detail}; o caminho "${documentedLabel}" não pôde ser verificado.`);
+    return { found: false, healed: false, geometry: null, matchedTargetName: documentedLabel, menuPathOpenFailed: detail };
+  }
   const match = chooseMenuItem(paths, items);
   if (!match) {
-    console.log(
-      `   [Rota de Menu] Nenhum item da árvore de navegação corresponde a: ${paths.map(p => p.segments.join(' > ')).join(' | ')}`
-    );
-    return null;
+    // ADR-024: caminho inexistente na árvore real NÃO é curado para outro elemento (muito menos para um campo
+    // de texto): o passo carrega a evidência lida da árvore e a rotina vira `[ATT]`.
+    const missing = buildMenuPathMissingEvidence(paths, items);
+    console.log(`   [Rota de Menu] Nenhum item da árvore de navegação corresponde a: ${documentedLabel}`);
+    console.log(`   [Rota de Menu] Evidência: ${describeMenuPathMissing(missing)}`);
+    return { found: false, healed: false, geometry: null, matchedTargetName: documentedLabel, menuPathMissing: missing };
   }
 
   const chain = match.item.chain;
@@ -475,7 +535,16 @@ export async function resolveAndNavigateMenuPath(
     }
     captured = await captureCascade();
   }
-  if (!captured) return null;
+  if (!captured) {
+    // O caminho existe na árvore, mas o submenu não ficou aberto: falha técnica (não é defasagem do manual)
+    return {
+      found: false,
+      healed: false,
+      geometry: null,
+      matchedTargetName: realPath,
+      menuPathOpenFailed: `o item "${realPath}" existe na árvore, mas a cascata de submenus não pôde ser aberta e mantida após 3 tentativas`
+    };
+  }
   const { geometry, members } = captured;
   const leafSelector = selectors[selectors.length - 1];
   console.log(`   [Rota de Menu] Cascata aberta com o ponteiro na folha; ${members.length} níveis medidos no mesmo frame.`);

@@ -1,8 +1,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { auditPrint, loadPrintTelemetry, printNameOf, type PrintTelemetry } from './invariants.js';
+import { auditExternalSteps, auditPrint, loadPrintTelemetry, printNameOf, reviewTagsFromMd, type PrintTelemetry } from './invariants.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
-import { ENVIRONMENT_BLOCK_TYPE, LEGACY_PREFIX_RE, REVIEW_TAGS, isReviewStatus, statusFromPrefix, stripReviewPrefix } from './review-taxonomy.js';
+import {
+  ENVIRONMENT_BLOCK_TYPE,
+  LEGACY_PREFIX_RE,
+  REVIEW_PREFIX_RE,
+  REVIEW_TAGS,
+  isReviewStatus,
+  reviewTagsPrefix,
+  statusFromPrefix,
+  stripReviewPrefix,
+  tagsFromPrefix
+} from './review-taxonomy.js';
 
 interface PrintIssue {
   id: string;
@@ -216,7 +226,11 @@ async function main() {
   // precisa coincidir com o `status` do `-revisado.md`, inclusive nas rotinas sem telemetria (revisão humana
   // gerada por `generate-human-review-routines.ts`).
   // ---------------------------------------------------------------------------
-  const tagCounts: Record<string, number> = { ATT: 0, DDD: 0, XRX: 0 };
+  // ADR-024: uma rotina pode ter várias tags (`[ATT][CCC]`); cada tag da pasta conta uma vez
+  const tagCounts: Record<string, number> = { ATT: 0, CCC: 0, DDD: 0, XRX: 0 };
+  let multiTagFolders = 0;
+  let externalStepsTotal = 0;
+  let externalRoutines = 0;
   let legacyFolders = 0;
   if (fs.existsSync(rotinasDir)) {
     for (const mod of await fs.promises.readdir(rotinasDir)) {
@@ -238,11 +252,31 @@ async function main() {
           continue;
         }
         const byPrefix = statusFromPrefix(folder);
+        const folderTags = tagsFromPrefix(folder);
         const md = await readMd(dir);
         const mdStatus = md.match(/^\s*status:\s*(\w+)/m)?.[1];
-        if (byPrefix) tagCounts[REVIEW_TAGS[byPrefix].tag]++;
+        for (const t of folderTags) tagCounts[t]++;
+        if (folderTags.length > 1) multiTagFolders++;
         if (md && (isReviewStatus(mdStatus) ? mdStatus !== byPrefix : !!byPrefix)) {
           folderIssue(routineId, `Taxonomia incoerente: pasta "${folder}" x status "${mdStatus ?? '(ausente)'}" do relatório`, dir);
+        }
+        // ADR-024: prefixo canônico (ordem ATT, CCC, DDD, XRX; sem espaço entre colchetes) e tags do relatório = tags da pasta
+        const rawPrefix = folder.match(REVIEW_PREFIX_RE)?.[0] ?? '';
+        if (rawPrefix && rawPrefix !== reviewTagsPrefix(folderTags)) {
+          folderIssue(routineId, `Prefixo fora do padrão canônico: "${folder}" (esperado "${reviewTagsPrefix(folderTags)}")`, dir);
+        }
+        if (md && reviewTagsFromMd(md).join(',') !== folderTags.join(',')) {
+          folderIssue(routineId, `Tags incoerentes: review_tags [${reviewTagsFromMd(md).join(', ') || '-'}] x pasta [${folderTags.join(', ') || '-'}]`, dir);
+        }
+        // ADR-024: passo externo (portal fora do Orion TN) vale pelo callout; NÃO tem passo-NN.png e isso não é erro de paridade
+        if (md) {
+          const onDisk = (await fs.promises.readdir(dir)).filter(f => /^passo-\d+(-[a-z])?\.(png|webp)$/i.test(f));
+          const ext = auditExternalSteps(md, onDisk);
+          if (ext.steps.length > 0) {
+            externalRoutines++;
+            externalStepsTotal += ext.steps.length;
+          }
+          for (const issue of ext.issues) folderIssue(routineId, issue, dir);
         }
       }
     }
@@ -256,6 +290,7 @@ async function main() {
     validado_inalterado: 0,
     validado_com_ajustes: 0,
     atualizacao_editorial: 0,
+    comunicacao_externa: 0,
     dependencia_dados_banco: 0,
     dependencia_cruzada_rotina: 0,
     nao_auditada: 0
@@ -322,7 +357,10 @@ async function main() {
     })`
   );
   console.log(
-    `Rotinas em revisão humana:            [ATT] ${tagCounts.ATT} | [DDD] ${tagCounts.DDD} | [XRX] ${tagCounts.XRX} | pastas [!!!] remanescentes: ${legacyFolders}`
+    `Tags nas pastas (ADR-024):            [ATT] ${tagCounts.ATT} | [CCC] ${tagCounts.CCC} | [DDD] ${tagCounts.DDD} | [XRX] ${tagCounts.XRX} | pastas multi-tag: ${multiTagFolders} | pastas [!!!] remanescentes: ${legacyFolders}`
+  );
+  console.log(
+    `Passos externos (fora do Orion TN):   ${externalStepsTotal} em ${externalRoutines} rotina(s), sem print por desenho (não é erro de paridade)`
   );
   console.log(`Passos bloqueados sem classificação:  ${counters.unclassifiedBlocks}`);
   console.log(`Comandos de gravação não acionados:   ${counters.dryRunSkips} (Trava Segura de Mutação)`);
@@ -330,7 +368,7 @@ async function main() {
   if (phaseEntries) {
     console.log(`Fase 3 — rotinas do manifesto:        ${onlyIds?.length ?? phaseEntries.length} (pré-triadas [DDD] de hardware íntegras: ${preTriagedOk}/${preTriagedIds.size})`);
     console.log(
-      `  status: inalterado ${phaseStatus.validado_inalterado} | com ajustes ${phaseStatus.validado_com_ajustes} | [ATT] ${phaseStatus.atualizacao_editorial} | [DDD] ${phaseStatus.dependencia_dados_banco} | [XRX] ${phaseStatus.dependencia_cruzada_rotina} | nao_auditada ${phaseStatus.nao_auditada}${notAudited.length ? ` (${notAudited.join(', ')})` : ''}`
+      `  status: inalterado ${phaseStatus.validado_inalterado} | com ajustes ${phaseStatus.validado_com_ajustes} | [ATT] ${phaseStatus.atualizacao_editorial} | [CCC] (só) ${phaseStatus.comunicacao_externa} | [DDD] ${phaseStatus.dependencia_dados_banco} | [XRX] ${phaseStatus.dependencia_cruzada_rotina} | nao_auditada ${phaseStatus.nao_auditada}${notAudited.length ? ` (${notAudited.join(', ')})` : ''}`
     );
   }
   console.log(`Discrepâncias:                        ${issuesFound.length}\n`);

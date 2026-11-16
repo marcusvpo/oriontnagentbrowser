@@ -10,6 +10,7 @@ export function PhaseProgressChart({ phases, total }: { phases: PhaseStats[]; to
         <span className="legend-item"><span className="legend-swatch seg-ok" />Validado</span>
         <span className="legend-item"><span className="legend-swatch seg-adj" />Auto-curada</span>
         <span className="legend-item"><span className="legend-swatch seg-att" />[ATT] Atualização</span>
+        <span className="legend-item"><span className="legend-swatch seg-ccc" />[CCC] Portal externo</span>
         <span className="legend-item"><span className="legend-swatch seg-ddd" />[DDD] Dados</span>
         <span className="legend-item"><span className="legend-swatch seg-xrx" />[XRX] Cruzada</span>
         <span className="legend-item"><span className="legend-swatch stackbar" />Não auditada</span>
@@ -30,6 +31,7 @@ export function PhaseProgressChart({ phases, total }: { phases: PhaseStats[]; to
                 <span className="seg-ok" style={{ width: pct(p.porStatus.validado_inalterado) }} />
                 <span className="seg-adj" style={{ width: pct(p.porStatus.validado_com_ajustes) }} />
                 <span className="seg-att" style={{ width: pct(p.porStatus.atualizacao_editorial) }} />
+                <span className="seg-ccc" style={{ width: pct(p.porStatus.comunicacao_externa ?? 0) }} />
                 <span className="seg-ddd" style={{ width: pct(p.porStatus.dependencia_dados_banco) }} />
                 <span className="seg-xrx" style={{ width: pct(p.porStatus.dependencia_cruzada_rotina) }} />
               </span>

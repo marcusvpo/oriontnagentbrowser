@@ -26,7 +26,7 @@ export function RoutinesTable({ rows, selected, onToggle, onToggleAll }: Props) 
     {
       key: "titulo", header: "Rotina / Título", render: (r) => (
         <div className="stack-2 routine-title">
-          <Link to="/rotinas/$id" params={{ id: r.id }} className="link-plain t-mono nowrap">{isReviewState(r.statusAuditoria) && <span className="err">{reviewPrefix(r.statusAuditoria)}</span>}{r.id}</Link>
+          <Link to="/rotinas/$id" params={{ id: r.id }} className="link-plain t-mono nowrap">{isReviewState(r.statusAuditoria) && <span className="err">{reviewPrefix(r.statusAuditoria, r.tagsRevisao)}</span>}{r.id}</Link>
           <Link to="/rotinas/$id" params={{ id: r.id }} className="link-plain routine-title-link">{r.titulo}</Link>
           <div className="row">
             <RunnerBadge runner={r.runner} />
@@ -36,7 +36,7 @@ export function RoutinesTable({ rows, selected, onToggle, onToggleAll }: Props) 
       ),
     },
     { key: "contexto", header: "Contexto", render: (r) => <div className="stack-2"><span className="t-mono">{r.modulo}</span><div className="row"><Tooltip content={SECAO_LABEL[r.secao]}><span className="chip" tabIndex={0}>Seção {r.secao}</span></Tooltip><span className="t-body-s nowrap">{r.fase ? `Fase ${r.fase}` : "Sem fase"}</span></div><WorkloadChip type={r.workloadType} /></div> },
-    { key: "status", header: "Auditoria / Governança", render: (r) => <div className="stack-2 routine-routes"><AuditStatusBadge status={r.statusAuditoria} divergencias={r.divergenciasCount} /><GovernanceBadge status={r.statusGovernanca} /></div> },
+    { key: "status", header: "Auditoria / Governança", render: (r) => <div className="stack-2 routine-routes"><AuditStatusBadge status={r.statusAuditoria} divergencias={r.divergenciasCount} tags={r.tagsRevisao} /><GovernanceBadge status={r.statusGovernanca} /></div> },
     { key: "passos", header: "Evidências", render: (r) => <div className="stack-2 nowrap"><span className="t-mono">{r.totalPassos} passos</span><span className="t-body-s">{r.printsGeradas} prints</span></div> },
     {
       key: "div", header: "Divergências", render: (r) => r.divergenciasCount ? (

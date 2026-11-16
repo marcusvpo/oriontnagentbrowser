@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { AgentBrowserClient } from './browser.js';
-import { loginOrion, ensureAuthenticated } from './auth.js';
+import { loginOrion, ensureAuthenticated, authStats } from './auth.js';
 import { executeRoutineAudit, type ExecutorOptions } from './executor.js';
 import { parseRoutineMarkdown } from './parser.js';
 import { BrowserWorkerPool } from './worker-pool.js';
@@ -12,7 +12,7 @@ import { ROUTINES as PHASE2_MANIFEST } from './run-phase2-master.js';
 import { config } from './config.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
 import { writePreTriagedDddReport } from './hardware-pretriage.js';
-import { REVIEW_TAGS, isReviewStatus } from './review-taxonomy.js';
+import { REVIEW_TAGS, isReviewStatus, type ReviewTag } from './review-taxonomy.js';
 import type { AuditRoutineReport, WorkloadType } from './types.js';
 
 const argValue = (args: string[], flag: string): string | null => {
@@ -144,6 +144,8 @@ async function main() {
       gatilhos_testados: r.steps.reduce((n, s) => n + (s.exploration?.explored.length || 0), 0),
       alvos_revelados: r.steps.flatMap(s => s.exploration?.revealed || []),
       tag_revisao: isReviewStatus(r.status) ? REVIEW_TAGS[r.status].tag : undefined,
+      tags_revisao: r.reviewTags,
+      passos_externos: r.externalSteps?.map(s => `${s.stepNumber}:${s.portal}`),
       rotinas_pre_requisito: r.block?.prerequisites,
       registros_mock_criados: r.seededRecords?.length || 0,
       duracao_s: r.durationSeconds,
@@ -158,13 +160,18 @@ async function main() {
     );
 
     const count = (status: AuditRoutineReport['status']) => reports.filter(r => r.status === status).length;
+    // ADR-024: uma rotina pode ter várias tags; o contador por tag soma o status principal e as tags adicionais
+    const countTag = (tag: ReviewTag) => reports.filter(r => (r.reviewTags || []).includes(tag)).length;
     console.log('\n====================================================');
     console.log(`  ${label} CONCLUÍDA: ${reports.length} ROTINAS AUDITADAS PELO EXECUTOR DO KB`);
     console.log(`  - Validadas sem alteração:        ${count('validado_inalterado')}`);
     console.log(`  - Validadas com ajustes:          ${count('validado_com_ajustes')}`);
-    console.log(`  - [ATT] Atualização editorial:    ${count('atualizacao_editorial')}`);
-    console.log(`  - [DDD] Dependência de dados:     ${count('dependencia_dados_banco')}`);
-    console.log(`  - [XRX] Dependência cruzada:      ${count('dependencia_cruzada_rotina')}`);
+    console.log(`  - [ATT] Atualização editorial:    ${countTag('ATT')}`);
+    console.log(`  - [CCC] Comunicação externa:      ${countTag('CCC')}`);
+    console.log(`  - [DDD] Dependência de dados:     ${countTag('DDD')}`);
+    console.log(`  - [XRX] Dependência cruzada:      ${countTag('XRX')}`);
+    const auth = authStats();
+    console.log(`  - Autenticação (ADR-024):         ${auth.loginsPerformed} login(s) real(is) | ${auth.sessionsReused} sessão(ões) reaproveitada(s) | ${auth.lightResets} reset(s) leve(s) sem recarga`);
     console.log(`  - Registros mock criados:         ${reports.reduce((n, r) => n + (r.seededRecords?.length || 0), 0)}`);
     console.log(`  - Tempo total do lote:            ${Math.floor(totalSeconds / 3600)}h ${Math.floor((totalSeconds % 3600) / 60)}min ${totalSeconds % 60}s`);
     console.log(`  - Falhas técnicas (reexecutar):   ${failures.length}${failures.length ? ` -> ${failures.map(f => path.basename(f.file).split('-').slice(0, 2).join('-')).join(', ')}` : ''}`);

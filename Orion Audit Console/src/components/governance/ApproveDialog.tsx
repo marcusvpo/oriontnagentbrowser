@@ -52,7 +52,7 @@ export function ApproveDialog({ open, onClose, rotina, edicoes, descricao, onApp
           <dt>Avisos de lint</dt><dd className={`t-mono ${lintWarnings.length ? "warn" : ""}`}>{lintWarnings.length}</dd>
         </dl>
         {apiErr && <Alert tone="error" title="Não foi possível aprovar">{apiErr}</Alert>}
-        {blocked && <Alert tone="error" title={`Rotina em revisão humana ${reviewPrefix(rotina.summary.statusAuditoria).trim()}`}>A execução automática não foi concluída. Aprove somente após validar manualmente.</Alert>}
+        {blocked && <Alert tone="error" title={`Rotina em revisão humana ${reviewPrefix(rotina.summary.statusAuditoria, rotina.summary.tagsRevisao).trim()}`}>A execução automática não foi concluída. Aprove somente após validar manualmente.</Alert>}
         <Divider style={{ margin: 0 }} />
         <Field label="Revisor" error={revisorErr} hint="Guardado neste navegador apenas como nome de exibição.">
           {(p) => <Input {...p} value={revisor} onChange={(e) => setRevisor(e.target.value)} placeholder="Seu nome" />}

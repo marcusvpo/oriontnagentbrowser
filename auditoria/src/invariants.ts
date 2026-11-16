@@ -9,7 +9,19 @@ import {
   unionBoundingBoxes
 } from './dom-geometry.js';
 import { isCommitLabel } from './mutation-guard.js';
-import { LEGACY_PREFIX_RE, REVIEW_PREFIX_RE, isReviewStatus, statusFromPrefix } from './review-taxonomy.js';
+import yaml from 'yaml';
+import {
+  LEGACY_PREFIX_RE,
+  REVIEW_PREFIX_RE,
+  isReviewStatus,
+  normalizeReviewTags,
+  reviewTagsPrefix,
+  statusFromPrefix,
+  tagOfStatus,
+  tagsFromPrefix,
+  type ReviewTag
+} from './review-taxonomy.js';
+import { EXTERNAL_STEP_MARKER } from './step-scope.js';
 import type {
   AnnotationLayoutResult,
   BoundingBox,
@@ -133,6 +145,71 @@ export interface PrintAuditContext {
 const inCanvas = (b: BoundingBox, w: number, h: number) => b.x >= 0 && b.y >= 0 && b.x + b.width <= w && b.y + b.height <= h;
 const area = (b: BoundingBox) => Math.max(0, b.width) * Math.max(0, b.height);
 
+/** Frontmatter YAML de um `-revisado.md` (objeto vazio se ilegível). */
+function readFrontmatter(mdContent: string): Record<string, any> {
+  const parts = mdContent.replace(/\r\n/g, '\n').split(/^---$/m);
+  if (parts.length < 3) return {};
+  try {
+    return (yaml.parse(parts[1]) as Record<string, any>) || {};
+  } catch {
+    return {};
+  }
+}
+
+/** Tags declaradas no relatório (`auditoria_ui.review_tags`), em ordem canônica. Sem a lista: derivada do `status` legado. */
+export function reviewTagsFromMd(mdContent: string): ReviewTag[] {
+  const ui = readFrontmatter(mdContent).auditoria_ui || {};
+  if (Array.isArray(ui.review_tags)) return normalizeReviewTags(ui.review_tags);
+  return isReviewStatus(ui.status) ? [tagOfStatus(ui.status)] : [];
+}
+
+/** Passos declarados como externos ao Orion TN (ADR-024) no frontmatter do relatório. */
+export function externalStepsFromMd(mdContent: string): Array<{ stepNumber: number; portal: string }> {
+  const list = readFrontmatter(mdContent).auditoria_ui?.etapas_externas;
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((e: any) => ({ stepNumber: Number(e?.passo), portal: String(e?.portal ?? '') }))
+    .filter(e => Number.isInteger(e.stepNumber) && e.stepNumber > 0);
+}
+
+/**
+ * Auditoria dos passos externos de uma pasta de rotina (ADR-024). Um passo `external_portal` NÃO tem
+ * `passo-NN.png`, e isso não é erro de paridade: o passo vale pelo callout informativo. O que é erro:
+ *  - print (marcador ou arquivo) de um passo declarado externo — seria evidência falsa da tela do Orion TN;
+ *  - passo externo sem o callout `Etapa Externa (Fora do Orion TN)` no relatório;
+ *  - `etapas_externas` sem a tag `[CCC]` em `review_tags`.
+ * `onDiskPrints`: nomes `passo-NN[-x].png|webp` existentes na pasta (opcional).
+ */
+export function auditExternalSteps(mdContent: string, onDiskPrints: string[] = []): { steps: number[]; issues: string[] } {
+  const external = externalStepsFromMd(mdContent);
+  const issues: string[] = [];
+  if (external.length === 0) return { steps: [], issues };
+
+  if (!reviewTagsFromMd(mdContent).includes('CCC')) {
+    issues.push('Passos externos declarados em etapas_externas, mas a tag [CCC] não consta em review_tags');
+  }
+  const body = mdContent.replace(/\r\n/g, '\n');
+  // Só a seção "Passo a passo": o "Roteiro Técnico para Execução Manual" de uma rotina bloqueada também é numerado (1., 2.)
+  const stepsStart = body.search(/^#### Passo a passo/m);
+  const stepsSection = stepsStart >= 0 ? body.slice(stepsStart).replace(/^#### Passo a passo[^\n]*\n/, '') : body;
+  const stepsEnd = stepsSection.search(/^#### /m);
+  const steps = stepsEnd >= 0 ? stepsSection.slice(0, stepsEnd) : stepsSection;
+  for (const { stepNumber } of external) {
+    const pad = String(stepNumber).padStart(2, '0');
+    const block = steps.match(new RegExp(`^${stepNumber}\\.\\s[\\s\\S]*?(?=^\\d+\\.\\s|^\\*\\s|$(?![\\s\\S]))`, 'm'))?.[0] ?? '';
+    if (!block.includes(EXTERNAL_STEP_MARKER)) {
+      issues.push(`Passo externo ${stepNumber} sem o callout "${EXTERNAL_STEP_MARKER}" no relatório`);
+    }
+    if (new RegExp(`\\[aqui vai a print "passo-${pad}(-[a-z])?\\.png"\\]`).test(body)) {
+      issues.push(`Passo externo ${stepNumber} com marcador de print: a tela do Orion TN não pode ilustrar um passo de portal externo`);
+    }
+    if (onDiskPrints.some(f => new RegExp(`^passo-${pad}(-[a-z])?\\.(png|webp)$`, 'i').test(f))) {
+      issues.push(`Passo externo ${stepNumber} com arquivo de print em disco (passo-${pad}): evidência falsa`);
+    }
+  }
+  return { steps: external.map(e => e.stepNumber), issues };
+}
+
 export function printNameOf(item: Pick<PrintTelemetry, 'printName' | 'stepNum' | 'frame'>): string {
   if (item.printName) return item.printName;
   const pad = String(item.stepNum).padStart(2, '0');
@@ -197,11 +274,26 @@ export async function auditPrint(item: PrintTelemetry, ctx: PrintAuditContext): 
   }
   const mdStatus = mdContent.match(/^\s*status:\s*(\w+)/m)?.[1];
   const prefixStatus = statusFromPrefix(dirSlug);
+  const prefixTags = tagsFromPrefix(dirSlug);
+  const rawPrefix = dirSlug.match(REVIEW_PREFIX_RE)?.[0] ?? '';
   if (isReviewStatus(mdStatus) !== !!prefixStatus || (prefixStatus && mdStatus !== prefixStatus)) {
     add(
       0,
-      `Taxonomia incoerente: status do relatório "${mdStatus ?? '(ausente)'}" x prefixo da pasta "${dirSlug.match(REVIEW_PREFIX_RE)?.[0].trim() ?? '(nenhum)'}"`
+      `Taxonomia incoerente: status do relatório "${mdStatus ?? '(ausente)'}" x prefixo da pasta "${rawPrefix.trim() || '(nenhum)'}"`
     );
+  }
+  // ADR-024: multi-tags. O prefixo segue a ordem canônica, sem espaço entre colchetes, e repete review_tags
+  if (rawPrefix && rawPrefix !== reviewTagsPrefix(prefixTags)) {
+    add(0, `Prefixo fora do padrão canônico: "${rawPrefix}" (esperado "${reviewTagsPrefix(prefixTags)}": ordem ATT, CCC, DDD, XRX e sem espaço entre colchetes)`);
+  }
+  const mdTags = reviewTagsFromMd(mdContent);
+  if (mdTags.join(',') !== prefixTags.join(',')) {
+    add(0, `Tags incoerentes: review_tags do relatório [${mdTags.join(', ') || '-'}] x prefixo da pasta [${prefixTags.join(', ') || '-'}]`);
+  }
+  // Passo externo (ADR-024): não tem print por desenho; print em passo externo é evidência falsa
+  const externalDeclared = externalStepsFromMd(mdContent).map(e => e.stepNumber);
+  if (externalDeclared.includes(item.stepNum)) {
+    add(5, `Passo ${item.stepNum} está declarado como externo (portal fora do Orion TN) e não pode ter print da tela do sistema`);
   }
 
   // Trava de Viewport (ADR-009, regra 6): toda print entregue tem exatamente 1440x900. A geometria pode

@@ -1,5 +1,6 @@
 import type { AgentBrowserClient } from './browser.js';
 import { resolveAndNavigateMenuPath } from './menu-path.js';
+import { forbiddenCandidateReason, forbiddenMeasuredReason, synonymMatchesNode } from './navigation-guard.js';
 import { isGenericContainerMatch } from './evidence.js';
 import { probePermissionBlockedTargets } from './rbac.js';
 import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
@@ -257,7 +258,11 @@ interface A11ySemanticCandidate {
  * Retorna TODOS os candidatos com confiança >= 0.68, do melhor para o pior (um por nó), para que a
  * camada de zona possa descartar um item de navegação e seguir para o próximo candidato de conteúdo.
  */
-function rankSemanticCandidatesInA11y(targets: string[], nodes: ParsedA11yNode[]): A11ySemanticCandidate[] {
+export function rankSemanticCandidatesInA11y(
+  targets: string[],
+  nodes: ParsedA11yNode[],
+  step?: Pick<RoutineStep, 'rawText' | 'targets'>
+): A11ySemanticCandidate[] {
   const bestByRef = new Map<string, A11ySemanticCandidate>();
 
   for (const docTarget of targets) {
@@ -275,6 +280,8 @@ function rankSemanticCandidatesInA11y(targets: string[], nodes: ParsedA11yNode[]
     for (const node of nodes) {
       const normNode = normalizeText(node.name);
       if (!normNode) continue;
+      // ADR-024: campo de texto nunca é item de menu e a barra de pesquisa global (CTRL + B) só é alvo se o passo a cita
+      if (step && forbiddenCandidateReason(step, { name: node.name, role: node.role })) continue;
 
       let score = 0;
       let reason = '';
@@ -286,7 +293,8 @@ function rankSemanticCandidatesInA11y(targets: string[], nodes: ParsedA11yNode[]
         if (!whole(normDoc, normNode) && !whole(normNode, normDoc)) continue;
         score = Math.min(0.95, computeDiceSimilarity(normDoc, normNode) + 0.2);
         reason = `Rótulo visível na tela equivalente por inclusão de nome (${Math.round(score * 100)}%)`;
-      } else if (synonyms.has(normNode) || Array.from(synonyms).some(s => normNode.includes(s))) {
+      } else if (Array.from(synonyms).some(s => synonymMatchesNode(s, normNode))) {
+        // ADR-024: palavra inteira ou igualdade exata; o símbolo `+` não casa por substring ("CTRL + B")
         // 1. Equivalência direta via Dicionário de Sinônimos Orion TN
         score = 0.92;
         reason = `Sinônimo canônico Orion TN ('${docTarget}' -> '${node.name}')`;
@@ -404,7 +412,7 @@ async function reconcileUnresolvedGroupTargets(
     for (const t of step.targets) taken.add(normalizeText(t));
 
     for (const target of unresolved) {
-      const ranked = rankSemanticCandidatesInA11y([target], nodes)
+      const ranked = rankSemanticCandidatesInA11y([target], nodes, step)
         .filter(c => !taken.has(normalizeText(c.node.name)))
         .slice(0, MAX_ZONE_HEAL_ATTEMPTS);
       for (const candidate of ranked) {
@@ -497,6 +505,8 @@ async function resolveViaLLMOnAccessibilityTree(
   nodes: ParsedA11yNode[]
 ): Promise<{ node: ParsedA11yNode; documentedTarget: string; confidence: number; reason: string } | null> {
   const apiKey = process.env.OPENAI_API_KEY;
+  // ADR-024: o LLM nunca vê (e portanto nunca escolhe) campo de texto em passo de navegação nem a busca global
+  nodes = nodes.filter(n => !forbiddenCandidateReason(step, { name: n.name, role: n.role }));
   if (!apiKey || nodes.length === 0) return null;
 
   const compactTree = nodes
@@ -584,7 +594,13 @@ export async function locateAndCaptureWithSelfHealing(
   // Um caminho de menu `A > B > C` é percorrido na árvore de navegação real antes de qualquer busca textual.
   // =========================================================================
   const viaMenuPath = await resolveAndNavigateMenuPath(client, step, rawScreenshotPath);
-  if (viaMenuPath) return viaMenuPath;
+  if (viaMenuPath && (viaMenuPath.found || viaMenuPath.permissionBlocked)) return viaMenuPath;
+  // ADR-024: caminho de menu inexistente na árvore real (ou cascata que não abriu). O passo ainda pode ser
+  // medido por correspondência EXATA no DOM (Camada 1), mas nunca é "curado" por similaridade/sinônimo.
+  const menuGuard: Pick<SmartLocatorResult, 'menuPathMissing' | 'menuPathOpenFailed'> = viaMenuPath
+    ? { menuPathMissing: viaMenuPath.menuPathMissing, menuPathOpenFailed: viaMenuPath.menuPathOpenFailed }
+    : {};
+  const healingForbiddenByMenu = !!(menuGuard.menuPathMissing || menuGuard.menuPathOpenFailed);
 
   const candidates = step.targets.length > 0 ? step.targets : [step.rawText];
 
@@ -623,6 +639,13 @@ export async function locateAndCaptureWithSelfHealing(
       `   [Evidência] "${directGeometry.matchedSelector}" casou com um contêiner genérico (${directGeometry.cssBox.width}x${directGeometry.cssBox.height}); não serve de demarcação.`
     );
     directGeometry = null;
+  }
+  if (directGeometry) {
+    const forbidden = forbiddenMeasuredReason(step, directGeometry.context);
+    if (forbidden) {
+      console.log(`   [Guarda de Navegação] Medição direta descartada (${directGeometry.matchedSelector}): ${forbidden}.`);
+      directGeometry = null;
+    }
   }
   if (directGeometry) {
     let geometry = directGeometry;
@@ -717,14 +740,18 @@ export async function locateAndCaptureWithSelfHealing(
     );
   }
 
-  if (options.allowHealing === false) {
+  if (options.allowHealing === false || healingForbiddenByMenu) {
+    if (healingForbiddenByMenu) {
+      console.log('   [Guarda de Navegação] Caminho de menu sem correspondência na árvore real: a Auto-Cura por similaridade/sinônimo está proibida para este passo.');
+    }
     await client.screenshot(rawScreenshotPath);
     return {
       found: false,
       healed: false,
       geometry: null,
       matchedTargetName: step.targets[0] || 'Elemento não localizado',
-      gridActions: gridScanStatus
+      gridActions: gridScanStatus,
+      ...menuGuard
     };
   }
 
@@ -748,7 +775,7 @@ export async function locateAndCaptureWithSelfHealing(
   // A árvore de acessibilidade não carrega zona; por isso cada candidato é validado contra o DOM
   // com a política do passo. Em zona de conteúdo, um item de menu lateral homônimo é descartado
   // e o próximo candidato do ranking é testado.
-  const ranked = rankSemanticCandidatesInA11y(candidates, a11yNodes);
+  const ranked = rankSemanticCandidatesInA11y(candidates, a11yNodes, step);
   const attempts = ranked.slice(0, zonePolicy === 'any' ? 1 : MAX_ZONE_HEAL_ATTEMPTS);
 
   let healedCandidate: A11ySemanticCandidate | null = null;
@@ -757,6 +784,12 @@ export async function locateAndCaptureWithSelfHealing(
 
   for (const candidate of attempts) {
     const geometry = await resolveHealedGeometry(client, candidate.node, zonePolicy);
+    // ADR-024: o que foi MEDIDO também passa pela guarda (o nó medido pode ser um <input> com o mesmo texto)
+    const measuredForbidden = geometry ? forbiddenMeasuredReason(step, geometry.context) : null;
+    if (measuredForbidden) {
+      console.log(`   [Guarda de Navegação] Candidato "${candidate.node.name}" descartado após a medição: ${measuredForbidden}.`);
+      continue;
+    }
     if (geometry && !isGenericContainerMatch(geometry)) {
       healedCandidate = candidate;
       healedGeometry = geometry;
@@ -775,7 +808,7 @@ export async function locateAndCaptureWithSelfHealing(
     const llmCandidate = await resolveViaLLMOnAccessibilityTree(step, a11yNodes);
     if (llmCandidate) {
       const geometry = await resolveHealedGeometry(client, llmCandidate.node, zonePolicy);
-      if (geometry) {
+      if (geometry && !forbiddenMeasuredReason(step, geometry.context)) {
         healedCandidate = llmCandidate;
         healedGeometry = geometry;
         resolutionLayer = 'llm_a11y_fallback';

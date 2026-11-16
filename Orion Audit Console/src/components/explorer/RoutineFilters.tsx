@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Button, Checkbox, Field, Input, Select } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { Modal } from "@/components/ui/Modal";
-import { AUDIT_STATUS, GOV_STATUS, MODULOS, SECAO_LABEL, SECOES } from "@/lib/status";
+import { AUDIT_STATUS, GOV_STATUS, MODULOS, REVIEW_TAG_LABEL, REVIEW_TAG_ORDER, SECAO_LABEL, SECOES } from "@/lib/status";
 import type { RotinasSearch } from "@/lib/search";
 
 type Patch = (p: Partial<RotinasSearch>) => void;
@@ -55,6 +55,14 @@ export function RoutineFilters({ search, onChange }: { search: RotinasSearch; on
           </Select>
         )}
       </Field>
+      <Field label="Tag de revisão">
+        {(p) => (
+          <Select {...p} value={single(search.tag)} onChange={(e) => onChange({ tag: e.target.value || undefined })}>
+            <option value="">{search.tag?.includes(",") ? "Várias" : "Todas"}</option>
+            {REVIEW_TAG_ORDER.map((t) => <option key={t} value={t}>[{t}] {REVIEW_TAG_LABEL[t]}</option>)}
+          </Select>
+        )}
+      </Field>
       <Field label="Carga">
         {(p) => (
           <Select {...p} value={search.carga ?? ""} onChange={(e) => onChange({ carga: e.target.value || undefined })}>
@@ -72,6 +80,12 @@ export function RoutineFilters({ search, onChange }: { search: RotinasSearch; on
             <legend className="ds-field__label">Status de auditoria</legend>
             {Object.entries(AUDIT_STATUS).map(([k, v]) => (
               <Checkbox key={k} checked={has(search.status, k)} onChange={() => onChange({ status: toggleIn(search.status, k) })}>{v.label}</Checkbox>
+            ))}
+          </fieldset>
+          <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend className="ds-field__label">Tags de revisão (uma rotina pode ter várias)</legend>
+            {REVIEW_TAG_ORDER.map((t) => (
+              <Checkbox key={t} checked={has(search.tag, t)} onChange={() => onChange({ tag: toggleIn(search.tag, t) })}>[{t}] {REVIEW_TAG_LABEL[t]}</Checkbox>
             ))}
           </fieldset>
           <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>

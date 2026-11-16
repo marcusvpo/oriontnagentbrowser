@@ -26,7 +26,10 @@ ALTER TABLE public.routines
     'validado_inalterado',
     'validado_com_ajustes',
     'atualizacao_editorial',
+    'comunicacao_externa',
     'dependencia_dados_banco',
     'dependencia_cruzada_rotina',
     'nao_auditada'
   ));
+-- ADR-024: `comunicacao_externa` ([CCC]) já consta aqui para que reaplicar esta migração depois da 005
+-- (que cria linhas com esse status) não quebre a validação do CHECK.

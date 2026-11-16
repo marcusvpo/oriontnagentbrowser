@@ -9,6 +9,8 @@ export type Secao = 'R' | 'V' | 'M' | 'D' | 'C';
 export type PhaseNumber = 1 | 2 | 3 | 4 | 5 | 6;
 export type AuditStatus = AuditRoutineReport['status'];
 export type AuditStatusLegacy = 'validado_com_sucesso'; // normalizar para 'validado_inalterado' na UI
+/** Tags de revisão humana (ADR-021/024). Uma rotina pode ter várias: `[ATT][CCC]`. */
+export type ReviewTagCode = 'ATT' | 'CCC' | 'DDD' | 'XRX';
 export type RoutineAuditState = AuditStatus | 'nao_auditada';
 export type GovernanceStatus = 'pendente_aprovacao' | 'aprovada' | 'revisao_solicitada';
 export type RunnerJobState = 'idle' | 'na_fila' | 'em_execucao' | 'concluida' | 'falhou';
@@ -112,10 +114,12 @@ export interface RoutineSummary {
   fase: PhaseNumber | null;
   temVideo: boolean;
   workloadType: WorkloadType;
-  statusAuditoria: RoutineAuditState;
+  statusAuditoria: RoutineAuditState;  // status PRINCIPAL (ATT/DDD/XRX têm precedência sobre CCC)
+  /** ADR-024: todas as tags da rotina em ordem canônica ATT, CCC, DDD, XRX (vazio fora da revisão humana) */
+  tagsRevisao?: ReviewTagCode[];
   statusGovernanca: GovernanceStatus;
   runner: RunnerJobInfo;
-  pastaAuditoria: string | null;       // ex.: '[DDD] C-ACESSO-05-falha-de-conexao...'
+  pastaAuditoria: string | null;       // ex.: '[DDD] C-ACESSO-05-falha-de-conexao...' ou '[ATT][CCC] C-CENTRAL-02-...'
   totalPassos: number;
   printsGeradas: number;
   divergenciasCount: number;
@@ -161,6 +165,9 @@ export interface StepView {
   validatedText: string;
   isModified: boolean;
   status: 'ok' | 'modified' | 'blocked' | 'nao_executado';
+  /** ADR-024: `external_portal` = passo fora do Orion TN, sem print por desenho (não é erro de paridade) */
+  stepScope?: 'orion_tn' | 'external_portal';
+  portalExterno?: string;
   media: StepMedia | null;
   /** Sub-capturas na ordem (b, c...). Vazio quando o passo tem uma só print */
   subCapturas?: StepSubCapture[];
@@ -189,6 +196,8 @@ export interface RoutineDetail {
   frontmatterRevisadoYaml: string;
   markdownRevisado: string;            // conteúdo do *-revisado.md com marcadores [aqui vai a print "passo-NN.png"]
   bloqueio?: { tipo: string; motivo: string; roteiroManual: string[] };
+  /** ADR-024: passos de portal externo aceitos sem `passo-NN.png`; `issues` = discrepâncias reais (print em passo externo...) */
+  passosExternos?: { steps: number[]; issues: string[] };
   historico: GovernanceEvent[];
   revisoes?: RoutineReviewItem[];
 }
@@ -213,6 +222,8 @@ export interface ListRoutinesQuery {
   secao?: Secao[];
   statusAuditoria?: RoutineAuditState[];
   statusGovernanca?: GovernanceStatus[];
+  /** Filtro por tag (ADR-024): casa a tag principal E as adicionais ([CCC] encontra `[ATT][CCC]`) */
+  tagRevisao?: ReviewTagCode[];
   carga?: WorkloadType;
   temVideo?: boolean;
   comDivergencias?: boolean;

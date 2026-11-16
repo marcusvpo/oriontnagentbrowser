@@ -3,7 +3,7 @@ import { Button } from "@/design-system/orion-audit-console---design-system-bdbb
 import { AUDIT_STATUS, GOV_STATUS } from "@/lib/status";
 import type { RotinasSearch } from "@/lib/search";
 
-const LABELS: Record<string, string> = { fase: "Fase", modulo: "Módulo", secao: "Seção", status: "Status", gov: "Governança", carga: "Carga", video: "Vídeo", div: "Divergências", q: "Busca" };
+const LABELS: Record<string, string> = { fase: "Fase", modulo: "Módulo", secao: "Seção", status: "Status", gov: "Governança", carga: "Carga", tag: "Tag", video: "Vídeo", div: "Divergências", q: "Busca" };
 
 function valueLabel(k: string, v: string) {
   if (k === "status") return v.split(",").map((s) => AUDIT_STATUS[s as keyof typeof AUDIT_STATUS]?.label ?? s).join(", ");

@@ -1,7 +1,7 @@
 import type { DashboardStats, Modulo, PhaseStats } from "@/types/api";
 
 // Agregados ilustrativos FIXOS do universo de 471 rotinas (independentes das linhas mock).
-const z = { validado_inalterado: 0, validado_com_ajustes: 0, atualizacao_editorial: 0, dependencia_dados_banco: 0, dependencia_cruzada_rotina: 0, nao_auditada: 0 };
+const z = { validado_inalterado: 0, validado_com_ajustes: 0, atualizacao_editorial: 0, comunicacao_externa: 0, dependencia_dados_banco: 0, dependencia_cruzada_rotina: 0, nao_auditada: 0 };
 
 export const PHASE_TITLES: Record<string, string> = {
   "1": "Piloto", "2": "Cadastrais, segurança e parâmetros", "3": "Atos de balcão, insumos e livros",

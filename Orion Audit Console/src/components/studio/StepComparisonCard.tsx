@@ -27,7 +27,7 @@ export const StepComparisonCard = forwardRef<HTMLDivElement, Props>(function Ste
               <Tooltip content={`Ação: ${step.actionType}`}><span className="chip" tabIndex={0}><Icon size={12} strokeWidth={1.5} aria-hidden />{step.actionType}</span></Tooltip>
               {step.zonePolicy && <Tooltip content="Política de zona semântica"><span className="chip" tabIndex={0}>zona: {step.zonePolicy}</span></Tooltip>}
             </div>
-            <span className="t-overline-xs">{step.status === "modified" ? "Modificado" : step.status === "blocked" ? "Bloqueado" : step.status === "nao_executado" ? "Não executado" : "OK"}</span>
+            <span className="t-overline-xs">{step.stepScope === "external_portal" ? `Externo${step.portalExterno ? ` · ${step.portalExterno}` : ""}` : step.status === "modified" ? "Modificado" : step.status === "blocked" ? "Bloqueado" : step.status === "nao_executado" ? "Não executado" : "OK"}</span>
           </div>
           <div className="cols-2 comparison-columns">
             <div className="stack-1">
@@ -50,6 +50,7 @@ export const StepComparisonCard = forwardRef<HTMLDivElement, Props>(function Ste
           </div>
           {issues.filter((i) => i.level === "warning").map((i, k) => <Alert key={k} tone="accent">{i.message}</Alert>)}
           {step.divergence && <DivergenceCallout d={step.divergence} />}
+          {step.stepScope === "external_portal" && <Alert tone="accent" title="Etapa Externa (Fora do Orion TN)">Este passo ocorre fora do Orion TN{step.portalExterno ? ` (${step.portalExterno})` : ""}. O agente não o executou nem o fotografou, por isso não há print: a validação é humana.</Alert>}
           {step.status === "blocked" && step.errorMessage && <Alert tone="error" title="Passo bloqueado"><span className="t-mono">{step.errorMessage}</span></Alert>}
           {step.invariantes && (<><Divider style={{ margin: 0 }} /><div className="row-between"><span className="t-overline-xs">Invariantes geométricos</span><InvariantsChecklist items={step.invariantes} /></div></>)}
         </div>

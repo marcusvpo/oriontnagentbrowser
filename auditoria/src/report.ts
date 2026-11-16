@@ -1,6 +1,15 @@
 import { lockStepText } from './evidence.js';
 import type { EditorialDivergence } from './screen-snapshot.js';
-import { isReviewStatus, reviewHeadline } from './review-taxonomy.js';
+import {
+  EXTERNAL_PORTAL_BLOCK_TYPE,
+  describeTags,
+  isBlockingReviewStatus,
+  isReviewStatus,
+  reviewHeadline,
+  reviewTagsFor,
+  type ReviewTag
+} from './review-taxonomy.js';
+import { EXTERNAL_STEP_MARKER, externalStepCallout } from './step-scope.js';
 import type {
   AuditStepResult,
   ParsedRoutine,
@@ -51,7 +60,13 @@ export interface RevisedReportInput {
   editorial?: EditorialDivergence[];
   /** Registros mock criados pelo auto-seed durante a rotina (ADR-021) */
   seededRecords?: SeededRecord[];
+  /** Tags adicionais à do `status` (ADR-024), ex.: `['CCC']` junto de um bloqueio `[ATT]` */
+  extraTags?: ReviewTag[];
 }
+
+/** Todas as tags da rotina em ordem canônica: a do status principal mais as adicionais (ADR-024). */
+export const tagsOfReport = (input: Pick<RevisedReportInput, 'status' | 'extraTags'>): ReviewTag[] =>
+  reviewTagsFor(input.status, input.extraTags || []);
 
 const EDITORIAL_TITLE = '**Divergência Conceitual/Editorial (Evidência de Tela):**';
 const editorialNote = (e: EditorialDivergence) => `> [!NOTE] ${EDITORIAL_TITLE} ${e.message}`;
@@ -102,13 +117,26 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
     `secao: ${parsed.secao}`,
     `auditoria_ui:`,
     `  data_execucao: '${new Date().toISOString().split('T')[0]}'`,
-    `  status: ${status}`,
-    `  carga: ${parsed.workloadType || 'read_only'}`
+    `  status: ${status}`
   ];
+  // ADR-024: todas as tags da rotina, na ordem canônica (o prefixo da pasta repete exatamente esta lista)
+  const tags = tagsOfReport(input);
+  if (tags.length > 0) lines.push(`  review_tags: ${qList(tags)}`);
+  lines.push(`  carga: ${parsed.workloadType || 'read_only'}`);
   if (input.workerId) lines.push(`  worker_id: ${q(input.workerId)}`);
   lines.push(`  versao_homologacao: 'WildFly 22 / Orion 06.04.01'`);
   if (input.ambiente) lines.push(`  ambiente: ${q(input.ambiente)}`);
   if (block) lines.push(`  tipo_bloqueio: ${q(block.tipo)}`);
+  const externalSteps = parsed.steps.filter(s => s.scope === 'external_portal');
+  if (externalSteps.length > 0) {
+    if (!block) lines.push(`  tipo_bloqueio: ${q(EXTERNAL_PORTAL_BLOCK_TYPE)}`);
+    // ADR-024: passos fora do Orion TN, sem print por desenho (o validador não os cobra)
+    lines.push(`  etapas_externas:`);
+    for (const s of externalSteps) {
+      lines.push(`    - passo: ${s.stepNumber}`);
+      lines.push(`      portal: ${q(s.externalPortal || 'portal externo')}`);
+    }
+  }
   if (block?.prerequisites && block.prerequisites.length > 0) lines.push(`  rotinas_pre_requisito: ${qList(block.prerequisites)}`);
   if (input.seededRecords && input.seededRecords.length > 0) {
     lines.push(`  registros_mock_criados:`);
@@ -179,7 +207,7 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
       }
     }
   }
-  if (input.editorial && input.editorial.length > 0 && !isReviewStatus(status)) {
+  if (input.editorial && input.editorial.length > 0 && !isBlockingReviewStatus(status)) {
     lines.push(`  divergencias_editoriais:`);
     for (const e of input.editorial) {
       lines.push(`    - tipo: ${e.kind}`);
@@ -217,7 +245,9 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
 
 export function buildRevisedRoutineDocument(input: RevisedReportInput): { content: string; lockViolations: string[] } {
   const { parsed, results, status, block } = input;
-  const blocked = isReviewStatus(status);
+  // `[CCC]` sozinha não interrompe a auditoria: as etapas do Orion TN seguem validadas e com prints (ADR-024)
+  const blocked = isBlockingReviewStatus(status);
+  const tags = tagsOfReport(input);
   const manifestMode = !!input.evidencePrints;
   const appliedDivergences = new Set<SmartLocatorDivergence>();
   const lockViolations: string[] = [];
@@ -225,7 +255,8 @@ export function buildRevisedRoutineDocument(input: RevisedReportInput): { conten
 
   const stepsLines = parsed.steps
     .map((s, idx) => {
-      const stepRes = manifestMode ? undefined : results[idx];
+      // Por número do passo (não por posição): passos externos e bloqueios deixam lacunas na lista de resultados
+      const stepRes = manifestMode ? undefined : results.find(r => r.stepNumber === s.stepNumber);
       const stepDivs = [
         ...(stepRes?.divergence ? [stepRes.divergence] : []),
         ...(stepRes?.targetDivergences || [])
@@ -243,6 +274,8 @@ export function buildRevisedRoutineDocument(input: RevisedReportInput): { conten
       }
 
       let out = `${s.stepNumber}. ${text}`;
+      // ADR-024: passo em portal externo — texto original intacto, sem print, com o callout informativo
+      if (s.scope === 'external_portal') out += `\n   ${externalStepCallout(s.externalPortal || 'portal externo')}`;
       const prints = stepRes?.printFiles || [];
       for (const p of prints) out += `\n   [aqui vai a print "${p}"]`;
       printsCount += prints.length;
@@ -291,7 +324,17 @@ export function buildRevisedRoutineDocument(input: RevisedReportInput): { conten
 
   const obsText = parsed.observacoes.length > 0 ? '\n\n' + parsed.observacoes.map(o => `* **${o}**`).join('\n') : '';
 
+  // ADR-024: resumo das etapas externas (fora do Orion TN) no topo do relatório
+  const externalSteps = parsed.steps.filter(s => s.scope === 'external_portal');
+  const externalSummary =
+    externalSteps.length > 0
+      ? `${externalSteps.length === 1 ? 'O passo' : 'Os passos'} ${externalSteps.map(s => s.stepNumber).join(', ')} ${externalSteps.length === 1 ? 'ocorre' : 'ocorrem'} fora do Orion TN (${Array.from(new Set(externalSteps.map(s => s.externalPortal || 'portal externo'))).join(', ')}); ${externalSteps.length === 1 ? 'não foi executado nem fotografado' : 'não foram executados nem fotografados'}. As demais etapas ${blocked ? 'foram auditadas até o ponto de bloqueio' : 'foram auditadas no Orion TN'}.`
+      : '';
+
   let body = '';
+  if (!blocked && externalSummary) {
+    body += `> [!IMPORTANT]\n> **ROTINA COM ETAPAS EM AMBIENTE EXTERNO (${describeTags(tags)}):**  \n> ${externalSummary}\n\n`;
+  }
   if (blocked) {
     const info: RoutineBlockInfo = block || {
       kind: 'other',
@@ -299,7 +342,9 @@ export function buildRevisedRoutineDocument(input: RevisedReportInput): { conten
       motivo: 'A auditoria automática não conseguiu validar esta rotina com evidência na tela.',
       roteiro: ['Revisar a rotina manualmente no ambiente de homologação.']
     };
-    body += `> [!CAUTION]\n> **${reviewHeadline(status as ReviewStatus)}:**  \n> A auditoria automática foi interrompida: **${info.tipo}**.\n>\n> **Motivo Técnico:** ${info.motivo}\n\n`;
+    body += `> [!CAUTION]\n> **${reviewHeadline(status as ReviewStatus, tags)}:**  \n> A auditoria automática foi interrompida: **${info.tipo}**.\n>\n> **Motivo Técnico:** ${info.motivo}\n`;
+    if (externalSummary) body += `>\n> **Etapas externas ([CCC]):** ${externalSummary}\n`;
+    body += `\n`;
     body += `#### Descrição:\n${parsed.descricao}\n\n`;
     body += `#### Roteiro Técnico para Execução Manual:\n${info.roteiro.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\n`;
     if (info.prerequisites && info.prerequisites.length > 0) {

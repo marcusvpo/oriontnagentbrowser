@@ -72,8 +72,8 @@ export interface AuditStepResult {
 }
 export interface AuditRoutineReport {
   id: string; modulo: string; titulo: string; workloadType?: WorkloadType; workerSessionId?: string;
-  // ADR-021: [ATT] atualizacao_editorial | [DDD] dependencia_dados_banco | [XRX] dependencia_cruzada_rotina
-  status: 'validado_inalterado' | 'validado_com_ajustes' | 'atualizacao_editorial' | 'dependencia_dados_banco' | 'dependencia_cruzada_rotina';
+  // ADR-021/024: [ATT] atualizacao_editorial | [CCC] comunicacao_externa | [DDD] dependencia_dados_banco | [XRX] dependencia_cruzada_rotina
+  status: 'validado_inalterado' | 'validado_com_ajustes' | 'atualizacao_editorial' | 'comunicacao_externa' | 'dependencia_dados_banco' | 'dependencia_cruzada_rotina';
   steps: AuditStepResult[]; divergences?: SmartLocatorDivergence[];
   executedAt: string; durationSeconds: number; changelogPath: string;
 }
