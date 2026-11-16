@@ -343,7 +343,8 @@ const describeTriggers = (explored: ExploredTrigger[]) => {
     accordion: 'painel',
     button: 'botão',
     checkbox: 'caixa de seleção',
-    radio: 'opção'
+    radio: 'opção',
+    subportal_link: 'link de sub-portal'
   };
   return explored.map(t => `${kind[t.kind]} "${t.label}"`).join(', ');
 };

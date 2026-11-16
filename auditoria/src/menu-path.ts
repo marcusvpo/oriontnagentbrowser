@@ -46,6 +46,8 @@ export interface MenuPathMatch {
   blocked?: boolean;
   confidence: number;
   reason: string;
+  /** Escolhido pela rota comprovada numa auditoria anterior e reconfirmada na árvore real (ADR-025) */
+  viaPriorAudit?: boolean;
 }
 
 const NAV_TREE_ROOT_SELECTOR = '.navbar ul.nav, nav ul.nav, #navbar ul.nav';
@@ -188,7 +190,7 @@ const sameChain = (a: string[], b: string[]) =>
  *   bloqueia em vez de adivinhar a tela).
  * - Se a folha só existe em itens bloqueados para o perfil, o resultado também é `blocked`.
  */
-export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[]): MenuPathMatch | null {
+export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[], priorChains: string[][] = []): MenuPathMatch | null {
   const eligible = items.filter(i => i.chain.length >= 2);
   const usable = eligible.filter(i => !i.disabled);
 
@@ -198,6 +200,28 @@ export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[
       return exact.disabled
         ? { item: exact, documented, exact: true, blocked: true, confidence: 1, reason: exact.blockTitle || 'Item bloqueado para o perfil logado' }
         : { item: exact, documented, exact: true, confidence: 1, reason: 'Caminho de menu idêntico ao documentado' };
+    }
+  }
+
+  // ADR-025: rota comprovada numa auditoria anterior. Só vale se o item EXISTE na árvore lida agora (a dica
+  // nunca é evidência) e a sua folha ainda é a do manual (similaridade >= 0.80): a guarda da ADR-024 contra a
+  // falsa cura de menu continua intacta. Resolve de forma determinística o que antes dependia do desempate.
+  for (const prior of priorChains) {
+    const hit = usable.find(i => sameChain(i.chain, prior));
+    if (!hit) continue;
+    const leaf = hit.chain[hit.chain.length - 1];
+    for (const documented of paths) {
+      const docLeaf = documented.segments[documented.segments.length - 1];
+      const similarity = normalizeText(leaf) === normalizeText(docLeaf) ? 1 : computeDiceSimilarity(leaf, docLeaf);
+      if (similarity < LEAF_MIN_SIMILARITY) continue;
+      return {
+        item: hit,
+        documented,
+        exact: false,
+        confidence: Number(Math.min(0.95, similarity * 0.8 + 0.15).toFixed(2)),
+        reason: 'Rota comprovada numa auditoria anterior e reconfirmada na árvore de navegação real desta execução',
+        viaPriorAudit: true
+      };
     }
   }
 
@@ -430,7 +454,8 @@ async function openCascadeWithPointer(client: AgentBrowserClient, selectors: str
 export async function resolveAndNavigateMenuPath(
   client: AgentBrowserClient,
   step: RoutineStep,
-  rawScreenshotPath: string
+  rawScreenshotPath: string,
+  priorChains: string[][] = []
 ): Promise<SmartLocatorResult | null> {
   const paths = extractMenuPaths(step);
   if (paths.length === 0) return null;
@@ -443,7 +468,7 @@ export async function resolveAndNavigateMenuPath(
     console.warn(`   ⚠ [Rota de Menu] ${detail}; o caminho "${documentedLabel}" não pôde ser verificado.`);
     return { found: false, healed: false, geometry: null, matchedTargetName: documentedLabel, menuPathOpenFailed: detail };
   }
-  const match = chooseMenuItem(paths, items);
+  const match = chooseMenuItem(paths, items, priorChains);
   if (!match) {
     // ADR-024: caminho inexistente na árvore real NÃO é curado para outro elemento (muito menos para um campo
     // de texto): o passo carrega a evidência lida da árvore e a rotina vira `[ATT]`.
@@ -578,6 +603,7 @@ export async function resolveAndNavigateMenuPath(
     geometry,
     matchedTargetName: realPath,
     divergence,
-    validatedText: step.rawText.replace(match.documented.sourceText, realMarkup)
+    validatedText: step.rawText.replace(match.documented.sourceText, realMarkup),
+    priorHint: match.viaPriorAudit ? { documented: documentedPath, actual: realPath, layer: 'menu_path_resolution' } : undefined
   };
 }

@@ -2,7 +2,7 @@
 
 **Status:** ATIVO / HOMOLOGADO  
 **Versão Vigente:** BASE V3.2.0 + PIPELINE V2.4 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime)  
-**Normas Vinculantes:** ADR-007 a ADR-023  
+**Normas Vinculantes:** ADR-007 a ADR-025  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -438,3 +438,56 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * Regras: (1) passo de **navegação estrita** (caminho `A > B` ou *"Acesse o menu/submenu"*) nunca casa com `<input>`, `<textarea>`, `role=textbox|searchbox|combobox|spinbutton` — filtrado nos candidatos da árvore de acessibilidade, no fallback LLM, **depois da medição** (`forbiddenMeasuredReason`) e no clique legado por `ref`; (2) a busca global (`CTRL + B`) só é alvo se o próprio passo a cita; (3) sinônimo de símbolo (`+`) só casa por igualdade exata (`synonymMatchesNode`); sinônimo de palavra, por palavra inteira.
 * `resolveAndNavigateMenuPath` agora **sempre** devolve resultado quando o passo cita caminho: `menuPathMissing` (caminho inexistente) com `buildMenuPathMissingEvidence` — maior prefixo real, filhos reais do último nível, folha homônima em outra rota e total de itens lidos — ou `menuPathOpenFailed` (a árvore está lá, mas a cascata não abriu: **falha técnica retentável**, sem tag). Com `menuPathMissing`, a Camada 2 (similaridade/sinônimo/LLM) fica **proibida**; só a medição exata do DOM (Camada 1) ainda vale. O bloqueio sai `[ATT]` (`manual_outdated`) com a evidência no `Motivo Técnico` e no `errorMessage`.
 * Testes offline: `src/__tests__/adr024-external-steps-multitag-guard.test.ts` (21 testes: escopo, taxonomia, guarda, evidência de menu, relatório e validador).
+
+## 14. Ambiente de Produtos, Preflight de VPN, Multi-Aba e Reauditoria Contextual (ADR-025)
+
+### 14.1. Configuração e preflight (`config.ts`, `preflight.ts`, `cli.ts`)
+
+| Variável (`auditoria/.env`, ignorado pelo Git) | Papel |
+| :-- | :-- |
+| `ORION_BASE_URL` (alias legado `ORION_HOMOLOG_URL`) | URL de entrada: login do portal ou `webPortal/#/produtos`. |
+| `ORION_USER` / `ORION_PASS` | Credenciais. **Nunca** em código, ADR, documentação, log versionado ou commit. |
+| `ORION_ENV_LABEL` / `ORION_ENV_VERSION` | Rótulo/versão do ambiente gravados em `auditoria_ui.ambiente`/`versao_homologacao` e no histórico. |
+| `ORION_AUTO_SEED` | `false` desliga o auto-seed (ambiente compartilhado); `--auto-seed`/`--no-auto-seed` sobrepõem. |
+| `ORION_APP_HOME_URL` | Opcional: a URL do módulo é descoberta ao vivo e persistida em `auth/app-home.json`. |
+
+`preflightOrionReachability()` (`fetch` com `AbortSignal.timeout(3000)`, `redirect: 'manual'`) roda no `cli.ts` antes de `--login`, `--routine`, `--routines`, `--phase` e `--reaudit-pending`. Qualquer resposta HTTP prova alcance; erro de rede ou timeout lança `PreflightError` (*"Conecte a OpenVPN da Siplan"*), com o host mascarado (`maskHost`: `10.0.3.x`).
+
+### 14.2. Entrada pelo portal (`auth.ts`)
+
+`loginOrion`: abre a URL de entrada → preenche o login → no `webPortal` clica no card **Orion TN** dentro de `withNewTabDetection` → se o módulo abriu em nova guia, fecha a do portal, move o foco, registra a nova como principal (`setPrimaryTab`) e reaplica o viewport → persiste `origin + pathname + /#/inicio` (`persistDiscoveredAppHome`). `isSessionActiveInPage` aceita o path do módulo descoberto além de `/webPortal|/webFirmas`; a consulta de sessão ativa continua sendo o 1º passo (ADR-024).
+
+### 14.3. Multi-aba (`browser.ts`)
+
+| Método | Papel |
+| :-- | :-- |
+| `listTabs()` / `parseTabList()` | `tab list --json`; parser tolerante (`[...]`, `{tabs}`, `{data:{tabs}}`; ids numéricos viram `tN`). |
+| `switchTab(id)` / `closeTab(id?)` | `tab <tN>` / `tab close [tN]`. O CLI rejeita inteiros puros (`tab 2`). |
+| `markPrimaryTab()` / `setPrimaryTab()` | Guia principal da auditoria (preservada por `closeSecondaryTabs`). |
+| `withNewTabDetection(action, settleMs)` | Diff de ids antes/depois (o `agent-browser` não tem "wait for popup"); com guia nova: `switchTab`, espera `readyState`, `ensureViewport(1440, 900)`, devolve `{ tabId, url, title }`. |
+| `closeSecondaryTabs()` | Fecha todas menos a principal e devolve o foco. Chamada no início do `resetToHome`. |
+
+* **Clique do passo** (`executeStepAction`): só usa `withNewTabDetection` quando `probeActionNode` marca `opensNewTab` (`target="_blank"`, `window.open` em `onclick`/`ng-click`, ou link dirigido por JS sem `href` com texto *"Clique aqui..."/"Acessar..."*: o handler do Angular não aparece como atributo), evitando listar guias a cada clique. `ExecutedStepAction.openedTab` e `KbStepTelemetry.tab` `{ id, url, title, openedAtStep }` registram a guia.
+* **Gatilho de sub-portal** (`reveal-explorer.ts` `openSubportalLink`): levanta links `_blank`/`window.open` **e links dirigidos por JS com texto de chamada para navegação** (fora da barra de menu, não bloqueados pelo perfil, nunca `disabled`/`disabled-no-events`, sem texto de gravação), filtra por `subportalAffinityTerms(rótulo, passo + alvos ausentes + título/descrição da rotina)` (termos distintivos, com lista de palavras genéricas excluída; nenhum portal fixo no código), fotografa o link (guia de origem), aciona dentro de `withNewTabDetection` e **mantém a nova guia em foco**. Sem guia nova, se a própria guia navegou, volta (`history.back()`). O executor repete `locateAndCaptureWithSelfHealing` do **mesmo passo** na nova guia; o link entra em `passo-NN-b` (`captureKind: 'trigger'`, `revealTrigger.kind: 'subportal_link'`, sem o campo `tab`, pois é da guia de origem) e na trilha `exploracao_investigativa` (`resultado: subportal_aberto`). Se o alvo ainda não existe na guia aberta, o bloqueio segue as regras de sempre, com a nota da guia.
+* `RevealTriggerKind` ganhou `subportal_link`; `ExploredTrigger.outcome`, `subportal_opened`.
+
+### 14.4. Reauditoria contextual (`prior-audit.ts`, `executor.ts`, `smart-locator.ts`, `menu-path.ts`, `report.ts`)
+
+| Peça | Papel |
+| :-- | :-- |
+| `loadPriorAuditContext(id)` | Lê o `-revisado.md` mais recente (`findRevisedMarkdownById`) e `cache/kb-telemetry/<id>.json` **antes** da limpeza da pasta (`executor.ts`). |
+| `PriorAuditContext` | `status`, `tags`, `ambiente`, `block { stepNumber (telemetria), kind, tipo, motivo (corpo) }`, `targetHints[]` (cura com confiança ≥ 0,68 e elemento real localizado), `menuChains[]` (rota real de `menu_path_resolution`), `editorial[]`, `history[]`. |
+| `SmartLocateOptions.priorHints` | **Camada 0.5**: depois da medição do alvo documentado e do gate de healing, só em passo de alvo único; mede a dica ao vivo com as mesmas guardas (contêiner genérico, navegação estrita, zona). Acerto → divergência documentado→real + `SmartLocatorResult.priorHint`; erro → Camada 2 sem penalidade. |
+| `chooseMenuItem(paths, items, priorChains)` | Depois do casamento exato e antes da similaridade: aceita a rota comprovada se ela **existe na árvore lida agora**, o item não está bloqueado e a folha segue ≥ 0,80 do manual (`viaPriorAudit`, `exact: false`). |
+| `buildReauditHistoryEntry` / `mergeHistory` | `bloqueio_superado`: `true` se deixou de bloquear ou passou do passo anterior; `false` se bloqueia no mesmo passo ou antes; `null` sem bloqueio anterior. Últimas 10 entradas. |
+| `report.ts` | `auditoria_ui.historico_reauditoria` (YAML) e `#### Evolução da Reauditoria` (Antes → Depois). Telemetria: `reaudit` na 1ª entrada; resumo do lote: `status_anterior`, `bloqueio_superado`, `curas_reaproveitadas`. |
+
+**Princípios:** a dica acelera e estabiliza, **nunca comprova** (evidência = nó medido nesta execução); o texto do manual só muda pela Trava de Evidência; nota editorial anterior só permanece se o confronto semântico a reproduz agora; `historico_reauditoria` vai em `auditoria_ui` (JSONB) **sem migration**.
+
+### 14.5. Lote de reauditoria e proteção de hardware (`hardware-registry.ts`, `cli.ts`)
+
+`listHardwareRoutineIds()` = rotinas com `hardwarePreTriage.isHardwareDependent` no manifesto da Fase 3 (7) ∪ relatórios em disco com `tipo_bloqueio: 'Dependência de Ambiente/Hardware'` e `prints_geradas: 0` (as da Fase 2). `selectPendingRoutineIds()` = última auditoria em disco `[ATT]`/`[DDD]`/`[XRX]`/`[CCC]` menos as de hardware. `cli.ts --reaudit-pending [--list-only]` roda o lote (resumo em `cache/kb-batch-summary-reauditoria.json`); `--routines` ainda força qualquer rotina.
+
+### 14.6. Testes offline
+
+`src/__tests__/adr025-prior-audit-multitab.test.ts` (37 testes, incluindo a validade sintática do script injetado): parser do contexto anterior com fixtures no formato real, `historico_reauditoria` (YAML + seção), `parseTabList`, afinidade do sub-portal, `chooseMenuItem` com rota comprovada (empate real, rota inexistente, guarda da ADR-024, item bloqueado), Camada 0.5 com cliente falso, preflight (host mascarado) e seleção sem hardware.

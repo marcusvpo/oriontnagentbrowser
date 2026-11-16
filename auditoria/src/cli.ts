@@ -10,6 +10,8 @@ import { executePhase1 } from './execute-phase1.js';
 import { executePhase2 } from './execute-phase2.js';
 import { ROUTINES as PHASE2_MANIFEST } from './run-phase2-master.js';
 import { config } from './config.js';
+import { preflightOrionReachability, PreflightError } from './preflight.js';
+import { selectPendingRoutineIds } from './hardware-registry.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
 import { writePreTriagedDddReport } from './hardware-pretriage.js';
 import { REVIEW_TAGS, isReviewStatus, type ReviewTag } from './review-taxonomy.js';
@@ -41,7 +43,8 @@ async function main() {
   const executorOptions: ExecutorOptions = {
     dryRunMutations,
     explore: !args.includes('--no-explore'),
-    autoSeed: !args.includes('--no-auto-seed'),
+    // ADR-025: `ORION_AUTO_SEED=false` desliga no ambiente compartilhado; a flag da CLI sobrepõe o .env
+    autoSeed: args.includes('--auto-seed') ? true : args.includes('--no-auto-seed') ? false : config.autoSeedDefault,
     syncToSupabase: !noSync
   };
 
@@ -143,6 +146,10 @@ async function main() {
       comandos_nao_acionados: r.steps.filter(s => s.executedAction?.via === 'dry-run').map(s => `${s.stepNumber}:${s.executedAction?.commitLabel}`),
       gatilhos_testados: r.steps.reduce((n, s) => n + (s.exploration?.explored.length || 0), 0),
       alvos_revelados: r.steps.flatMap(s => s.exploration?.revealed || []),
+      status_anterior: r.reaudit?.status_anterior,
+      tags_anteriores: r.reaudit?.tags_anteriores,
+      bloqueio_superado: r.reaudit?.bloqueio_superado,
+      curas_reaproveitadas: r.reaudit?.curas_reaproveitadas.filter(c => c.confirmada_ao_vivo).length,
       tag_revisao: isReviewStatus(r.status) ? REVIEW_TAGS[r.status].tag : undefined,
       tags_revisao: r.reviewTags,
       passos_externos: r.externalSteps?.map(s => `${s.stepNumber}:${s.portal}`),
@@ -180,6 +187,19 @@ async function main() {
   };
 
   try {
+    // Preflight de VPN (ADR-025): servidor interno inalcançável aborta antes de abrir qualquer worker.
+    // A pré-triagem [DDD] de hardware (--pretriage-only) e o uso sem modo não tocam a rede.
+    const pendingMode = args.includes('--reaudit-pending');
+    const listOnly = args.includes('--list-only');
+    const touchesNetwork =
+      !isDryRun &&
+      (isLoginOnly ||
+        !!targetRoutine ||
+        routineList.length > 0 ||
+        (pendingMode && !listOnly) ||
+        (targetPhase !== null && !args.includes('--pretriage-only')));
+    if (touchesNetwork) await preflightOrionReachability();
+
     if (isLoginOnly) {
       if (isDryRun) throw new Error('Não é possível executar --login em modo --dry-run');
       const client = new AgentBrowserClient({ headless: isHeadless, sessionId: 'login-session' });
@@ -221,6 +241,19 @@ async function main() {
       } finally {
         await client.close();
       }
+    } else if (pendingMode) {
+      // ADR-025: lote de reauditoria das rotinas pendentes/bloqueadas (última auditoria em disco `[ATT]`/`[DDD]`/
+      // `[XRX]`/`[CCC]`), SEM as rotinas de hardware/ambiente, que só rodam se citadas em --routines.
+      const { ids, excludedHardware } = selectPendingRoutineIds();
+      console.log(`[Reauditoria] ${ids.length} rotina(s) pendentes selecionadas; ${excludedHardware.length} de hardware/ambiente protegidas (use --routines para forçar).`);
+      if (listOnly) {
+        console.log(`  Pendentes: ${ids.join(', ')}`);
+        console.log(`  Hardware/ambiente (fora do lote): ${excludedHardware.join(', ')}`);
+        return;
+      }
+      const pendingFiles = ids.map(id => findRoutineFileById(id)).filter((f): f is string => !!f);
+      const manifestWorkload = new Map(PHASE3_MANIFEST.filter(e => ids.includes(e.id)).map(e => [e.id, e.workloadType] as const));
+      await runKbBatch(pendingFiles, 'REAUDITORIA DAS PENDENTES', { workloadOverrides: manifestWorkload, summaryFile: 'kb-batch-summary-reauditoria.json' });
     } else if (routineList.length > 0) {
       const files: string[] = [];
       for (const id of routineList) {
@@ -299,11 +332,12 @@ async function main() {
       console.log('  npm run audit -- --headed                                        Abre janela visível');
       console.log('  --dry-run-mutations  demarca comandos de gravação sem acioná-los | --no-explore  desliga a exploração pré-bloqueio');
       console.log('  --phase 3 --pretriage-only  gera apenas os 7 relatórios [DDD] de hardware (sem navegador)');
-      console.log('  --no-auto-seed      não cria registro mock quando a grade está vazia (ADR-021)');
+      console.log('  --no-auto-seed      não cria registro mock quando a grade está vazia (ADR-021); --auto-seed liga (sobrepõe ORION_AUTO_SEED)');
+      console.log('  --reaudit-pending   reaudita as rotinas pendentes/bloqueadas das Fases 2 e 3, sem as de hardware (ADR-025); --list-only só lista');
       console.log('  --no-sync           desliga sincronização automática com o Supabase (apenas testes offline)');
     }
   } catch (err: any) {
-    console.error(`✕ Erro na execução: ${err.message}`);
+    console.error(err instanceof PreflightError ? `✕ [Preflight] ${err.message}` : `✕ Erro na execução: ${err.message}`);
     process.exit(1);
   }
 }

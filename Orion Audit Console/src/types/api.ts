@@ -97,6 +97,23 @@ export interface AuditoriaUiFrontmatter {
   tipo_bloqueio?: string;              // só em [ATT]/[CCC]/[DDD]/[XRX]
   review_tags?: ReviewTagCode[];
   etapas_externas?: Array<{ passo: number; portal: string }>;
+  /** Comparativo Antes → Depois de cada reauditoria, da mais antiga à mais nova (ADR-025) */
+  historico_reauditoria?: Array<{
+    data: string;
+    ambiente_anterior: string;
+    ambiente_atual: string;
+    status_anterior: string;
+    tags_anteriores: string[];
+    status_atual: string;
+    tags_atuais: string[];
+    /** `null`: a auditoria anterior não tinha bloqueio */
+    bloqueio_superado: boolean | null;
+    bloqueio_anterior?: { passo?: number; tipo?: string; motivo?: string };
+    bloqueio_atual?: { passo?: number; tipo?: string };
+    curas_reaproveitadas?: Array<{ passo: number; alvo: string; real: string; confirmada_ao_vivo: boolean; usada_como_dica?: boolean }>;
+    notas_editoriais_reconfirmadas: number;
+    notas_editoriais_nao_reconfirmadas: number;
+  }>;
   auto_cura?: {
     acionada: boolean;
     divergencias_detectadas: Array<{

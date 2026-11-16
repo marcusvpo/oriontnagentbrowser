@@ -144,6 +144,8 @@ export interface DOMActionNode {
   disabled?: boolean;
   /** Rótulo alternativo do nó (`title`, `aria-label` ou `value`), para controles sem texto (ADR-018) */
   hint?: string;
+  /** O clique tende a abrir uma nova guia (`target="_blank"` / `window.open`); só então a detecção de guias roda (ADR-025) */
+  opensNewTab?: boolean;
 }
 
 /**
@@ -175,6 +177,8 @@ export interface ExecutedStepAction {
   /** Zona em que o alvo foi medido */
   zone?: SemanticZone;
   reason?: string;
+  /** Nova guia aberta pela ação do passo (sub-portal integrado, ADR-025). A guia passa a ser o foco da rotina. */
+  openedTab?: { tabId: string; url: string; title: string };
 }
 
 /**
@@ -211,7 +215,7 @@ export interface SmartLocatorDivergence {
 }
 
 /** Tipos de gatilho revelador seguro investigados antes de um bloqueio `[!!!]` (ADR-018). */
-export type RevealTriggerKind = 'tab' | 'accordion' | 'button' | 'checkbox' | 'radio';
+export type RevealTriggerKind = 'tab' | 'accordion' | 'button' | 'checkbox' | 'radio' | 'subportal_link';
 
 /** Gatilho revelador acionado, com a evidência medida ao vivo antes do clique (ADR-018). */
 export interface RevealTriggerInfo {
@@ -230,7 +234,8 @@ export interface ExploredTrigger {
   kind: RevealTriggerKind;
   label: string;
   directed: boolean;
-  outcome: 'revealed' | 'no_effect' | 'screen_error' | 'not_actionable';
+  /** `subportal_opened`: o link abriu uma nova guia (sub-portal integrado), que passou a ser o foco da rotina (ADR-025) */
+  outcome: 'revealed' | 'no_effect' | 'screen_error' | 'not_actionable' | 'subportal_opened';
   /** O estado anterior da tela foi restaurado e conferido após a tentativa */
   restored?: boolean;
 }
@@ -427,6 +432,11 @@ export interface SmartLocatorResult {
   menuPathMissing?: MenuPathMissingEvidence;
   /** O caminho existe na árvore, mas a cascata não pôde ser aberta/mantida: falha técnica, não defasagem do manual */
   menuPathOpenFailed?: string;
+  /**
+   * A medição só foi possível com a dica de uma auditoria anterior (ADR-025): o rótulo real já curado antes foi
+   * RECONFIRMADO ao vivo no DOM desta execução. A dica nunca é evidência; a evidência é o nó medido agora.
+   */
+  priorHint?: { documented: string; actual: string; layer: string };
   /**
    * Divergências de alvos individuais de um passo com múltiplos alvos (ADR-016): rótulos curados para
    * o nome real da tela ou não localizados na zona de conteúdo, mesmo quando o passo foi demarcado.
@@ -627,6 +637,8 @@ export interface AuditStepResult {
 }
 
 export interface AuditRoutineReport {
+  /** Comparativo da reauditoria Antes -> Depois desta execução (ADR-025); ausente na 1ª auditoria */
+  reaudit?: import('./prior-audit.js').ReauditHistoryEntry;
   id: string;
   modulo: string;
   titulo: string;

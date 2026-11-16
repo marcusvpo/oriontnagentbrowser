@@ -7,6 +7,59 @@ import { buildDOMIntrospectionScript, parseDOMGeometryResponse, NAV_ZONE_SELECTO
 
 const execFileAsync = promisify(execFile);
 
+/** Guia do navegador, como o `agent-browser tab list --json` a descreve (ADR-025). */
+export interface BrowserTab {
+  /** `t1`, `t2`... (ou o targetId CDP quando o daemon não devolve o id curto) */
+  id: string;
+  targetId?: string;
+  title: string;
+  url: string;
+  active: boolean;
+}
+
+/** Guia aberta por uma ação do passo (link `_blank`, `window.open`). */
+export interface OpenedTab {
+  tabId: string;
+  url: string;
+  title: string;
+}
+
+/**
+ * Converte a saída de `tab list --json`. O formato exato não é documentado: aceita `[...]`, `{ tabs: [...] }`
+ * e `{ data: { tabs: [...] } }`, com `tabId`/`id`/`label`/`targetId` como identificador. Entrada ilegível = [].
+ */
+export function parseTabList(output: string): BrowserTab[] {
+  const text = String(output || '').trim();
+  if (!text) return [];
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    const m = text.match(/[\[{][\s\S]*[\]}]/);
+    if (!m) return [];
+    try {
+      parsed = JSON.parse(m[0]);
+    } catch {
+      return [];
+    }
+  }
+  const list: any[] = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.tabs) ? parsed.tabs : Array.isArray(parsed?.data?.tabs) ? parsed.data.tabs : Array.isArray(parsed?.data) ? parsed.data : [];
+  return list
+    .map((t: any, i: number): BrowserTab | null => {
+      if (!t || typeof t !== 'object') return null;
+      const id = String(t.tabId ?? t.id ?? t.label ?? t.targetId ?? '').trim();
+      if (!id) return null;
+      return {
+        id: /^\d+$/.test(id) ? `t${id}` : id,
+        targetId: t.targetId ? String(t.targetId) : undefined,
+        title: String(t.title ?? ''),
+        url: String(t.url ?? ''),
+        active: t.active === true || t.current === true || t.isActive === true || (t.active === undefined && i === 0 && list.length === 1)
+      };
+    })
+    .filter((t): t is BrowserTab => t !== null);
+}
+
 export interface DOMGeometryRequestOptions {
   scrollIntoView?: boolean;
   /** Política de Zona Semântica do passo (ADR-015). Default: `any` (busca irrestrita). */
@@ -120,6 +173,125 @@ export class AgentBrowserClient {
 
   async open(url: string): Promise<string> {
     return this.run(['open', url]);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Multi-aba / sub-portais (ADR-025). O agent-browser não tem "wait for popup": a nova guia é detectada
+  // pelo diff de `tab list --json` antes/depois da ação. Ids são `t1`, `t2`... (`tab 2` é rejeitado).
+  // ---------------------------------------------------------------------------
+
+  /** Guia principal da auditoria (a que o worker abriu); `closeSecondaryTabs` preserva esta. */
+  private primaryTabId?: string;
+
+  /** Lista as guias abertas do daemon. Nunca lança: sem resposta, devolve lista vazia. */
+  async listTabs(): Promise<BrowserTab[]> {
+    try {
+      const out = await this.run(['tab', 'list', '--json']);
+      return parseTabList(out);
+    } catch {
+      return [];
+    }
+  }
+
+  /** Muda o foco para uma guia (`t2`, rótulo ou targetId). */
+  async switchTab(id: string): Promise<string> {
+    return this.run(['tab', id]);
+  }
+
+  /** Fecha uma guia específica (ou a atual, sem id). */
+  async closeTab(id?: string): Promise<string> {
+    return this.run(id ? ['tab', 'close', id] : ['tab', 'close']);
+  }
+
+  /** Registra como principal a guia ativa neste momento (idempotente: só o primeiro registro vale). */
+  async markPrimaryTab(): Promise<string | undefined> {
+    if (this.primaryTabId) return this.primaryTabId;
+    const tabs = await this.listTabs();
+    const active = tabs.find(t => t.active) ?? tabs[0];
+    if (active) this.primaryTabId = active.id;
+    return this.primaryTabId;
+  }
+
+  /** Redefine a guia principal (login que troca o portal pela guia do módulo). */
+  setPrimaryTab(id: string | undefined): void {
+    this.primaryTabId = id;
+  }
+
+  getPrimaryTab(): string | undefined {
+    return this.primaryTabId;
+  }
+
+  /**
+   * Fecha todas as guias secundárias e devolve o foco à principal (`resetToHome`, ADR-025). Se a principal
+   * não foi registrada ou sumiu, preserva a primeira guia da lista. Retorna quantas guias foram fechadas.
+   */
+  async closeSecondaryTabs(): Promise<number> {
+    const tabs = await this.listTabs();
+    if (tabs.length <= 1) {
+      // Única guia: é a principal (registra se ainda não foi registrada) e precisa estar em foco
+      if (tabs[0]) {
+        if (!this.primaryTabId) this.primaryTabId = tabs[0].id;
+        if (!tabs[0].active) await this.switchTab(tabs[0].id).catch(() => undefined);
+      }
+      return 0;
+    }
+    const keep = tabs.find(t => t.id === this.primaryTabId) ?? tabs[0];
+    this.primaryTabId = keep.id;
+    let closed = 0;
+    for (const t of tabs) {
+      if (t.id === keep.id) continue;
+      try {
+        await this.closeTab(t.id);
+        closed++;
+      } catch {
+        // guia já fechada pelo próprio sistema
+      }
+    }
+    const remaining = await this.listTabs();
+    const current = remaining.find(t => t.active);
+    if (!current || current.id !== keep.id) await this.switchTab(keep.id).catch(() => undefined);
+    return closed;
+  }
+
+  /**
+   * Executa uma ação e, se ela abrir uma nova guia (`target="_blank"`, `window.open`), muda o foco para
+   * ela, espera o carregamento e reaplica o viewport 1440x900 (a emulação não é herdada, ADR-009/ADR-025).
+   * Devolve `{ result, openedTab }`; `openedTab` é `null` quando nenhuma guia nova apareceu.
+   */
+  async withNewTabDetection<T>(action: () => Promise<T>, settleMs = 3000): Promise<{ result: T; openedTab: OpenedTab | null }> {
+    await this.markPrimaryTab();
+    const before = new Set((await this.listTabs()).map(t => t.id));
+    const result = await action();
+    const deadline = Date.now() + settleMs;
+    let fresh: BrowserTab | undefined;
+    do {
+      const after = await this.listTabs();
+      fresh = after.filter(t => !before.has(t.id)).pop();
+      if (fresh) break;
+      await new Promise(r => setTimeout(r, 400));
+    } while (Date.now() < deadline);
+    if (!fresh) return { result, openedTab: null };
+
+    await this.switchTab(fresh.id);
+    for (let i = 0; i < 10; i++) {
+      try {
+        const state = String(await this.eval('document.readyState')).replace(/"/g, '');
+        if (state === 'complete') break;
+      } catch {
+        // a guia ainda está inicializando
+      }
+      await this.wait(500);
+    }
+    await this.ensureViewport(1440, 900);
+    let url = fresh.url;
+    let title = fresh.title;
+    try {
+      url = String(await this.eval('window.location.href')).replace(/^"|"$/g, '') || url;
+      title = String(await this.eval('document.title')).replace(/^"|"$/g, '') || title;
+    } catch {
+      // mantém o que `tab list` informou
+    }
+    return { result, openedTab: { tabId: fresh.id, url, title } };
   }
 
   /**
@@ -321,7 +493,17 @@ export class AgentBrowserClient {
           box: { x: x1, y: y1, width: Math.round(r.right) - x1, height: Math.round(r.bottom) - y1 },
           insideNavZone: !!el.closest(${JSON.stringify(NAV_ZONE_SELECTOR)}),
           disabled: !!el.disabled || el.getAttribute('aria-disabled') === 'true' || !!el.closest('fieldset[disabled]'),
-          hint: (el.getAttribute('title') || el.getAttribute('aria-label') || el.getAttribute('value') || '').trim().slice(0, 80)
+          hint: (el.getAttribute('title') || el.getAttribute('aria-label') || el.getAttribute('value') || '').trim().slice(0, 80),
+          opensNewTab: (() => {
+            const a = el.closest('a');
+            const js = [el.getAttribute('onclick'), el.getAttribute('ng-click'), a && a.getAttribute('onclick'), a && a.getAttribute('ng-click')].join(' ');
+            if (a && String(a.getAttribute('target') || '').toLowerCase() === '_blank') return true;
+            if (/window\\.open|\\$window\\.open/.test(js)) return true;
+            // Link dirigido por JS (handler do Angular não aparece como atributo) com chamada para navegação
+            const href = a ? String(a.getAttribute('href') || '') : '';
+            const txt = String((a || el).innerText || '').toLowerCase();
+            return !!a && (href === '' || href === '#') && /clique aqui|acesse|acessar|tela de configura/.test(txt);
+          })()
         });
       })()
     `);

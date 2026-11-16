@@ -571,6 +571,14 @@ export interface SmartLocateOptions {
    * outro elemento da tela (ADR-016).
    */
   allowHealing?: boolean;
+  /**
+   * Curas já comprovadas numa auditoria anterior para ESTE passo (ADR-025). Entram como Camada 0.5, depois da
+   * medição direta do alvo documentado: se o manual está certo, a dica nem é usada. Só valem se o nó for
+   * medido ao vivo de novo; a dica acelera e estabiliza, nunca comprova.
+   */
+  priorHints?: Array<{ documented: string; actual: string; layer: SmartLocatorDivergence['resolutionLayer']; confidence: number }>;
+  /** Rotas de menu reais já comprovadas para este passo (ADR-025), repassadas à Camada 0 */
+  priorMenuChains?: string[][];
 }
 
 /**
@@ -593,7 +601,7 @@ export async function locateAndCaptureWithSelfHealing(
   // CAMADA 0: Navegação Encadeada por Segmentos com Auto-Cura de Rota (ADR-016)
   // Um caminho de menu `A > B > C` é percorrido na árvore de navegação real antes de qualquer busca textual.
   // =========================================================================
-  const viaMenuPath = await resolveAndNavigateMenuPath(client, step, rawScreenshotPath);
+  const viaMenuPath = await resolveAndNavigateMenuPath(client, step, rawScreenshotPath, options.priorMenuChains);
   if (viaMenuPath && (viaMenuPath.found || viaMenuPath.permissionBlocked)) return viaMenuPath;
   // ADR-024: caminho de menu inexistente na árvore real (ou cascata que não abriu). O passo ainda pode ser
   // medido por correspondência EXATA no DOM (Camada 1), mas nunca é "curado" por similaridade/sinônimo.
@@ -753,6 +761,51 @@ export async function locateAndCaptureWithSelfHealing(
       gridActions: gridScanStatus,
       ...menuGuard
     };
+  }
+
+  // =========================================================================
+  // CAMADA 0.5 (ADR-025): cura já comprovada numa auditoria anterior. Roda só depois de a medição direta do
+  // alvo documentado falhar e só em passo de alvo único; a dica é medida ao vivo e passa pelas mesmas guardas
+  // (contêiner genérico, navegação estrita, zona semântica). Sem acerto, segue para a Camada 2 sem penalidade.
+  // =========================================================================
+  if (options.priorHints && options.priorHints.length > 0 && step.targets.length === 1 && !groupTargets) {
+    const documentedTarget = step.targets[0];
+    const hint = options.priorHints.find(h => normalizeText(h.documented) === normalizeText(documentedTarget));
+    if (hint) {
+      const geometry = await client.getDOMGeometry([hint.actual], { scrollIntoView: true, zone: zonePolicy });
+      const forbidden = geometry ? forbiddenMeasuredReason(step, geometry.context) : null;
+      if (geometry && !isGenericContainerMatch(geometry) && !forbidden) {
+        console.log(
+          `   ↺ [Reauditoria] Cura anterior reconfirmada ao vivo: "${documentedTarget}" -> "${hint.actual}" (${hint.layer}, conf anterior ${Math.round(hint.confidence * 100)}%)`
+        );
+        await client.screenshot(rawScreenshotPath);
+        const divergence: SmartLocatorDivergence = {
+          stepNumber: step.stepNumber,
+          documentedTarget,
+          actualElementText: hint.actual,
+          resolutionLayer: hint.layer,
+          confidence: hint.confidence,
+          reason: `Cura comprovada numa auditoria anterior (${hint.layer}) e reconfirmada ao vivo: o elemento "${hint.actual}" foi medido na tela desta execução`,
+          detectedAt: new Date().toISOString(),
+          evidence: {
+            source: 'dom-measured',
+            matchedSelector: geometry.matchedSelector,
+            elementText: geometry.context.innerText || hint.actual,
+            box: geometry.cssBox
+          },
+          textChange: { from: `**${documentedTarget}**`, to: `**${hint.actual}**` }
+        };
+        return {
+          found: true,
+          healed: true,
+          geometry,
+          matchedTargetName: hint.actual,
+          divergence,
+          priorHint: { documented: documentedTarget, actual: hint.actual, layer: hint.layer }
+        };
+      }
+      console.log(`   [Reauditoria] A cura anterior "${hint.actual}" não foi reconfirmada nesta tela; seguindo para a Auto-Cura.`);
+    }
   }
 
   // =========================================================================

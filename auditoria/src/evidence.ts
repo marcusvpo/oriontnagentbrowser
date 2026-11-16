@@ -88,7 +88,8 @@ export function revealTextChange(target: string, kind: RevealTriggerKind, trigge
     accordion: 'exibido ao expandir',
     button: 'exibido após clicar em',
     checkbox: 'exibido após marcar',
-    radio: 'exibido após selecionar'
+    radio: 'exibido após selecionar',
+    subportal_link: 'exibido na nova guia aberta pelo link'
   };
   return { from: `**${target}**`, to: `**${target}** (${how[kind]} **${triggerLabel}**)` };
 }

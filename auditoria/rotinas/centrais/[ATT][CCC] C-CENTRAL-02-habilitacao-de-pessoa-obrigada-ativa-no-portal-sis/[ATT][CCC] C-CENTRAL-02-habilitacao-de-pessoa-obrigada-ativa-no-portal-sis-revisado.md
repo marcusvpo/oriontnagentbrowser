@@ -8,8 +8,9 @@ auditoria_ui:
   status: atualizacao_editorial
   review_tags: ['ATT', 'CCC']
   carga: mutation
-  worker_id: 'worker-1'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   etapas_externas:
     - passo: 1
@@ -20,15 +21,33 @@ auditoria_ui:
       portal: 'SISCOAF'
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
+  historico_reauditoria:
+    - data: '2026-11-16'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT', 'CCC']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT', 'CCC']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Comunicação COAF" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de impressão'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT][CCC]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Comunicação COAF" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de impressão", "Tabela de custas", "Cadastros auxiliares", "Perfis e permissões de acesso", "Usuários", "Parametrizações"; "Parâmetros Gerais" não está entre eles. Nenhum item de nome igual ou parecido existe em outro ponto da árvore (136 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Comunicação COAF" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de impressão", "Tabela de custas", "Cadastros auxiliares", "Perfis e permissões de acesso", "Usuários", "Parametrizações"; "Parâmetros Gerais" não está entre eles. Nenhum item de nome igual ou parecido existe em outro ponto da árvore (139 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 >
 > **Etapas externas ([CCC]):** Os passos 1, 2, 3 ocorrem fora do Orion TN (SISCOAF); não foram executados nem fotografados. As demais etapas foram auditadas até o ponto de bloqueio.
 
@@ -56,3 +75,8 @@ As comunicações de operações suspeitas e inocorrências só podem ser transm
 7. Retorne à tela de envio do COAF e faça a transmissão do lote pendente.
 
 * **Responsabilidade Legal: Mantenha o cadastro de prepostos atualizado no SISCOAF e desative imediatamente o vínculo de funcionários desligados.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT][CCC] atualizacao_editorial → [ATT][CCC] atualizacao_editorial
+* **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Comunicação COAF" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de impressão → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

@@ -1,4 +1,4 @@
-import type { AgentBrowserClient } from './browser.js';
+import type { AgentBrowserClient, OpenedTab } from './browser.js';
 import { isGenericContainerMatch } from './evidence.js';
 import { ACTIVE_MODAL_SELECTOR, dismissTopModalOnce } from './modal-scope.js';
 import { RESOLVED_COMMIT_SOURCE } from './mutation-guard.js';
@@ -365,7 +365,7 @@ async function restoreState(client: AgentBrowserClient, trigger: RevealTrigger, 
   return !!now && sameState(now, origin);
 }
 
-const KIND_WEIGHT: Record<RevealTriggerKind, number> = { tab: 3, accordion: 3, button: 2, checkbox: 1, radio: 1 };
+const KIND_WEIGHT: Record<RevealTriggerKind, number> = { tab: 3, accordion: 3, button: 2, checkbox: 1, radio: 1, subportal_link: 2 };
 
 /** Afinidade de um gatilho com os alvos procurados e com o texto do passo (0..1). */
 function affinity(trigger: RevealTrigger, missing: string[], stepText: string): number {
@@ -430,6 +430,170 @@ async function rerankWithLLM(step: RoutineStep, missing: string[], ranked: Revea
   } catch {
     return ranked;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sub-portais integrados em nova guia (ADR-025)
+// ---------------------------------------------------------------------------
+
+/** Palavras genéricas de um link ("Clique aqui para acessar a tela de configuração..."): não provam afinidade. */
+const SUBPORTAL_STOPWORDS = new Set(
+  [
+    'clique', 'aqui', 'para', 'acessar', 'acesse', 'acesso', 'tela', 'configuracao', 'configuracoes', 'link', 'abrir', 'abra',
+    'portal', 'sistema', 'orion', 'site', 'pagina', 'saiba', 'mais', 'clicando', 'clicar', 'esta', 'essa', 'este', 'nesta',
+    'nessa', 'como', 'onde', 'uma', 'dos', 'das', 'por', 'nos', 'nas', 'com', 'que', 'cadastro', 'cadastrar', 'visualizar'
+  ]
+);
+
+/**
+ * Termos DISTINTIVOS que o rótulo de um link compartilha com o contexto (texto do passo, alvos ausentes e título
+ * da rotina). Um link só é aceito como gatilho de sub-portal com pelo menos um termo em comum; nenhum nome de
+ * portal é fixado no código (o "COAF" de um link "...no Orion Coaf" casa porque o passo/rotina o cita).
+ */
+export function subportalAffinityTerms(label: string, context: string): string[] {
+  const ctx = new Set(normalizeText(context).split(' ').filter(w => w.length >= 3));
+  const shared = normalizeText(label)
+    .split(' ')
+    .filter(w => w.length >= 3 && !SUBPORTAL_STOPWORDS.has(w) && ctx.has(w));
+  return Array.from(new Set(shared));
+}
+
+interface SubportalCandidate {
+  label: string;
+  selector: string;
+}
+
+/** Levanta (e carimba) os links que abrem nova guia: `target="_blank"` ou `window.open`. Só leitura + carimbo. */
+export function buildSubportalLinkScript(): string {
+  return `
+    (() => {
+      const COMMIT_RE = new RegExp(${JSON.stringify(RESOLVED_COMMIT_SOURCE)});
+      const TOP_NAV = '.navbar, #navbar, .dropdown-menu';
+      const BLOCKED = ${JSON.stringify(PERMISSION_MARK_SELECTOR)};
+      ${BROWSER_HELPERS}
+      for (const prev of window.__orionSubportalStamps || []) {
+        try { prev[0].removeAttribute(prev[1]); } catch (e) {}
+      }
+      window.__orionSubportalStamps = [];
+      const token = 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e9).toString(36);
+      const modals = Array.from(document.querySelectorAll(MODAL_SEL)).filter(vis);
+      const scope = modals.length > 0 ? modals[modals.length - 1] : document.body;
+      const out = [];
+      let n = 0;
+      // Chamada para navegação ("Clique aqui para acessar a tela de configuração no ..."): o handler de links do
+      // Angular não aparece como atributo (<a class="cursor-pointer"> sem href/target/onclick), então o sinal é o
+      // texto + a ausência de href, sempre filtrado depois pela afinidade com o passo/rotina.
+      const CTA = /(clique aqui|acesse|acessar|abrir|abra|ir para|tela de configura)/;
+      const nodes = scope.querySelectorAll('a, button, [role="link"]');
+      for (const el of nodes) {
+        if (out.length >= 12) break;
+        if (!vis(el) || el.closest(TOP_NAV) || el.closest(BLOCKED)) continue;
+        const cls = typeof el.className === 'string' ? el.className : '';
+        // A própria aplicação marca o link inoperante (ex.: 'disabled-no-events' + title explicando a causa)
+        if (el.disabled || el.getAttribute('aria-disabled') === 'true' || /(^|\\s)disabled/.test(cls) || el.closest('[disabled], .disabled')) continue;
+        const label = clean(el.innerText || el.textContent) || clean(el.getAttribute('title') || el.getAttribute('aria-label'));
+        if (!label || label.length > 160) continue;
+        if (COMMIT_RE.test(norm(label))) continue;
+        const js = [el.getAttribute('onclick'), el.getAttribute('ng-click')].join(' ');
+        const href = String(el.getAttribute('href') || '');
+        const staticNewTab = String(el.getAttribute('target') || '').toLowerCase() === '_blank' || /window\\.open/.test(js);
+        const jsDriven = href === '' || href === '#' || /^javascript:/i.test(href);
+        if (!staticNewTab && !(jsDriven && CTA.test(norm(label)))) continue;
+        const attr = 'data-orion-audit-subportal-' + token + '-' + (n++);
+        el.setAttribute(attr, '');
+        window.__orionSubportalStamps.push([el, attr]);
+        out.push({ label, selector: '[' + attr + ']' });
+      }
+      return JSON.stringify(out);
+    })()
+  `;
+}
+
+export interface SubportalRequest {
+  step: RoutineStep;
+  /** Alvos do manual que não estão na tela atual */
+  missing: string[];
+  /** Título da rotina (e demais textos de contexto) para a afinidade do link */
+  routineContext: string;
+  rawPathFor: (suffix: string) => string;
+}
+
+export interface SubportalOpened {
+  /** Rótulo real do link acionado */
+  label: string;
+  /** Termos distintivos que justificaram o clique */
+  sharedTerms: string[];
+  /** Link medido ao vivo ANTES do clique, no frame de `triggerRawPath` (guia de origem) */
+  triggerGeometry: DOMResolvedGeometry;
+  triggerRawPath: string;
+  /** Guia aberta, já em foco, com viewport 1440x900 reaplicado */
+  tab: OpenedTab;
+  /** Links de nova guia da tela e quantos tinham afinidade (rastreabilidade) */
+  candidates: number;
+  withAffinity: number;
+}
+
+/**
+ * Gatilho genérico de sub-portal (ADR-025). Quando o alvo do passo não está na tela, procura um link que abre
+ * nova guia e cujo texto tem afinidade com o passo/rotina, aciona-o e DEIXA a guia nova em foco: o executor
+ * repete a localização do passo nela e os passos seguintes continuam nela até o `resetToHome`.
+ *
+ * Segurança: só links `_blank`/`window.open`, nunca em barra de menu nem bloqueados para o perfil, nunca com
+ * texto de gravação; nada é preenchido nem gravado. Sem guia nova (o link navegou a própria guia), a tela
+ * volta ao ponto de partida e o gatilho é descartado.
+ */
+export async function openSubportalLink(client: AgentBrowserClient, request: SubportalRequest): Promise<SubportalOpened | null> {
+  const found = (await client.evalJson<SubportalCandidate[]>(buildSubportalLinkScript())) || [];
+  if (found.length === 0) return null;
+  const context = `${request.step.rawText} ${(request.step.subItems || []).join(' ')} ${request.missing.join(' ')} ${request.routineContext}`;
+  const ranked = found
+    .map(c => ({ c, terms: subportalAffinityTerms(c.label, context) }))
+    .filter(x => x.terms.length > 0)
+    .sort((a, b) => b.terms.length - a.terms.length);
+  if (ranked.length === 0) {
+    console.log(`   [Sub-portal] ${found.length} link(s) de nova guia na tela, nenhum com afinidade com o passo/rotina; descartados.`);
+    return null;
+  }
+  const { c: link, terms } = ranked[0];
+  const triggerGeometry = await client.getDOMGeometry([link.selector], { scrollIntoView: true, zone: 'any' });
+  if (!triggerGeometry) return null;
+  const triggerRawPath = request.rawPathFor('subportal');
+  await client.screenshot(triggerRawPath);
+  const hrefBefore = String(await client.eval('window.location.href')).replace(/^"|"$/g, '');
+  const before = await readFingerprint(client);
+
+  console.log(`   [Sub-portal] Acionando o link "${link.label}" (afinidade: ${terms.join(', ')}); a nova guia, se abrir, passa a ser o foco.`);
+  const { openedTab } = await client.withNewTabDetection(() => client.click(link.selector), 6000);
+  if (!openedTab) {
+    // O link não abriu guia (só dá para saber depois do clique): restaura o estado anterior da tela, que pode
+    // ter navegado a própria guia ou aberto um modal.
+    await client.wait(800);
+    const hrefNow = String(await client.eval('window.location.href').catch(() => '')).replace(/^"|"$/g, '');
+    if (hrefNow && hrefNow !== hrefBefore) {
+      await client.eval('window.history.back()').catch(() => undefined);
+      await client.wait(1500);
+    }
+    const now = await readFingerprint(client);
+    if (before && now && now.modals > before.modals) {
+      await dismissTopModal(client);
+      await client.wait(600);
+    }
+    console.log(`   [Sub-portal] O link "${link.label}" não abriu nova guia; descartado e tela restaurada.`);
+    return null;
+  }
+
+  // A guia nova precisa estar carregada (readyState + conteúdo) antes de ser medida
+  let loaded = false;
+  for (let i = 0; i < 8 && !loaded; i++) {
+    const state = await client.evalJson<{ ready: boolean; text: number }>(
+      `(() => JSON.stringify({ ready: document.readyState === 'complete', text: (document.body && document.body.innerText || '').trim().length }))()`
+    );
+    loaded = !!state && state.ready && state.text > 0;
+    if (!loaded) await client.wait(800);
+  }
+  if (!loaded) console.warn(`   ⚠ [Sub-portal] A guia "${openedTab.title || openedTab.url}" não terminou de carregar; seguindo mesmo assim.`);
+  await client.wait(1000);
+  return { label: link.label, sharedTerms: terms, triggerGeometry, triggerRawPath, tab: openedTab, candidates: found.length, withAffinity: ranked.length };
 }
 
 const triggerKey = (t: RevealTrigger) => `${t.kind}:${normalizeText(t.label)}`;

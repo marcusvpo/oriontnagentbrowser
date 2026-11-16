@@ -1,4 +1,6 @@
 import { lockStepText } from './evidence.js';
+import { config } from './config.js';
+import type { ReauditHistoryEntry } from './prior-audit.js';
 import type { EditorialDivergence } from './screen-snapshot.js';
 import {
   EXTERNAL_PORTAL_BLOCK_TYPE,
@@ -62,6 +64,11 @@ export interface RevisedReportInput {
   seededRecords?: SeededRecord[];
   /** Tags adicionais à do `status` (ADR-024), ex.: `['CCC']` junto de um bloqueio `[ATT]` */
   extraTags?: ReviewTag[];
+  /**
+   * Histórico de reauditoria (ADR-025): entradas anteriores mais a desta execução (a última). Ausente numa
+   * primeira auditoria. Vai para `auditoria_ui.historico_reauditoria` (JSONB no Supabase, sem migration).
+   */
+  reauditHistory?: ReauditHistoryEntry[];
 }
 
 /** Todas as tags da rotina em ordem canônica: a do status principal mais as adicionais (ADR-024). */
@@ -76,9 +83,11 @@ const TRIGGER_KIND_LABEL: Record<string, string> = {
   accordion: 'painel recolhido',
   button: 'botão',
   checkbox: 'caixa de seleção',
-  radio: 'opção'
+  radio: 'opção',
+  subportal_link: 'link de sub-portal'
 };
 const TRIGGER_OUTCOME_LABEL: Record<string, string> = {
+  subportal_opened: 'subportal_aberto',
   revealed: 'revelou_o_alvo',
   no_effect: 'sem_efeito',
   screen_error: 'tela_com_erro',
@@ -87,6 +96,74 @@ const TRIGGER_OUTCOME_LABEL: Record<string, string> = {
 
 const q = (s: string) => `'${String(s).replace(/'/g, "''")}'`;
 const qList = (items: string[]) => `[${items.map(q).join(', ')}]`;
+
+/** `auditoria_ui.historico_reauditoria` (ADR-025): uma entrada por reauditoria, da mais antiga à mais nova. */
+function historyYamlLines(history: ReauditHistoryEntry[]): string[] {
+  const lines = ['  historico_reauditoria:'];
+  for (const e of history) {
+    lines.push(`    - data: ${q(e.data)}`);
+    lines.push(`      ambiente_anterior: ${q(e.ambiente_anterior)}`);
+    lines.push(`      ambiente_atual: ${q(e.ambiente_atual)}`);
+    lines.push(`      status_anterior: ${q(e.status_anterior)}`);
+    lines.push(`      tags_anteriores: ${qList(e.tags_anteriores)}`);
+    lines.push(`      status_atual: ${q(e.status_atual)}`);
+    lines.push(`      tags_atuais: ${qList(e.tags_atuais)}`);
+    lines.push(`      bloqueio_superado: ${e.bloqueio_superado === null ? 'null' : e.bloqueio_superado}`);
+    if (e.bloqueio_anterior) {
+      lines.push(`      bloqueio_anterior:`);
+      if (e.bloqueio_anterior.passo !== undefined) lines.push(`        passo: ${e.bloqueio_anterior.passo}`);
+      if (e.bloqueio_anterior.tipo) lines.push(`        tipo: ${q(e.bloqueio_anterior.tipo)}`);
+      if (e.bloqueio_anterior.motivo) lines.push(`        motivo: ${q(e.bloqueio_anterior.motivo)}`);
+    }
+    if (e.bloqueio_atual) {
+      lines.push(`      bloqueio_atual:`);
+      if (e.bloqueio_atual.passo !== undefined) lines.push(`        passo: ${e.bloqueio_atual.passo}`);
+      if (e.bloqueio_atual.tipo) lines.push(`        tipo: ${q(e.bloqueio_atual.tipo)}`);
+    }
+    if (e.curas_reaproveitadas.length > 0) {
+      lines.push(`      curas_reaproveitadas:`);
+      for (const c of e.curas_reaproveitadas) {
+        lines.push(`        - passo: ${c.passo}`);
+        lines.push(`          alvo: ${q(c.alvo)}`);
+        lines.push(`          real: ${q(c.real)}`);
+        lines.push(`          confirmada_ao_vivo: ${c.confirmada_ao_vivo}`);
+        lines.push(`          usada_como_dica: ${c.usada_como_dica}`);
+      }
+    }
+    lines.push(`      notas_editoriais_reconfirmadas: ${e.notas_editoriais_reconfirmadas}`);
+    lines.push(`      notas_editoriais_nao_reconfirmadas: ${e.notas_editoriais_nao_reconfirmadas}`);
+  }
+  return lines;
+}
+
+/** Seção `#### Evolução da Reauditoria` (Antes → Depois) com a entrada MAIS RECENTE do histórico. */
+function reauditSection(history: ReauditHistoryEntry[] | undefined): string {
+  const e = history && history.length > 0 ? history[history.length - 1] : undefined;
+  if (!e) return '';
+  const tagText = (tags: string[]) => (tags.length > 0 ? tags.map(t => `[${t}]`).join('') : '(sem tag)');
+  const out = [
+    `#### Evolução da Reauditoria`,
+    `* **Ambiente:** ${e.ambiente_anterior} → ${e.ambiente_atual}`,
+    `* **Status:** ${tagText(e.tags_anteriores)} ${e.status_anterior} → ${tagText(e.tags_atuais)} ${e.status_atual}`
+  ];
+  if (e.bloqueio_anterior) {
+    const b = e.bloqueio_anterior;
+    const where = b.passo !== undefined ? `passo ${b.passo}` : 'passo não registrado';
+    const outcome = e.bloqueio_superado ? '**superado**' : '**mantido**';
+    const now = e.bloqueio_atual ? ` (agora: ${e.bloqueio_atual.passo !== undefined ? `passo ${e.bloqueio_atual.passo}` : 'passo não registrado'}${e.bloqueio_atual.tipo ? `, ${e.bloqueio_atual.tipo}` : ''})` : '';
+    out.push(`* **Bloqueio anterior:** ${where}${b.tipo ? ` — ${b.tipo}` : ''}${b.motivo ? `: ${b.motivo}` : ''} → ${outcome}${now}`);
+  }
+  for (const c of e.curas_reaproveitadas) {
+    const how = c.confirmada_ao_vivo
+      ? `reconfirmada ao vivo nesta execução ${c.usada_como_dica ? '(a dica anterior localizou o nó)' : '(medida de novo pelo próprio motor, sem depender da dica)'}`
+      : 'não reconfirmada nesta execução (a dica não foi usada)';
+    out.push(`* **Cura reaproveitada (passo ${c.passo}):** "${c.alvo}" → "${c.real}" — ${how}`);
+  }
+  if (e.notas_editoriais_reconfirmadas + e.notas_editoriais_nao_reconfirmadas > 0) {
+    out.push(`* **Notas editoriais anteriores:** ${e.notas_editoriais_reconfirmadas} reconfirmada(s) ao vivo; ${e.notas_editoriais_nao_reconfirmadas} não reproduzida(s) nesta tela e, por isso, não mantida(s) no relatório.`);
+  }
+  return `\n${out.join('\n')}\n`;
+}
 
 function divergenceNote(d: SmartLocatorDivergence, applied: boolean): string {
   const conf = `${Math.round(d.confidence * 100)}% — ${d.reason}`;
@@ -124,7 +201,7 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
   if (tags.length > 0) lines.push(`  review_tags: ${qList(tags)}`);
   lines.push(`  carga: ${parsed.workloadType || 'read_only'}`);
   if (input.workerId) lines.push(`  worker_id: ${q(input.workerId)}`);
-  lines.push(`  versao_homologacao: 'WildFly 22 / Orion 06.04.01'`);
+  lines.push(`  versao_homologacao: ${q(config.envVersion)}`);
   if (input.ambiente) lines.push(`  ambiente: ${q(input.ambiente)}`);
   if (block) lines.push(`  tipo_bloqueio: ${q(block.tipo)}`);
   const externalSteps = parsed.steps.filter(s => s.scope === 'external_portal');
@@ -192,7 +269,8 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
       lines.push(`    - passo: ${r.stepNumber}`);
       lines.push(`      alvos_ausentes: ${qList(e.missing)}`);
       lines.push(`      alvos_revelados: ${qList(e.revealed)}`);
-      lines.push(`      resultado: ${e.revealed.length > 0 ? 'alvo_revelado' : 'gatilhos_esgotados'}`);
+      const openedSubportal = e.explored.some(t => t.outcome === 'subportal_opened');
+      lines.push(`      resultado: ${e.revealed.length > 0 ? 'alvo_revelado' : openedSubportal ? 'subportal_aberto' : 'gatilhos_esgotados'}`);
       lines.push(`      gatilhos_na_tela: ${e.candidates}`);
       lines.push(`      seletores_sem_afinidade_descartados: ${e.selectorsWithoutAffinity}`);
       lines.push(`      estado_restaurado: ${e.stateRestored}`);
@@ -240,6 +318,7 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
       }
     }
   }
+  if (input.reauditHistory && input.reauditHistory.length > 0) lines.push(...historyYamlLines(input.reauditHistory));
   return lines.join('\n');
 }
 
@@ -371,6 +450,7 @@ export function buildRevisedRoutineDocument(input: RevisedReportInput): { conten
   if (input.unseenTargets && input.unseenTargets.length > 0) {
     body += `\n* **Alvos do manual sem evidência nas telas capturadas:** ${input.unseenTargets.map(t => `**${t}**`).join(', ')}.\n`;
   }
+  body += reauditSection(input.reauditHistory);
 
   const yaml = buildYaml(input, printsCount, appliedDivergences);
   return { content: `---\n${yaml}\n---\n\n${body}`, lockViolations };

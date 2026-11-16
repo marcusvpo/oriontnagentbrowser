@@ -48,6 +48,12 @@
   * Nunca classificar a ausência de botões administrativos (como *Redefinir Senha Manualmente* ou *Resetar 2FA* na rotina `C-ACESSO-03`) como *"Insuficiência de Privilégio na Conta de Homologação"*.
   * Quando um recurso documentado no manual não existe na tela sob esse perfil pleno (e não está marcado com `.ngx-orion-hide` / `.functionality.disabled`), trata-se de **defasagem real do manual**. No Orion TN 6.0, a gestão pessoal de senha e 2FA fica no menu superior direito **`"Olá, [username]"`**, e não na tela de **Alteração de usuário**.
 
+### 3.1. Ambiente de Produtos (ADR-025)
+
+* **O que é:** ambiente interno de homologação da equipe de **Produtos** (versão Orion 06.04.x), com integrações, parâmetros globais e dados multi-ano. Acesso **só com a OpenVPN da Siplan**; entrada pelo **Portal** (`/webPortal/#/produtos`) e card **Orion TN**, que abre o módulo (`/webFirmas`) em **nova guia**. URL, usuário e senha ficam **somente** em `auditoria/.env` (nunca em documentação ou Git).
+* **Conta de auditoria:** a conta usada no ambiente de Produtos **não é** `4tabeliao.scs`. Ela tem os perfis `Gerência webFirmas`, `webCaixa` e `webEstoque`, e o motor a trata como perfil pleno **pelo nome** do perfil (regra herdada da conta antiga). Isso **não** prova permissão total: na `C-FIRMA-03`, **Balcão de Firmas** vem oculto (`li.functionality.ngx-orion-hide`) para essa conta, e o bloqueio por privilégio foi mantido com a evidência do DOM. Pendência com Produtos: confirmar/liberar as permissões da conta antes de decidir o lote.
+* **Fatos da UI neste ambiente (Orion 06.04.10):** **Configurações > Parametrizações** abre `#/configuracoes` (lateral `ul#navConfiguracoes`: Geral, Captura e digitalização, Parâmetros por estação, Sequência, **Comunicações**, Campos obrigatórios...). O item de menu **Parâmetros Gerais** (citado em manuais) **não existe** na árvore. A aba **Comunicações** tem links "Clique aqui para acessar a tela de configuração no Orion **Selo Digital / e-Notariado / Coaf / SIGNO**", dirigidos por JS (sem `href`/`target` no DOM); o do **Coaf** abre uma nova guia (**Certificados - SPCM-Comunicação COAF**, outra porta do mesmo servidor) com **CPF/CNPJ**, **E-mail**, **Tipo do certificado**, **Senha** e **Cadastrar**; o do **SIGNO** vem desabilitado (`disabled-no-events`) pela própria aplicação.
+
 ---
 
 ## 4. Árvore Canônica de Módulos e Telas (Orion TN 6.0)

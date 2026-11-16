@@ -1,7 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { AgentBrowserClient } from './browser.js';
-import { config } from './config.js';
+import { config, persistDiscoveredAppHome } from './config.js';
+
+/** Path do módulo Orion TN descoberto (ex.: `/webFirmas`), para o teste de sessão ativa aceitar outro contexto (ADR-025). */
+function discoveredModulePath(): string {
+  try {
+    const p = new URL(config.appHomeUrl).pathname.replace(/\/+$/, '');
+    return p && p !== '/' ? p : '';
+  } catch {
+    return '';
+  }
+}
 
 /**
  * Contadores de autenticação do processo (ADR-024). O resumo do lote e os logs usam estes números para
@@ -46,7 +56,8 @@ export async function isSessionActiveInPage(client: AgentBrowserClient): Promise
         const url = window.location.href || '';
         const hash = window.location.hash || '';
         const inPortal = /\\/webPortal/i.test(url);
-        const inApp = /\\/webFirmas/i.test(url);
+        const modulePath = ${JSON.stringify(discoveredModulePath())};
+        const inApp = /\\/webFirmas/i.test(url) || (modulePath !== '' && url.indexOf(modulePath) !== -1 && !inPortal);
         const onLogin = /\\/login/i.test(url) || /#\\/login/i.test(hash);
         const loginFields = Array.from(document.querySelectorAll('#username, #password, input[type="password"]')).filter(vis).length;
         const greeting = Array.from(document.querySelectorAll('body a, body button, body span, body li, body p')).some(e => {
@@ -183,25 +194,51 @@ export async function loginOrion(client: AgentBrowserClient, opts: { force?: boo
     console.log('[Auth] Credenciais enviadas. Aguardando transição de rota do SPA...');
     await client.wait(4000);
 
-    // 4. Se estiver no webPortal pós-login, clicar no card do módulo 'Orion TN'
+    // 4. Se estiver no webPortal pós-login (`#/produtos` ou `#/inicio` do portal), clicar no card 'Orion TN'.
+    // O card pode abrir o módulo numa NOVA guia (ADR-025): o diff de guias a detecta e transfere o foco.
     const curUrl = await client.eval('window.location.href');
     console.log('[Auth] URL atual pós-login:', curUrl);
 
     if (curUrl.includes('webPortal')) {
       console.log('[Auth] Clicando no card do módulo Orion TN...');
-      await client.eval(`
-        (() => {
-          const cards = Array.from(document.querySelectorAll('div, a, span, p')).filter(el => el.textContent && el.textContent.trim() === 'Orion TN');
-          if (cards.length > 0) {
-            cards[cards.length - 1].click();
-          }
-        })()
-      `);
-      await client.wait(4500);
+      const portalTab = await client.markPrimaryTab();
+      const { openedTab } = await client.withNewTabDetection(async () => {
+        await client.eval(`
+          (() => {
+            const cards = Array.from(document.querySelectorAll('div, a, span, p, h1, h2, h3, h4, h5')).filter(el => el.textContent && el.textContent.trim() === 'Orion TN');
+            if (cards.length > 0) {
+              const card = cards[cards.length - 1];
+              (card.closest('a, [ng-click], [onclick], button') || card).click();
+            }
+          })()
+        `);
+        await client.wait(4500);
+      });
+      if (openedTab) {
+        console.log(`[Auth] O módulo abriu em nova guia (${openedTab.tabId}); a guia do portal será fechada.`);
+        if (portalTab && portalTab !== openedTab.tabId) {
+          await client.closeTab(portalTab).catch(() => undefined);
+          await client.switchTab(openedTab.tabId).catch(() => undefined);
+        }
+        client.setPrimaryTab(openedTab.tabId);
+        await client.ensureViewport(config.viewportWidth, config.viewportHeight);
+      }
     }
 
     const finalUrl = await client.eval('window.location.href');
     console.log('[Auth] URL final no módulo:', finalUrl);
+
+    // 4b. Descobre e persiste a URL real da tela inicial do módulo (auth/app-home.json, ignorado pelo Git)
+    try {
+      const final = new URL(String(finalUrl).replace(/^"|"$/g, ''));
+      if (!/webPortal/i.test(final.pathname)) {
+        const home = `${final.origin}${final.pathname.replace(/\/+$/, '')}/#/inicio`;
+        persistDiscoveredAppHome(home);
+        console.log(`[Auth] URL inicial do módulo descoberta e persistida (${final.pathname}).`);
+      }
+    } catch {
+      // URL ilegível: segue com o valor configurado/derivado
+    }
 
     // 5. Salvar estado da sessão para reaproveitamento nas próximas rotinas
     try {

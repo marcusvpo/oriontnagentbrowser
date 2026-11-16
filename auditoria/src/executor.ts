@@ -12,7 +12,17 @@ import { generateMockPerson } from './mock-generator.js';
 import { lockStepText, revealTextChange } from './evidence.js';
 import { buildRevisedRoutineDocument } from './report.js';
 import { detectCommitCommand } from './mutation-guard.js';
-import { exploreRevealTriggers, type RevealSuccess } from './reveal-explorer.js';
+import { exploreRevealTriggers, openSubportalLink, type RevealSuccess, type SubportalOpened } from './reveal-explorer.js';
+import {
+  buildReauditHistoryEntry,
+  chainsForStep,
+  describePriorCheckpoint,
+  emptyPriorContext,
+  hintsForStep,
+  loadPriorAuditContext,
+  mergeHistory,
+  type ReauditHistoryEntry
+} from './prior-audit.js';
 import { collectHelpTooltips, type HelpTooltip } from './help-tooltips.js';
 import { installToastObserver, readEmptyState, hasNoData } from './empty-state.js';
 import { autoSeedMockRecord, routineNeedsExistingRows } from './auto-seed.js';
@@ -118,6 +128,10 @@ export interface KbStepTelemetry {
   reviewTags?: string[];
   /** Passos executados fora do Orion TN, sem print por desenho (só na 1ª entrada; ADR-024) */
   externalSteps?: Array<{ stepNumber: number; portal: string }>;
+  /** Guia secundária (sub-portal) em que o frame foi capturado; ausente na guia principal (ADR-025) */
+  tab?: { id: string; url: string; title: string; openedAtStep: number };
+  /** Comparativo da reauditoria Antes -> Depois (só na 1ª entrada da rotina; ADR-025) */
+  reaudit?: ReauditHistoryEntry;
   status: 'ok' | 'blocked';
   /** `rbac`: bloqueio por privilégio — não é discrepância geométrica */
   blockKind?: RoutineBlockInfo['kind'];
@@ -146,6 +160,11 @@ export interface ExecutorOptions {
    * Default: ligado; `--no-sync` desliga apenas para testes offline.
    */
   syncToSupabase?: boolean;
+  /**
+   * Reauditoria contextual (ADR-025): lê o `-revisado.md` e a telemetria anteriores ANTES da limpeza da pasta,
+   * reaproveita curas e rotas comprovadas como dica de busca e grava o `historico_reauditoria`. Default: ligada.
+   */
+  priorAudit?: boolean;
 }
 
 const framePrintName = (padStep: string, letter: string) => (letter === 'a' ? `passo-${padStep}.png` : `passo-${padStep}-${letter}.png`);
@@ -204,6 +223,14 @@ async function resetToHome(client: AgentBrowserClient): Promise<void> {
   // Rotina anterior que falhou no meio de um formulário pode ter deixado um diálogo nativo
   // (`beforeunload`/alert) pendente: ele travaria o `open`/`reload` seguinte.
   await client.dismissPendingDialog();
+  // ADR-025: guias secundárias abertas pela rotina anterior (sub-portais) são fechadas aqui e o foco volta à
+  // guia principal, antes de qualquer reset (a guia secundária não tem a emulação de viewport nem a sessão do módulo).
+  try {
+    const closed = await client.closeSecondaryTabs();
+    if (closed > 0) console.log(`[Auditoria] ${closed} guia(s) secundária(s) da rotina anterior fechada(s); foco na guia principal.`);
+  } catch {
+    // sem lista de guias o reset segue com a guia atual
+  }
   if (await tryLightReset(client)) return;
   noteFullReset();
 
@@ -359,6 +386,14 @@ export async function executeRoutineAudit(
   const baseModuleDir = path.join(config.outputDir, parsed.modulo);
   let routineDir = path.join(baseModuleDir, fileName);
 
+  // ADR-025: o contexto da auditoria anterior é lido ANTES da limpeza abaixo (o `-revisado.md` sem tag é
+  // apagado no início da execução). Curas e rotas comprovadas viram dica de busca; o checkpoint de parada
+  // vira o comparativo Antes -> Depois do `historico_reauditoria`.
+  const prior = options.priorAudit === false ? emptyPriorContext(parsed.id) : loadPriorAuditContext(parsed.id);
+  if (prior.found) console.log(`[Reauditoria] ↺ ${describePriorCheckpoint(prior)}`);
+  /** Dicas anteriores reconfirmadas ao vivo (`SmartLocatorResult.priorHint`) */
+  const confirmedHints: Array<{ stepNumber: number; documented: string; actual: string }> = [];
+
   await fs.promises.mkdir(routineDir, { recursive: true });
   // Artefatos de execuções anteriores desta mesma rotina não podem conviver com o relatório novo
   // (ex.: prints de passos que agora nem chegam a ser auditados por causa do RBAC Gate).
@@ -475,6 +510,9 @@ export async function executeRoutineAudit(
     }
   };
 
+  /** Guia secundária em foco (sub-portal, ADR-025): todo frame capturado nela leva o registro da guia */
+  let activeTab: KbStepTelemetry['tab'];
+
   const pushTelemetry = (
     step: RoutineStep,
     frame: string,
@@ -485,6 +523,7 @@ export async function executeRoutineAudit(
   ) => {
     const png = path.join(routineDir, printName);
     telemetry.push({
+      ...(activeTab ? { tab: activeTab } : {}),
       routineId: parsed.id,
       slug: fileName,
       modulo: parsed.modulo,
@@ -880,10 +919,51 @@ export async function executeRoutineAudit(
       //    à zona de conteúdo e sem Auto-Cura, para que uma opção ausente nunca vire demarcação fantasma.
       const locStep: RoutineStep =
         isOptionsOnly && !step.zone && !hasNavigationIntent(step.rawText) ? { ...step, zone: 'content' } : step;
-      const locResult = await locateAndCaptureWithSelfHealing(client, locStep, rawStepPath, {
+      // ADR-025: curas e rotas já comprovadas para este passo entram como dica (Camada 0 / 0.5); a dica só vale
+      // se o nó for medido ao vivo de novo, e o texto do manual continua sendo a única fonte do relatório.
+      const locOptions = {
         // Alvo implícito vem de um rótulo real da tela: nunca é curado para outro nome (Evidência Estrita)
-        allowHealing: !isOptionsOnly && !implicit
-      });
+        allowHealing: !isOptionsOnly && !implicit,
+        priorHints: hintsForStep(prior, step.stepNumber),
+        priorMenuChains: chainsForStep(prior, step.stepNumber)
+      };
+      if (prior.block?.stepNumber === step.stepNumber) {
+        console.log(`   [Reauditoria] ↺ Checkpoint: este é o passo em que a rotina parou no ambiente anterior${prior.block.tipo ? ` (${prior.block.tipo})` : ''}; verificando se agora é superado.`);
+      }
+      let locResult = await locateAndCaptureWithSelfHealing(client, locStep, rawStepPath, locOptions);
+
+      // ADR-025: sub-portal integrado em nova guia. Com o alvo ausente na tela, um link que abre nova guia e tem
+      // afinidade com o passo/rotina é acionado; a guia vira o foco (até o resetToHome) e o MESMO passo é
+      // localizado de novo nela, com medição ao vivo. O link fica registrado numa sub-captura `passo-NN-b`.
+      let subportal: SubportalOpened | null = null;
+      if (
+        !locResult.found &&
+        !locResult.permissionBlocked &&
+        !locResult.menuPathMissing &&
+        !locResult.menuPathOpenFailed &&
+        !implicit &&
+        !isOptionsOnly &&
+        !explorationSkippedReason &&
+        step.targets.length > 0
+      ) {
+        subportal = await openSubportalLink(client, {
+          step,
+          missing: mainTargets.length > 0 ? mainTargets : step.targets,
+          routineContext: `${parsed.titulo} ${parsed.descricao || ''}`,
+          rawPathFor
+        });
+        if (subportal) {
+          activeTab = { id: subportal.tab.tabId, url: subportal.tab.url, title: subportal.tab.title, openedAtStep: step.stepNumber };
+          console.log(`   [Sub-portal] Foco na guia "${subportal.tab.title || subportal.tab.url}" (${subportal.tab.tabId}); localizando o passo ${step.stepNumber} nela.`);
+          locResult = await locateAndCaptureWithSelfHealing(client, locStep, rawStepPath, locOptions);
+        }
+      }
+      if (locResult.priorHint) {
+        confirmedHints.push({ stepNumber: step.stepNumber, documented: locResult.priorHint.documented, actual: locResult.priorHint.actual });
+      }
+      const subportalNote = subportal
+        ? `Sub-portal integrado: o link **${subportal.label}** abriu uma nova guia (${subportal.tab.title || 'sem título'}); este passo e os seguintes foram auditados nela. Nada foi gravado.`
+        : undefined;
       const zonePolicy: StepZonePolicy = locStep.zone ?? inferStepZone(step.rawText, step.actionType);
 
       if (locResult.found && locResult.geometry) {
@@ -959,6 +1039,36 @@ export async function executeRoutineAudit(
           callouts: multi,
           executedAction
         });
+        // ADR-025: o link que abriu o sub-portal é fotografado na guia de ORIGEM (sub-captura `passo-NN-b`)
+        if (subportal) {
+          const linkCallouts: DOMCallout[] = [
+            { index: lastIndex + 1, label: subportal.label, cssBox: subportal.triggerGeometry.cssBox, matchedSelector: subportal.triggerGeometry.matchedSelector }
+          ];
+          await addSubFrame(subportal.triggerRawPath, subportal.triggerGeometry, linkCallouts, 'trigger', {
+            kind: 'subportal_link',
+            label: subportal.label,
+            directed: false
+          });
+          // o frame do link pertence à guia de origem, não à guia do sub-portal
+          delete telemetry[telemetry.length - 1].tab;
+          exploration = {
+            missing: [...(mainTargets.length > 0 ? mainTargets : step.targets)],
+            revealed: [],
+            explored: [{ kind: 'subportal_link', label: subportal.label, directed: false, outcome: 'subportal_opened' }],
+            candidates: subportal.candidates,
+            selectorsWithoutAffinity: subportal.candidates - subportal.withAffinity,
+            stateRestored: true
+          };
+        }
+        // Clique do próprio passo que abriu uma guia (target="_blank"/window.open): os frames seguintes são dela
+        if (executedAction.openedTab) {
+          activeTab = {
+            id: executedAction.openedTab.tabId,
+            url: executedAction.openedTab.url,
+            title: executedAction.openedTab.title,
+            openedAtStep: step.stepNumber
+          };
+        }
 
         const notFound = () => targetDivergences.filter(d => d.resolutionLayer === 'target_not_found');
         const dropFound = (seen: Set<string>) => {
@@ -1041,7 +1151,7 @@ export async function executeRoutineAudit(
           printFiles,
           exploration,
           implicitTargets: implicit ? implicit.targets : undefined,
-          note: prerequisiteNote,
+          note: [prerequisiteNote, subportalNote, executedAction.openedTab ? `A ação abriu a guia **${executedAction.openedTab.title || 'sem título'}**; os passos seguintes foram auditados nela.` : undefined].filter(Boolean).join(' ') || undefined,
           status: locked.text !== step.rawText ? 'modified' : 'ok'
         };
 
@@ -1156,6 +1266,8 @@ export async function executeRoutineAudit(
           const outcome = await exploreRevealTriggers(client, { step, missing: wanted, zonePolicy, rawPathFor });
           exploration = outcome.log;
           success = outcome.success;
+          // ADR-025: o link de sub-portal já acionado neste passo entra na trilha de gatilhos testados
+          if (subportal) exploration.explored.unshift({ kind: 'subportal_link', label: subportal.label, directed: false, outcome: 'subportal_opened' });
         }
 
         if (success) {
@@ -1234,7 +1346,7 @@ export async function executeRoutineAudit(
             : exploration.explored.length > 0
               ? `, nem após ${exploration.explored.length} gatilho(s) revelador(es) seguro(s)`
               : '; a tela não tem gatilho revelador seguro a testar'
-        }`;
+        }${subportal ? ` (medido também na guia aberta pelo link "${subportal.label}": ${subportal.tab.title || subportal.tab.url})` : ''}`;
 
         stepResults.push({
           stepNumber: step.stepNumber,
@@ -1352,6 +1464,28 @@ export async function executeRoutineAudit(
         : 'validado_inalterado';
   const reviewTags = reviewTagsFor(overallStatus, extraTags);
 
+  // ADR-025: comparativo objetivo Antes -> Depois (auditoria anterior x esta), acumulado em `historico_reauditoria`
+  const firstBlocked = stepResults.find(r => r.status === 'blocked');
+  const reauditEntry: ReauditHistoryEntry | undefined = prior.found
+    ? buildReauditHistoryEntry(prior, {
+        status: overallStatus,
+        tags: reviewTags,
+        block: hasBlocks ? { stepNumber: firstBlocked?.stepNumber, tipo: block?.tipo } : undefined,
+        confirmedHints,
+        liveDivergences: divergences
+          .filter(d => d.resolutionLayer !== 'target_not_found' && d.resolutionLayer !== 'permission_blocked' && !!d.actualElementText)
+          .map(d => ({ stepNumber: d.stepNumber, documented: d.documentedTarget, actual: d.actualElementText })),
+        editorial: editorial.map(e => ({ kind: e.kind, stepNumber: e.stepNumber }))
+      })
+    : undefined;
+  if (reauditEntry) {
+    console.log(
+      `[Reauditoria] ↺ ${reauditEntry.status_anterior} → ${reauditEntry.status_atual}` +
+        (reauditEntry.bloqueio_superado === null ? '' : ` | bloqueio anterior ${reauditEntry.bloqueio_superado ? 'SUPERADO' : 'mantido'}`) +
+        ` | ${reauditEntry.curas_reaproveitadas.filter(c => c.confirmada_ao_vivo).length}/${reauditEntry.curas_reaproveitadas.length} cura(s)/rota(s) anterior(es) reconfirmada(s) ao vivo (${confirmedHints.length} via dica)`
+    );
+  }
+
   // ADR-021/ADR-024: sinalização obrigatória no nome da pasta e do arquivo, em ordem canônica e sem espaço
   // entre os colchetes (`[ATT][CCC] C-CENTRAL-02-...`). Substitui o [!!!].
   const tagPrefix = reviewPrefix(overallStatus, extraTags);
@@ -1382,7 +1516,9 @@ export async function executeRoutineAudit(
     dryRunMutations,
     editorial,
     seededRecords,
-    extraTags
+    extraTags,
+    ambiente: config.envLabel,
+    reauditHistory: reauditEntry ? mergeHistory(prior, reauditEntry) : undefined
   });
   for (const v of lockViolations) console.warn(`🔒 [Trava de Evidência] ${v}`);
   await fs.promises.writeFile(revisedDocPath, revisedDocContent, 'utf-8');
@@ -1408,6 +1544,7 @@ export async function executeRoutineAudit(
   if (telemetry.length > 0) {
     if (reviewTags.length > 0) telemetry[0].reviewTags = reviewTags;
     if (scope.hasExternal) telemetry[0].externalSteps = scope.externalSteps;
+    if (reauditEntry) telemetry[0].reaudit = reauditEntry;
   }
   if (reviewTags.length > 0) console.log(`   [Taxonomia] Tags da rotina: ${describeTags(reviewTags)} -> pasta "${finalFileName}"`);
   await fs.promises.mkdir(KB_TELEMETRY_DIR, { recursive: true });
@@ -1446,6 +1583,7 @@ export async function executeRoutineAudit(
     seededRecords: seededRecords.length > 0 ? seededRecords : undefined,
     privilegeGate: gate,
     dryRunMutations,
+    reaudit: reauditEntry,
     executedAt: new Date().toISOString(),
     durationSeconds,
     changelogPath: revisedDocPath
@@ -1511,6 +1649,7 @@ export async function executeStepAction(
 
   const stamped = geometry.actionTarget;
   const selector = stamped ? (wantsFill ? stamped.fillSelector : stamped.clickSelector) : undefined;
+  let openedTab: ExecutedStepAction['openedTab'];
 
   if (selector) {
     const node = await client.probeActionNode(selector);
@@ -1546,14 +1685,22 @@ export async function executeStepAction(
           const commit = detectCommitCommand({ nodeText: node.text, nodeHint: node.hint, healedFrom, mainTargets });
           if (commit) return dryRunSkip(commit, { selector, node });
         }
-        await client.click(selector);
+        if (node.opensNewTab) {
+          // ADR-025: link que abre sub-portal em nova guia. A guia vira o foco da rotina (viewport reaplicado)
+          // e só é fechada no `resetToHome`.
+          const { openedTab: tab } = await client.withNewTabDetection(() => client.click(selector), 5000);
+          openedTab = tab ?? undefined;
+          if (openedTab) console.log(`   [Nova Guia] A ação abriu "${openedTab.title || openedTab.url}" (${openedTab.tabId}); a guia é o foco dos próximos passos.`);
+        } else {
+          await client.click(selector);
+        }
       }
       await client.wait(1500);
       const b = node.box;
       console.log(
         `   [Ação] ${kind} no mesmo nó medido: <${node.tagName}> "${node.text}" em x=${b.x}, y=${b.y}, ${b.width}x${b.height} (zona ${geometry.zone ?? 'any'})`
       );
-      return { kind, via: 'measured-node', selector, node, zone: geometry.zone };
+      return { kind, via: 'measured-node', selector, node, zone: geometry.zone, ...(openedTab ? { openedTab } : {}) };
     }
   }
 
