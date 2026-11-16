@@ -1,0 +1,639 @@
+WEBVTT
+
+38d7e19e-49f8-4c39-8e16-c35c39edcdf6-0
+00:00:01.120 --> 00:00:06.599
+Uma vez selecionado as custas,
+você poderá informar a quantidade do
+
+38d7e19e-49f8-4c39-8e16-c35c39edcdf6-1
+00:00:06.599 --> 00:00:12.563
+cálculo para a custa selecionada,
+informar também o tipo da cobrança aqui
+
+38d7e19e-49f8-4c39-8e16-c35c39edcdf6-2
+00:00:12.563 --> 00:00:17.640
+no cálculo, por exemplo,
+uma diligência aonde o sistema já vai
+
+38d7e19e-49f8-4c39-8e16-c35c39edcdf6-3
+00:00:17.640 --> 00:00:21.911
+dobrar o valor de cobrança,
+ou então 1/3 das custas,
+
+38d7e19e-49f8-4c39-8e16-c35c39edcdf6-4
+00:00:21.911 --> 00:00:28.600
+aonde ele vai cobrar 1/3 das custas que
+está sendo lançada e assim sucessivamente.
+
+f1c4d5ec-41ef-4b9d-b316-fd821204062f-0
+00:00:31.720 --> 00:00:38.018
+Haverá possibilidade também de você estar
+lançando aqui o valor venal e o valor do
+
+f1c4d5ec-41ef-4b9d-b316-fd821204062f-1
+00:00:38.018 --> 00:00:41.813
+instrumento.
+E a base de cálculos será preenchida
+
+f1c4d5ec-41ef-4b9d-b316-fd821204062f-2
+00:00:41.813 --> 00:00:48.112
+automaticamente com o maior valor entre o
+valor venal e o valor do instrumento que
+
+f1c4d5ec-41ef-4b9d-b316-fd821204062f-3
+00:00:48.112 --> 00:00:53.956
+você estará preenchendo. Por exemplo,
+aqui se a gente colocar 50000 no valor
+
+f1c4d5ec-41ef-4b9d-b316-fd821204062f-4
+00:00:53.956 --> 00:00:56.840
+venal e o valor de instrumentos 70000.
+
+60829d0e-b31d-4cf8-bcf8-216c587e2a31-0
+00:00:57.720 --> 00:01:03.525
+Você já vai perceber que a base de
+cálculo já assumiu o maior valor entre
+
+60829d0e-b31d-4cf8-bcf8-216c587e2a31-1
+00:01:03.525 --> 00:01:10.114
+eles e o sistema já vai colocar aqui para
+você o cálculo total deste ato notarial e
+
+60829d0e-b31d-4cf8-bcf8-216c587e2a31-2
+00:01:10.114 --> 00:01:16.390
+aqui já é o valor total apenas do ato
+notarial, sem considerar o valor de ITBI,
+
+60829d0e-b31d-4cf8-bcf8-216c587e2a31-3
+00:01:16.390 --> 00:01:21.960
+valor de registro e nem valores extras
+notariais para o valor do ITBI.
+
+af1d5643-a80d-42d5-833c-fd2633368a2b-0
+00:01:23.040 --> 00:01:29.434
+É possível configurar no seu cartório a
+cidade padrão, já com alíquota padrão.
+
+af1d5643-a80d-42d5-833c-fd2633368a2b-1
+00:01:29.434 --> 00:01:36.071
+É possível ainda cadastrar as alíquotas
+para cada cidade que você selecionar aqui
+
+af1d5643-a80d-42d5-833c-fd2633368a2b-2
+00:01:36.071 --> 00:01:40.200
+nessa lista,
+para que ele possa trazer alíquota de
+
+af1d5643-a80d-42d5-833c-fd2633368a2b-3
+00:01:40.200 --> 00:01:45.299
+acordo com a cidade.
+Lembrando que ao ser selecionado aqui uma
+
+af1d5643-a80d-42d5-833c-fd2633368a2b-4
+00:01:45.299 --> 00:01:49.427
+outra cidade,
+você precisa primeiro digitar o nome
+
+af1d5643-a80d-42d5-833c-fd2633368a2b-5
+00:01:49.427 --> 00:01:50.480
+dessa cidade.
+
+36c86d61-51fd-4267-a5d0-22fbfb8acb3b-0
+00:01:51.360 --> 00:01:55.417
+Esperar o sistema carregar aqui na
+sugestão logo abaixo.
+
+36c86d61-51fd-4267-a5d0-22fbfb8acb3b-1
+00:01:55.417 --> 00:02:00.899
+E aí você seleciona essa cidade e,
+se estiver cadastrado, alíquota para ela,
+
+36c86d61-51fd-4267-a5d0-22fbfb8acb3b-2
+00:02:00.899 --> 00:02:05.740
+ela vai vir aqui automaticamente.
+Se não tiver, ela vai vir zerada.
+
+36c86d61-51fd-4267-a5d0-22fbfb8acb3b-3
+00:02:05.740 --> 00:02:09.299
+Independentemente do que tiver cadastrado
+ou não,
+
+36c86d61-51fd-4267-a5d0-22fbfb8acb3b-4
+00:02:09.299 --> 00:02:14.781
+o sistema sempre vai deixar que você
+possa mudar aqui na tela a sugestão que
+
+36c86d61-51fd-4267-a5d0-22fbfb8acb3b-5
+00:02:14.781 --> 00:02:19.480
+ele está dando. Então, aqui,
+no caso de São Paulo, ele trouxe 3%.
+
+772f2a44-cd97-482e-9b54-42b4bd5801a3-0
+00:02:19.800 --> 00:02:25.884
+Mas eu posso vir aqui de repente e mudar
+essa alíquota e ele vai calcular o valor
+
+772f2a44-cd97-482e-9b54-42b4bd5801a3-1
+00:02:25.884 --> 00:02:30.040
+do itb com base naquilo que ele estiver
+digitando aqui.
+
+772f2a44-cd97-482e-9b54-42b4bd5801a3-2
+00:02:30.040 --> 00:02:35.902
+A mesma coisa funciona para o valor do
+registro de imóveis que você pode estar
+
+772f2a44-cd97-482e-9b54-42b4bd5801a3-3
+00:02:35.902 --> 00:02:42.060
+trabalhando com a sugestão que o sistema
+está te dando automaticamente com base no
+
+772f2a44-cd97-482e-9b54-42b4bd5801a3-4
+00:02:42.060 --> 00:02:45.400
+valor base de cálculo que você colocou
+aqui.
+
+08d64a6c-683a-4b32-938d-0615084c11f6-0
+00:02:46.080 --> 00:02:51.402
+E aí o sistema vai estar trazendo o valor
+do registro e apenas o valor do registro.
+
+08d64a6c-683a-4b32-938d-0615084c11f6-1
+00:02:51.402 --> 00:02:55.901
+Mas você pode estar aqui mudando este
+valor digitando ele manualmente.
+
+08d64a6c-683a-4b32-938d-0615084c11f6-2
+00:02:55.901 --> 00:02:59.639
+Se você fez o cálculo por fora,
+que o sistema vai aceitar.
+
+08d64a6c-683a-4b32-938d-0615084c11f6-3
+00:02:59.639 --> 00:03:04.835
+Você percebeu que eu dei um tab e ele já
+abriu uma nova linha de cálculo para uma
+
+08d64a6c-683a-4b32-938d-0615084c11f6-4
+00:03:04.835 --> 00:03:08.257
+segunda natureza?
+Se eu não quiser trabalhar com ela,
+
+08d64a6c-683a-4b32-938d-0615084c11f6-5
+00:03:08.257 --> 00:03:13.389
+eu venho aqui no xinho e trabalho apenas
+com uma linha de cálculo com apenas uma
+
+08d64a6c-683a-4b32-938d-0615084c11f6-6
+00:03:13.389 --> 00:03:13.960
+natureza.
+
+f4b3e0ed-635d-47cd-9036-844d791948ce-0
+00:03:14.720 --> 00:03:20.124
+Se você quiser o auxílio da tabela de
+custas para o registro de móveis,
+
+f4b3e0ed-635d-47cd-9036-844d791948ce-1
+00:03:20.124 --> 00:03:25.754
+sem fazer nenhum cálculo por fora,
+você pode estar usando essa opção aqui,
+
+f4b3e0ed-635d-47cd-9036-844d791948ce-2
+00:03:25.754 --> 00:03:31.760
+ó do$ Quando você clicar nessa opção,
+o sistema vai abrir para você a tabela do
+
+f4b3e0ed-635d-47cd-9036-844d791948ce-3
+00:03:31.760 --> 00:03:35.963
+registro de imóveis,
+já sugerindo o valor base que você
+
+f4b3e0ed-635d-47cd-9036-844d791948ce-4
+00:03:35.963 --> 00:03:37.239
+colocou lá atrás.
+
+5b7cf8d6-78e9-4243-bc4a-883356a2ec70-0
+00:03:37.840 --> 00:03:42.864
+E também uma natureza de certidão,
+aonde você pode estar informando aqui a
+
+5b7cf8d6-78e9-4243-bc4a-883356a2ec70-1
+00:03:42.864 --> 00:03:46.147
+quantidade de cálculos de certidão,
+por exemplo,
+
+5b7cf8d6-78e9-4243-bc4a-883356a2ec70-2
+00:03:46.147 --> 00:03:51.440
+para o registro de imóveis que você
+quiser. Aí o sistema já calcula para você,
+
+5b7cf8d6-78e9-4243-bc4a-883356a2ec70-3
+00:03:51.440 --> 00:03:56.666
+com base na cidade e no percentual que
+estiver cadastrado aí e configurado no
+
+5b7cf8d6-78e9-4243-bc4a-883356a2ec70-4
+00:03:56.666 --> 00:04:00.016
+sistema do seu cartório,
+você pode estar mudando,
+
+5b7cf8d6-78e9-4243-bc4a-883356a2ec70-5
+00:04:00.016 --> 00:04:04.840
+assim como lá no ITBI também a cidade e o
+valor aqui percentual do ISS.
+
+af73d456-c665-401b-9d89-ade636d177ae-0
+00:04:05.160 --> 00:04:09.636
+Para que ele traga o cálculo de acordo
+com a cidade que você quiser.
+
+af73d456-c665-401b-9d89-ade636d177ae-1
+00:04:09.636 --> 00:04:13.529
+Se você quiser acrescentar aqui outros
+valores do registro,
+
+af73d456-c665-401b-9d89-ade636d177ae-2
+00:04:13.529 --> 00:04:18.071
+como por exemplo pré notação,
+você vem aqui no maisinho e no campo da
+
+af73d456-c665-401b-9d89-ade636d177ae-3
+00:04:18.071 --> 00:04:21.899
+descrição você vai digitar aqui por
+exemplo a pré notação.
+
+af73d456-c665-401b-9d89-ade636d177ae-4
+00:04:21.899 --> 00:04:26.246
+Quando eu começar a digitar pré notação
+ele já sugere aqui abaixo,
+
+af73d456-c665-401b-9d89-ade636d177ae-5
+00:04:26.246 --> 00:04:29.166
+é só selecionar o que ele estiver
+sugerindo,
+
+af73d456-c665-401b-9d89-ade636d177ae-6
+00:04:29.166 --> 00:04:32.799
+ele vai trazer aqui para você já o valor
+da prénotação.
+
+60a03cb5-d437-4399-9c0e-7389523e87af-0
+00:04:34.640 --> 00:04:37.955
+A mesma questão também é para as
+averbações.
+
+60a03cb5-d437-4399-9c0e-7389523e87af-1
+00:04:37.955 --> 00:04:42.965
+Se você tiver aí um cálculo de registro
+que prevê alguma averbação,
+
+60a03cb5-d437-4399-9c0e-7389523e87af-2
+00:04:42.965 --> 00:04:47.681
+você pode estar digitando aqui a
+averbação com valor declarado.
+
+60a03cb5-d437-4399-9c0e-7389523e87af-3
+00:04:47.681 --> 00:04:53.649
+E aí o sistema já vai sugerir aqui para
+você o valor também com a cidade e o ISS
+
+60a03cb5-d437-4399-9c0e-7389523e87af-4
+00:04:53.649 --> 00:04:56.964
+também.
+E aqui o sistema já acumulou o valor
+
+60a03cb5-d437-4399-9c0e-7389523e87af-5
+00:04:56.964 --> 00:05:00.353
+total somando todos os itens que você
+lançou,
+
+60a03cb5-d437-4399-9c0e-7389523e87af-6
+00:05:00.353 --> 00:05:03.079
+já te dando aqui o valor do registro.
+
+aaafd52e-75b2-4478-b862-dab7c7ae4a72-0
+00:05:04.080 --> 00:05:08.799
+Quando você clicar no concluir,
+o sistema vai dar uma mensagem dizendo
+
+aaafd52e-75b2-4478-b862-dab7c7ae4a72-1
+00:05:08.799 --> 00:05:13.452
+que a soma aqui é diferente da que estava
+lá sendo digitada por você.
+
+aaafd52e-75b2-4478-b862-dab7c7ae4a72-2
+00:05:13.452 --> 00:05:17.840
+Ele pergunta se você quer atualizar este
+valor. Você diz que sim.
+
+aaafd52e-75b2-4478-b862-dab7c7ae4a72-3
+00:05:17.840 --> 00:05:23.423
+E aí o sistema vai considerar o valor que
+você calculou lá na tabela do registro de
+
+aaafd52e-75b2-4478-b862-dab7c7ae4a72-4
+00:05:23.423 --> 00:05:27.943
+imóveis. Perceba que aqui,
+quando você trabalha com o lançamento lá
+
+aaafd52e-75b2-4478-b862-dab7c7ae4a72-5
+00:05:27.943 --> 00:05:31.599
+na tabela do registro,
+o sistema não deixa você mexer.
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-0
+00:05:32.040 --> 00:05:36.359
+Se você quiser alterar este valor,
+você precisa entrar novamente lá na
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-1
+00:05:36.359 --> 00:05:40.557
+tabela do registro e aqui sim você faz a
+alteração que você desejar,
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-2
+00:05:40.557 --> 00:05:43.477
+como aqui por exemplo,
+excluir uma pré notação,
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-3
+00:05:43.477 --> 00:05:48.465
+ele altera aqui o valor e aí você clica
+no concluir e atualiza que ele já vem com
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-4
+00:05:48.465 --> 00:05:51.446
+o valor aqui.
+Se você não quiser trabalhar com o
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-5
+00:05:51.446 --> 00:05:56.435
+cálculo aqui da tabela do registro e já
+tem esse cálculo por fora e quiser lançar
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-6
+00:05:56.435 --> 00:06:00.329
+ele aqui manualmente,
+você precisa vir aqui na tabela novamente
+
+2e8b4c36-d152-4041-91b0-32b3a107f312-7
+00:06:00.329 --> 00:06:01.120
+excluir tudo.
+
+f0d561a4-c708-4d9c-88cb-e764942330a7-0
+00:06:02.120 --> 00:06:09.006
+Concluir e atualiza lá o valor pra zerado.
+Aí o sistema deixa você colocar o valor
+
+f0d561a4-c708-4d9c-88cb-e764942330a7-1
+00:06:09.006 --> 00:06:13.487
+que você quiser aqui para o registro de
+imóveis aqui.
+
+f0d561a4-c708-4d9c-88cb-e764942330a7-2
+00:06:13.487 --> 00:06:19.792
+Agora você consegue lançar também os
+valores dos outros serviços ou valores
+
+f0d561a4-c708-4d9c-88cb-e764942330a7-3
+00:06:19.792 --> 00:06:24.273
+extras notariais aqui neste campo de
+outros serviços.
+
+f0d561a4-c708-4d9c-88cb-e764942330a7-4
+00:06:24.273 --> 00:06:30.330
+E na opção aqui da descrição você
+consegue ir lançando os valores extras
+
+f0d561a4-c708-4d9c-88cb-e764942330a7-5
+00:06:30.330 --> 00:06:31.160
+notariais.
+
+08304903-3a04-48a3-bf50-c60c17f99acd-0
+00:06:31.440 --> 00:06:34.682
+Então, por exemplo,
+se a gente colocar aqui certidões
+
+08304903-3a04-48a3-bf50-c60c17f99acd-1
+00:06:34.682 --> 00:06:37.744
+diversas,
+o sistema já abre aqui o campo para você
+
+08304903-3a04-48a3-bf50-c60c17f99acd-2
+00:06:37.744 --> 00:06:41.467
+colocar o valor unitário.
+E aí você trabalha aqui com o valor
+
+08304903-3a04-48a3-bf50-c60c17f99acd-3
+00:06:41.467 --> 00:06:44.109
+unitário.
+E se você quiser colocar um valor
+
+08304903-3a04-48a3-bf50-c60c17f99acd-4
+00:06:44.109 --> 00:06:47.112
+unitário,
+mas somar aqui uma quantidade a mais de
+
+08304903-3a04-48a3-bf50-c60c17f99acd-5
+00:06:47.112 --> 00:06:50.294
+um, por exemplo,
+ele já vai pegar o valor unitário e
+
+08304903-3a04-48a3-bf50-c60c17f99acd-6
+00:06:50.294 --> 00:06:54.377
+multiplicar aqui para você.
+Se você quiser acrescentar mais valores
+
+08304903-3a04-48a3-bf50-c60c17f99acd-7
+00:06:54.377 --> 00:06:57.080
+extras notoriais,
+você vem aqui no maisinho.
+
+cb90192d-082b-4339-a8be-eaaa4bb04e64-0
+00:06:57.920 --> 00:07:04.269
+E aqui você consegue colocar, por exemplo,
+lá uma diligência e definir o valor que
+
+cb90192d-082b-4339-a8be-eaaa4bb04e64-1
+00:07:04.269 --> 00:07:08.324
+você está usando.
+Se você quiser lançar aqui valores
+
+cb90192d-082b-4339-a8be-eaaa4bb04e64-2
+00:07:08.324 --> 00:07:13.526
+tabelados. Então, por exemplo,
+se eu colocar aqui uma autenticação,
+
+cb90192d-082b-4339-a8be-eaaa4bb04e64-3
+00:07:13.526 --> 00:07:18.652
+ele já é um valor tabelado.
+E eu já configurei ele no sistema para
+
+cb90192d-082b-4339-a8be-eaaa4bb04e64-4
+00:07:18.652 --> 00:07:23.089
+que ele não mexesse no valor aqui,
+porque ele é tabelado.
+
+cb90192d-082b-4339-a8be-eaaa4bb04e64-5
+00:07:23.089 --> 00:07:25.920
+Aí você só trabalha com a quantidade.
+
+d8afb6d9-2c0d-4ca6-a451-502f59ce1827-0
+00:07:26.480 --> 00:07:32.298
+Tendo aí uma segurança maior, né?
+Para os valores de custas da tabela que
+
+d8afb6d9-2c0d-4ca6-a451-502f59ce1827-1
+00:07:32.298 --> 00:07:37.408
+já são fixos, né? Agora,
+se você for lançar qualquer valor extra
+
+d8afb6d9-2c0d-4ca6-a451-502f59ce1827-2
+00:07:37.408 --> 00:07:41.261
+notarial e ele não se encontra aqui na
+sugestão,
+
+d8afb6d9-2c0d-4ca6-a451-502f59ce1827-3
+00:07:41.261 --> 00:07:47.630
+não adianta você salvar aqui o cálculo
+das custas que ele não vai salvar. Então,
+
+d8afb6d9-2c0d-4ca6-a451-502f59ce1827-4
+00:07:47.630 --> 00:07:53.133
+se você colocar aqui, por exemplo,
+quiser especificar uma certidão de
+
+d8afb6d9-2c0d-4ca6-a451-502f59ce1827-5
+00:07:53.133 --> 00:07:53.919
+casamento.
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-0
+00:07:54.360 --> 00:07:57.221
+E ele não apareceu aqui na lista para
+você.
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-1
+00:07:57.221 --> 00:08:02.034
+Então você precisa clicar no maisinho
+aqui, que está colado a esse campo,
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-2
+00:08:02.034 --> 00:08:06.911
+que aí você vai entrar no cadastro dos
+itens dessas descrições dos valores
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-3
+00:08:06.911 --> 00:08:10.293
+extras notariais.
+E você só vai fazer isso uma vez,
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-4
+00:08:10.293 --> 00:08:13.935
+porque aí a segunda vez ele já vai estar
+lá cadastrado.
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-5
+00:08:13.935 --> 00:08:19.333
+Então quando você clicar aqui no maisinho,
+ele vai vir aqui no cadastro dos outros
+
+9fcac0ad-1aef-4c36-ad5f-47f5340b8417-6
+00:08:19.333 --> 00:08:22.000
+serviços e aqui você cadastra uma vez só.
+
+62f4d6d9-aa1d-47ed-8b54-e9302839c221-0
+00:08:22.360 --> 00:08:27.878
+Para ficar disponível para todos no
+cartório, em todos os próximos atos.
+
+62f4d6d9-aa1d-47ed-8b54-e9302839c221-1
+00:08:27.878 --> 00:08:34.076
+Então, por exemplo, certidão de casamento.
+E aí no valor. Se é um valor tabelado,
+
+62f4d6d9-aa1d-47ed-8b54-e9302839c221-2
+00:08:34.076 --> 00:08:39.670
+você pode estar aqui definindo esse valor
+e deixando ele fixo no sistema.
+
+62f4d6d9-aa1d-47ed-8b54-e9302839c221-3
+00:08:39.670 --> 00:08:43.223
+Se você não quiser deixar ele fixo no
+sistema,
+
+62f4d6d9-aa1d-47ed-8b54-e9302839c221-4
+00:08:43.223 --> 00:08:49.573
+você marca essa opção de sem valor fixo e
+aí o extermente vai poder colocar o valor
+
+62f4d6d9-aa1d-47ed-8b54-e9302839c221-5
+00:08:49.573 --> 00:08:49.800
+lá.
+
+10f6e201-f60c-4280-b3cb-09790608184e-0
+00:08:50.160 --> 00:08:55.876
+Na tela do cálculo das custas,
+no protocolo e ele não ficará fixado, tá?
+
+10f6e201-f60c-4280-b3cb-09790608184e-1
+00:08:55.876 --> 00:09:00.654
+Eu vou deixar aqui a certidão de
+casamento, um valor fixado.
+
+10f6e201-f60c-4280-b3cb-09790608184e-2
+00:09:00.654 --> 00:09:05.901
+Vamos imaginar aqui que o valor seja de
+80 BRL para essa certidão,
+
+10f6e201-f60c-4280-b3cb-09790608184e-3
+00:09:05.901 --> 00:09:12.009
+sem ser fixado o valor ou no caso, né?
+Eu não vou marcar a opção de sem valor
+
+10f6e201-f60c-4280-b3cb-09790608184e-4
+00:09:12.009 --> 00:09:18.040
+fixo, né, para deixar ele fixado lá.
+E aí quando eu clicar aqui no concluir.
+
+96618321-a91a-414f-9eda-1b0451834560-0
+00:09:19.600 --> 00:09:24.005
+Todas as vezes que eu colocar aqui uma
+certidão de casamento,
+
+96618321-a91a-414f-9eda-1b0451834560-1
+00:09:24.005 --> 00:09:29.122
+você vai ver que vai vir fixado o valor
+que eu preenchi lá no cadastro.
+
+96618321-a91a-414f-9eda-1b0451834560-2
+00:09:29.122 --> 00:09:33.102
+E uma vez já realizado todos os
+lançamentos das custas,
+
+96618321-a91a-414f-9eda-1b0451834560-3
+00:09:33.102 --> 00:09:37.863
+você vai perceber aqui embaixo que nós
+temos alguns totalizadores.
+
+96618321-a91a-414f-9eda-1b0451834560-4
+00:09:37.863 --> 00:09:42.198
+Então eu tenho o total do ato notarial
+que está aqui abaixo.
+
+96618321-a91a-414f-9eda-1b0451834560-5
+00:09:42.198 --> 00:09:46.319
+Eu tenho o total do registro de imóveis
+que eu lancei lá.
+
+5b55a2ab-825e-4ece-8b76-550d1359d1cc-0
+00:09:47.120 --> 00:09:51.165
+Eu tenho o total do ITBI,
+que é o que eu lancei lá também,
+
+5b55a2ab-825e-4ece-8b76-550d1359d1cc-1
+00:09:51.165 --> 00:09:56.857
+e o total dos outros serviços que a soma
+de todas essas linhas que eu especifiquei
+
+5b55a2ab-825e-4ece-8b76-550d1359d1cc-2
+00:09:56.857 --> 00:09:57.200
+aqui.

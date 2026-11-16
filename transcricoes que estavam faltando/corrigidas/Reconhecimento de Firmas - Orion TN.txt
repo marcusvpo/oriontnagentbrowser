@@ -1,0 +1,108 @@
+00:00:00.000 --> 00:00:18.000
+Para fazer um **Reconhecimento de Firmas** no sistema **ORION TN**, nós vamos na opção **Firmas**, submenu **Reconhecimento**
+
+00:00:18.000 --> 00:00:19.800
+**de Firmas**.
+
+00:00:19.800 --> 00:00:24.320
+Aqui vamos abrir um novo pedido e realizar os serviços de balcão nele.
+
+00:00:24.320 --> 00:00:34.320
+O pedido foi aberto e agora temos o pedido número 1 aberto no dia 14 do 8, às 16 e
+
+00:00:34.320 --> 00:00:35.320
+38.
+
+00:00:35.320 --> 00:00:37.680
+Aqui temos o status de iniciado.
+
+00:00:37.680 --> 00:00:42.920
+Aqui já podemos definir o tipo do pedido: se ele é à vista, se é para escreventes,
+
+00:00:42.920 --> 00:00:45.440
+mensalistas ou algum serviço interno do **Cartório**.
+
+00:00:45.440 --> 00:00:51.880
+Em casos como mensalistas, podemos buscar pelo código do mensalista ou abrir a listagem
+
+00:00:51.880 --> 00:00:53.320
+com todos os clientes.
+
+00:00:53.320 --> 00:00:56.720
+E aqui também podemos fazer a busca.
+
+00:00:56.720 --> 00:00:59.760
+O pedido no caso será feito à vista.
+
+00:00:59.760 --> 00:01:02.880
+Aqui vamos localizar o **Cartão de Assinatura**.
+
+00:01:02.880 --> 00:01:08.160
+Podemos buscar por nome, número de cartão, CPF, RG, pessoa jurídica, fazer uma busca
+
+00:01:08.160 --> 00:01:11.920
+pelo cartão ou **Sinal Público**.
+
+00:01:11.920 --> 00:01:15.760
+Podemos também fazer uma busca por biometria ou cadastrar um novo **Cartão de Assinatura**
+
+00:01:15.760 --> 00:01:20.120
+caso o cliente não tenha a **Firma** aberta no **Cartório**.
+
+00:01:20.120 --> 00:01:28.680
+Podemos buscar por nome e aqui vamos localizar o cliente para o qual desejamos fazer os serviços.
+
+00:01:28.680 --> 00:01:34.120
+Podemos expandir a busca de nomes encontrados para ver o cliente e ver com mais detalhes
+
+00:01:34.120 --> 00:01:37.360
+as informações dele.
+
+00:01:37.360 --> 00:01:43.200
+Podemos também limpar essa busca caso desejemos fazer uma busca por um nome diferente.
+
+00:01:43.200 --> 00:01:48.960
+Ao buscar pelo número de cartão, a busca é idêntica, mas traz um resultado mais específico.
+
+00:01:48.960 --> 00:01:55.680
+No caso, podemos ver aqui a imagem do cliente, a imagem do **Cartão de Assinatura** e expandir
+
+00:01:55.680 --> 00:01:56.680
+os dados.
+
+00:01:56.680 --> 00:02:01.120
+Podemos também cadastrar um novo cartão caso o cliente não tenha o cadastro ou abrir
+
+00:02:01.120 --> 00:02:05.640
+o cadastro completo desse cliente caso tenha alguma informação que seja necessário atualizar.
+
+00:02:05.640 --> 00:02:11.440
+Uma vez o cliente localizado, vamos no botão "Adicionar".
+
+00:02:11.440 --> 00:02:16.080
+Uma vez adicionado, o nome virá para o campo "Nomes para reconhecimento".
+
+00:02:16.280 --> 00:02:19.040
+Aqui são os nomes que sairão na etiqueta.
+
+00:02:19.040 --> 00:02:21.840
+Para imprimir, vamos em "Imprimir".
+
+00:02:21.840 --> 00:02:25.160
+Escolheremos o serviço, que será um **Reconhecimento de Firma** com valor.
+
+00:02:25.160 --> 00:02:29.680
+Aqui o modelo de etiqueta utilizado, mostrando que o sistema pode trabalhar com impressoras
+
+00:02:29.680 --> 00:02:31.640
+matriciais ou térmicas.
+
+00:02:31.640 --> 00:02:37.240
+O escrevente responsável, o cálculo de custas aplicado e o campo de observações.
+
+00:02:37.240 --> 00:02:40.880
+Aqui vamos selecionar a impressora.
+
+00:02:40.880 --> 00:02:43.920
+Uma vez que tudo esteja selecionado, vamos clicar em "Imprimir".
+

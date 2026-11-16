@@ -1,0 +1,549 @@
+00:00:00.000 --> 00:00:17.000
+Olá pessoal, hoje eu venho fazer a demonstração do módulo Orion Stock.
+
+00:00:17.000 --> 00:00:22.000
+Módulo Orion Stock fica integrado dentro do módulo do sistema Orion TN.
+
+00:00:22.000 --> 00:00:27.520
+Então a gente vai acessar aqui através de um link no meu navegador de preferência, que
+
+00:00:27.520 --> 00:00:28.520
+é o Edge.
+
+00:00:28.540 --> 00:00:31.540
+Então vou utilizar aqui o meu usuário e senha.
+
+00:00:33.540 --> 00:00:39.880
+E ao realizar o acesso, o sistema me mostra os módulos que eu tenho liberado no meu perfil
+
+00:00:39.880 --> 00:00:42.000
+com as permissões que eu tenho acesso.
+
+00:00:42.000 --> 00:00:44.040
+Então vou acessar aqui o módulo Stock.
+
+00:00:47.040 --> 00:00:55.760
+Assim como os outros módulos, o Stock tem um visual bem limpo, com fácil visualização
+
+00:00:55.780 --> 00:00:59.780
+e uma dinâmica tranquila de se trabalhar.
+
+00:00:59.780 --> 00:01:03.920
+É um sistema bem intuitivo e bem tranquilo de se trabalhar.
+
+00:01:03.920 --> 00:01:08.320
+Então aqui eu tenho dois menus superiores.
+
+00:01:08.320 --> 00:01:12.600
+Vou até aumentar um pouco o zoom aqui para ficar melhor a visualização.
+
+00:01:12.600 --> 00:01:15.960
+Isso é uma das facilidades de utilizar no sistema web.
+
+00:01:15.960 --> 00:01:21.680
+Eu consigo ajustar a visualização do jeito que eu desejo.
+
+00:01:21.680 --> 00:01:24.840
+Então consigo aumentar aqui o tamanho, consigo diminuir.
+
+00:01:24.920 --> 00:01:28.920
+Eu tenho um pouco de espaço para se enquadrar melhor no monitor que eu tenho.
+
+00:01:28.920 --> 00:01:31.440
+Então aqui vou deixar em 100%.
+
+00:01:31.440 --> 00:01:38.400
+Então aqui a gente tem um menu superior com as informações principais, aqui os dois
+
+00:01:38.400 --> 00:01:44.920
+menus principais e aí dentro deles alguns submenus, no qual eu vou passar um a um aqui
+
+00:01:44.920 --> 00:01:45.920
+com vocês.
+
+00:01:46.000 --> 00:01:54.680
+Então aqui nas configurações eu tenho a configuração de permissões e usuário,
+
+00:01:54.680 --> 00:02:01.360
+que é onde eu qualifico cada usuário com a sua permissão necessária.
+
+00:02:01.360 --> 00:02:06.720
+Então aqui dentro do grupo de usuários a gente tem os perfis e permissões.
+
+00:02:06.720 --> 00:02:15.760
+Então ele me abre aqui todas as telas e rotinas do módulo Stock e eu seleciono a qual eu
+
+00:02:15.800 --> 00:02:17.680
+vou ter permissão ou não.
+
+00:02:17.680 --> 00:02:22.600
+Então aqui do lado esquerdo são os usuários que a gente tem, essa permissão liberada,
+
+00:02:22.600 --> 00:02:26.440
+e do lado direito os usuários que a gente não tem essas permissões.
+
+00:02:26.440 --> 00:02:33.000
+Então aqui dentro de cada menu a gente tem todos os submenus com todas as telas do sistema,
+
+00:02:33.000 --> 00:02:39.320
+então a gente consegue fazer um controle bem rigoroso relacionado a permissões.
+
+00:02:39.320 --> 00:02:44.080
+Então aqui seria para a criação e configuração dos grupos de permissões.
+
+00:02:44.080 --> 00:02:49.280
+Aqui eu consigo realizar a criação de novos grupos, então caso eu queira separar uma
+
+00:02:49.280 --> 00:02:55.600
+pessoa desse grupo de permissão eu consigo criar um novo grupo aqui.
+
+00:02:55.600 --> 00:03:00.800
+Então eu quero criar um novo grupo e deixar apenas uma permissão para essa pessoa, não
+
+00:03:00.800 --> 00:03:05.280
+tem problema, eu posso criar um grupo novo, retiro aquela pessoa daquele outro grupo e
+
+00:03:05.280 --> 00:03:10.520
+trago para esse grupo aqui com as permissões que eu configurar aqui.
+
+00:03:10.800 --> 00:03:15.320
+Então aqui a gente tem essa parte de usuários e permissões, usuários de fato é onde o
+
+00:03:15.320 --> 00:03:20.880
+sistema me mostra todos os usuários que a gente tem cadastrado nessa primeira tela.
+
+00:03:20.880 --> 00:03:26.400
+E aí caso eu queira adicionar um novo usuário basta eu clicar em adicionar e o sistema me
+
+00:03:26.400 --> 00:03:32.280
+abre as principais informações aqui para criação do usuário.
+
+00:03:32.280 --> 00:03:40.280
+Aqui eu tenho negócios que é onde eu faço o cadastro de todos os produtos, fornecedores,
+
+00:03:40.440 --> 00:03:46.880
+os tipos de distribuição, então aqui primeiramente a gente tem uma categoria, essa categoria
+
+00:03:46.880 --> 00:03:51.760
+normalmente é utilizada para papel de segurança e selos, somente essas duas categorias, não
+
+00:03:51.760 --> 00:03:56.840
+tem necessidade de fazer criação de outra, mas caso deseje também é possível através
+
+00:03:56.840 --> 00:04:02.840
+do botão adicionar, então aqui eu só preencho as informações necessárias e faço cadastro
+
+00:04:02.840 --> 00:04:03.840
+de uma nova categoria.
+
+00:04:03.840 --> 00:04:10.840
+Fornecedores, caso eu queira deixar o fornecedor cadastrado fixo para realizar a aquisição
+
+00:04:10.840 --> 00:04:16.840
+de selo digital, de papel de segurança, então eu posso cadastrar um fornecedor fixo aqui,
+
+00:04:16.840 --> 00:04:22.840
+então se eu vier aqui em adicionar eu tenho os campos aqui para preenchimento desse fornecedor,
+
+00:04:22.840 --> 00:04:25.840
+então eu posso realizar o cadastro desse fornecedor.
+
+00:04:27.840 --> 00:04:32.840
+Seguindo aqui eu tenho grupos de distribuição, então aqui no lado de cima tem a categoria
+
+00:04:32.840 --> 00:04:40.840
+então aqui no Orion Stock a gente configura quais grupos de distribuição eu vou utilizar
+
+00:04:40.840 --> 00:04:48.080
+no meu sistema, então eu posso adicionar um grupo aqui de distribuição e aí nesse
+
+00:04:48.080 --> 00:04:53.280
+grupo eu escolho o tipo de distribuição, então eu quero distribuir por máquina ou
+
+00:04:53.280 --> 00:04:58.800
+por usuário, então eu vou selecionar os usuários que eu tenho aqui disponíveis para
+
+00:04:58.800 --> 00:05:05.920
+esse grupo, ou por máquina eu posso criar aqui uma máquina, eu tenho uma máquina disponível
+
+00:05:05.920 --> 00:05:10.200
+aqui então eu quero colocar essa máquina aqui dentro desse grupo, então as distribuições
+
+00:05:10.200 --> 00:05:15.000
+que eu realizar aqui para esse grupo de teste vão estar disponíveis para essa máquina,
+
+00:05:15.000 --> 00:05:16.800
+então a gente tem essas duas opções.
+
+00:05:16.800 --> 00:05:24.520
+Produto é onde a gente cadastra todos os produtos que eu utilizo, então desde cartão
+
+00:05:24.520 --> 00:05:29.520
+até certidões, papel de segurança, apostilamento, selo de autenticação, todos os produtos
+
+00:05:29.520 --> 00:05:35.640
+que eu tenho, então aqui o sistema me mostra uma primeira tela com todos os produtos que
+
+00:05:35.640 --> 00:05:41.920
+eu já tenho cadastrado, com o que eu tenho disponível em cada produto, o que eu tenho
+
+00:05:41.920 --> 00:05:47.400
+distribuído de cada produto e o estoque mínimo, esse estoque mínimo a gente cadastra e configura
+
+00:05:47.400 --> 00:05:54.040
+com uma quantidade de alerta, então quando o sistema atingir essa quantidade de 400 cartões
+
+00:05:54.680 --> 00:05:59.240
+ele vai me dar um alerta que eu cheguei nessa quantidade para mim realizar uma nova compra,
+
+00:05:59.240 --> 00:06:04.760
+então aqui é onde a gente faz o cadastro e configuração de um produto, se eu clicar
+
+00:06:04.760 --> 00:06:12.920
+aqui em adicionar o sistema me mostra os campos aqui a serem penchitos, então eu posso cadastrar
+
+00:06:12.920 --> 00:06:19.800
+um tipo de selo com a descrição, a unidade se ele é unitário, o estoque mínimo que é aquele alerta
+
+00:06:19.800 --> 00:06:25.080
+que eu mencionei quando ele atingir essa quantidade ele vai me dar um alerta, a distribuição, como eu
+
+00:06:25.080 --> 00:06:30.120
+vou fazer a distribuição desse produto, então se esse produto aqui é um selo de autenticação
+
+00:06:30.120 --> 00:06:35.800
+eu vou fazer a distribuição dele para todos, então quando realizar a distribuição de selo
+
+00:06:35.800 --> 00:06:40.840
+de autenticação todo mundo vai receber esses selos, eu posso utilizar aqui por escrevente,
+
+00:06:40.840 --> 00:06:45.360
+então na hora de eu distribuir, eu distribuo uma quantidade separada para cada escrevente,
+
+00:06:45.520 --> 00:06:52.560
+eu posso colocar por máquina, posso criar grupos de usuário ou máquinas e separar uma quantidade
+
+00:06:52.560 --> 00:06:59.000
+para cada grupo, também tem como, a quantidade de atos eu posso estar selecionando aqui um ou dois,
+
+00:06:59.000 --> 00:07:05.520
+no caso de selos com valor e sem valor, então aqui a gente pode criar para um ou dois,
+
+00:07:05.520 --> 00:07:10.640
+códigos de barras caso seja um papel de segurança, por exemplo de um cartão de assinatura,
+
+00:07:11.280 --> 00:07:23.200
+o prefixo é a série do meu produto, então eu consigo deixar esse prefixo cadastrado,
+
+00:07:23.200 --> 00:07:30.000
+fixo nesse produto para que eu não precise fazer o preenchimento quando eu for fazer a aquisição,
+
+00:07:30.000 --> 00:07:35.120
+então sempre que eu fizer uma aquisição ele vai trazer esse produto, depois caso altere eu tenho
+
+00:07:35.120 --> 00:07:40.520
+que alterar, isso diminui a chance de ir ao operacional, de realizar o cadastro de forma
+
+00:07:40.520 --> 00:07:46.120
+devida e isso depois impactando na geração e comunicação de selo digital por exemplo,
+
+00:07:46.120 --> 00:07:54.120
+então ali eu cadastro o produto, o tipo de documento eu também consigo cadastrar aqui,
+
+00:07:54.120 --> 00:08:00.600
+então CPF os tipos de documento na quais eu realizo o cadastro aqui, então eu consigo
+
+00:08:01.080 --> 00:08:08.000
+cadastrar um novo tipo de documento, basta eu clicar adicionar e selecionar aqui os preenchimentos
+
+00:08:08.000 --> 00:08:13.920
+e fazer a conclusão, consigo também unidade de medida, então aqui a unidade de medida a gente
+
+00:08:13.920 --> 00:08:19.200
+costuma trabalhar com unidade, que é a quantidade de selos em papel de segurança que a gente controla
+
+00:08:19.200 --> 00:08:24.560
+por unidade, então a gente tem aqui uma única cadastrada, mas também nada me impede de eu
+
+00:08:24.560 --> 00:08:29.720
+cadastrar um novo tipo aqui, aqui na parte de cadastros a gente tem todos esses tipos,
+
+00:08:29.800 --> 00:08:38.440
+aí partindo a gente tem o cartório, que nada mais é do que a informação geral aqui de todos
+
+00:08:38.440 --> 00:08:43.920
+os campos que a gente tem disponível para os dados do cartório, então é onde fica todas as
+
+00:08:43.920 --> 00:08:51.400
+informações do cartório e os modelos que é onde a gente cadastra os tipos de modelos para
+
+00:08:51.400 --> 00:08:58.120
+impressões aqui de relatório dentro do estoque, então aqui neste caso eu não tenho nenhum modelo
+
+00:08:58.120 --> 00:09:04.000
+preparado, então caso eu queira realizar a impressão de algum relatório, neste caso aqui
+
+00:09:04.000 --> 00:09:08.560
+eu não conseguiria, eu teria que fazer um cadastro de um novo modelo para que eu realize as consultas,
+
+00:09:08.560 --> 00:09:15.640
+impressão de listagem de produtos, distribuição e assim por diante, então é onde a gente cadastra
+
+00:09:15.640 --> 00:09:21.640
+todos os modelos do sistema, aqui parametrizações, a gente pode ver que eu não tenho essa permissão
+
+00:09:21.640 --> 00:09:27.840
+para acessar, mas é só eu liberar para eu conseguir ter o acesso, é onde a gente faz a
+
+00:09:27.840 --> 00:09:35.560
+configuração de utilização do estoque, é uma rotina que mais a gente utiliza para fazer a
+
+00:09:35.560 --> 00:09:40.600
+configuração para o cartório, então normalmente o cartório não utiliza muito essa aba, é de fato
+
+00:09:40.600 --> 00:09:45.160
+a gente configura os parâmetros de como vai ser utilizado esses produtos, se vai ser de forma
+
+00:09:45.160 --> 00:09:51.080
+automática, se vai ser de forma manual e assim por diante, partindo para tela e administração a
+
+00:09:51.080 --> 00:09:56.000
+gente vai fazer aqui primeiramente a tela de aquisição, que o próprio nome já diz, é onde eu vou fazer a
+
+00:09:56.000 --> 00:10:01.720
+aquisição de um produto, então eu realizei uma compra de um produto, então vou fazer a aquisição
+
+00:10:01.720 --> 00:10:06.240
+desse produto para dentro do sistema, então posso colocar o fornecedor e a alta fiscal, não é
+
+00:10:06.240 --> 00:10:13.840
+obrigatório, a data de aquisição, o comprador eu posso colocar o nome aqui para registrar quem fez o
+
+00:10:13.840 --> 00:10:20.360
+lançamento, então vou fazer aquisição de um produto, comprei aqui selos, autenticação,
+
+00:10:20.440 --> 00:10:26.560
+ele me trouxe aqui já uma série configurada, fixa, que eu cadastrei lá no meu produto,
+
+00:10:27.440 --> 00:10:37.840
+e aqui eu comprei da numeração 100 até a numeração 2000, então ele me trouxe aqui a quantidade de,
+
+00:10:37.840 --> 00:10:39.960
+vou até colocar aqui 999,
+
+00:10:42.960 --> 00:10:48.480
+1001, para arredondar aqui a quantidade de 1000, o valor unitário não é obrigatório,
+
+00:10:48.600 --> 00:10:55.360
+então quando eu faço a conclusão aqui, nesse momento eu já fiz a aquisição, neste caso aqui
+
+00:10:55.360 --> 00:11:00.440
+não aceitou porque a gente já tem um cadastro com essa mesma numeração, então vou colocar aqui
+
+00:11:00.440 --> 00:11:13.520
+uma sequência diferente, 7000 a 7500, cadastro realizado com sucesso, nesse momento essa aquisição
+
+00:11:13.520 --> 00:11:23.720
+que eu utilizei ela já está disponível para distribuição e uso, então eu tenho aqui a primeira
+
+00:11:23.720 --> 00:11:28.800
+tela de consulta e visualização onde me mostra qual foi a aquisição que eu fiz, a quantidade,
+
+00:11:28.800 --> 00:11:36.720
+já disponível para distribuição e uso, aqui eu tenho um botãozinho de registro para eu verificar
+
+00:11:36.720 --> 00:11:41.000
+mais detalhadamente quem que fez essa aquisição, quem que fez a distribuição,
+
+00:11:41.000 --> 00:11:49.160
+e tem aqui um botão para visualizar também onde ele me mostra a tela da aquisição para ver qual
+
+00:11:49.160 --> 00:11:57.520
+o preenchimento foi realizado, e aqui eu consigo fazer filtros para ver se um usuário específico
+
+00:11:57.520 --> 00:12:03.720
+fez distribuição ou não, então aqui selecionei apenas usuário editor, ele me trouxe as aquisições
+
+00:12:03.720 --> 00:12:10.720
+que eu realizei com esse usuário no sistema, partindo para tela de distribuição, aqui
+
+00:12:10.720 --> 00:12:15.880
+eu vou fazer uma consulta para ver se eu tive uma distribuição realizada hoje, por exemplo,
+
+00:12:15.880 --> 00:12:22.680
+então faço aqui uma consulta de selo de autenticação e filtro, ele não me trouxe nenhum
+
+00:12:22.680 --> 00:12:27.400
+resultado, porém se eu vim aqui em distribuição, que é onde eu faço a distribuição dos produtos,
+
+00:12:27.400 --> 00:12:34.600
+vou selecionar aqui selos, autenticação, o sistema já vai me sugerir o que eu tenho em estoque,
+
+00:12:34.600 --> 00:12:40.640
+essa daqui foi a que eu realizei agora, do 7000 ao 7500, então seleciono aqui,
+
+00:12:40.640 --> 00:12:46.960
+clico nessa setinha, ele já preenchiu aqui embaixo a série e a sequência que eu selecionei,
+
+00:12:46.960 --> 00:12:51.880
+e aí basta eu selecionar aqui o portador, então vou colocar aqui o portador com o Oreo,
+
+00:12:51.880 --> 00:13:00.600
+posso fazer mais de uma de uma vez, então posso também vincular essa daqui e fazer a distribuição
+
+00:13:00.600 --> 00:13:06.840
+aqui, então essa daqui eu vou fazer para o Bruno, e aí aqui basta eu concluir, os produtos já foram
+
+00:13:06.840 --> 00:13:11.040
+distribuídos e eu não tenho mais nenhum disponível aqui para distribuição, se eu fizer uma consulta
+
+00:13:11.040 --> 00:13:17.720
+aqui agora com o período de distribuição de hoje, o sistema vai me trazer as duas distribuições que
+
+00:13:17.720 --> 00:13:25.920
+eu realizei neste momento, caso eu tenha feito uma distribuição aqui erroneamente, basta eu selecionar
+
+00:13:25.920 --> 00:13:33.880
+a distribuição e estornar essa distribuição, neste momento ela some dessa tela e volta para
+
+00:13:33.880 --> 00:13:40.840
+estoque, então se eu fizer uma nova consulta nesta tela para produto autenticação, ele já está
+
+00:13:40.840 --> 00:13:46.960
+disponível novamente para distribuição, então eu consigo fazer nessa mesma tela as consultas
+
+00:13:46.960 --> 00:13:51.720
+de distribuição para fazer estorno e consigo também realizar uma nova distribuição.
+
+00:13:51.720 --> 00:13:59.200
+Consumo manual, essa tela ela me traz primeiramente quando eu acesso todos os produtos
+
+00:13:59.200 --> 00:14:04.240
+disponíveis para consumo no momento, então aqui eu tenho todos os produtos que estão distribuídos
+
+00:14:04.240 --> 00:14:12.560
+e eu consigo fazer um consumo manual, o sistema a gente tem integração entre a Orion TN e
+
+00:14:12.560 --> 00:14:18.760
+Orion Stock, então esse consumo ele é configurável para que ele seja realizado de forma automática,
+
+00:14:19.120 --> 00:14:25.440
+cada serviço realizado já faz um consumo da próxima sequência disponível, porém eu consigo
+
+00:14:25.440 --> 00:14:32.760
+também fazer esse consumo manual, então se eu vier aqui e selecionar um produto qual eu queira
+
+00:14:32.760 --> 00:14:38.200
+fazer o consumo, coloco aqui o portador que está fazendo esse consumo, coloco a quantidade,
+
+00:14:38.200 --> 00:14:45.240
+vou fazer o consumo de 10 autenticações na data de hoje, vejo aqui as séries que eu tenho disponíveis,
+
+00:14:45.240 --> 00:14:53.480
+ele já me traz a próxima sequência disponível para consumo, trazendo aqui a quantidade de 10,
+
+00:14:53.480 --> 00:14:58.320
+que foi a quantidade que eu selecionei aqui, posso mudar o status aqui para inutilizado
+
+00:14:58.320 --> 00:15:04.680
+ou utilizado e faço a conclusão, então aqui é para a gente fazer esse consumo ou até a inutilização
+
+00:15:04.680 --> 00:15:11.680
+manual desse produto. E aqui por fim a tela de consultas, é onde eu gero os relatórios,
+
+00:15:11.920 --> 00:15:16.960
+faço as consultas para ver o que eu tenho em estoque, o que eu tenho consumido, o que eu tenho
+
+00:15:16.960 --> 00:15:24.760
+utilizado e até para inutilizar ou reutilizar selos ou papel de segurança, então se eu fizer
+
+00:15:24.760 --> 00:15:32.720
+uma busca simples pela data de hoje e vou selecionar a categoria selos, o sistema me traz tudo que teve
+
+00:15:32.720 --> 00:15:38.760
+de utilização no dia de hoje, então aqui eu tive cartões consumidos, eu tive um cartão consumido e
+
+00:15:38.760 --> 00:15:47.160
+aqui 15 selos de autenticação, 10 deles consumidos e 5 deles inutilizados, então aqui eu posso imprimir
+
+00:15:47.160 --> 00:15:52.080
+esse relatório, no meu caso aqui eu não tenho modelo cadastrado, mas eu consigo configurar para
+
+00:15:52.080 --> 00:15:58.960
+imprimir esse relatório, consigo filtrar melhor a minha busca, então se eu colocar selo, eu consigo
+
+00:15:58.960 --> 00:16:02.880
+aqui selecionar o tipo de selo, caso eu queira apenas um tipo de selo, então se eu buscar aqui
+
+00:16:03.880 --> 00:16:10.000
+a autenticação por exemplo, ele não me traz aquele cartão que eu tinha aqui apenas a autenticação,
+
+00:16:10.760 --> 00:16:17.640
+consigo mudar o status, caso eu queira filtrar mais ainda essa busca, refinar ainda melhor essa
+
+00:16:17.640 --> 00:16:22.800
+consulta, eu posso buscar apenas por distribuído ou apenas por consumido na data de hoje por exemplo,
+
+00:16:22.800 --> 00:16:28.880
+então ele já me elimina aquela última busca e me traz apenas o que eu consumi, ou posso buscar
+
+00:16:28.880 --> 00:16:36.680
+o modelo inutilizado e assim por diante, consigo detalhar essa consulta, então se eu detalhar essa
+
+00:16:36.680 --> 00:16:43.880
+consulta aqui, o sistema me obriga a selecionar um tipo de selo, então se eu tirar aqui o status e
+
+00:16:43.880 --> 00:16:49.080
+colocar selos autenticações, pode ver que ele me impede um tipo de status com obrigatoriedade,
+
+00:16:49.080 --> 00:16:56.200
+então eu tenho que colocar aqui por exemplo consumido, na detalhada a diferença da consulta
+
+00:16:56.200 --> 00:17:01.440
+de vida, vocês podem ver que ele me trouxe algumas opções aqui na frente, então eu fiz
+
+00:17:01.440 --> 00:17:07.120
+uma consulta detalhada aqui do dia de hoje e o sistema me trouxe 10 registros encontrados,
+
+00:17:07.120 --> 00:17:13.560
+todos os selos que eu consumi de autenticação, se eu quiser cancelar esses selos, utilizar ou
+
+00:17:13.560 --> 00:17:18.640
+voltar eles para para estoque, para distribuído, para eu realizar o consumo deles posteriormente,
+
+00:17:18.640 --> 00:17:25.400
+basta selecionar aqui o selo que eu quero fazer a alteração, esses três aqui eu vou inutilizá-los,
+
+00:17:27.040 --> 00:17:34.360
+e o restante eu vou voltar para distribuídos, então a sequência deles vai ficar disponível
+
+00:17:34.360 --> 00:17:40.000
+novamente para utilização, então se eu fizer essa nova consulta, eu já não tenho mais estoque
+
+00:17:40.000 --> 00:17:47.040
+cadastrados, porque eu cancelei três selos e os outros setes eu voltei para distribuído,
+
+00:17:47.040 --> 00:17:52.360
+para que eles sejam consumidos novamente, então aqui é uma tela de consulta na qual eu consigo
+
+00:17:52.360 --> 00:17:59.280
+buscar por alguns tipos de campos aqui, então eu tenho o tipo de status, posso buscar por uma
+
+00:17:59.280 --> 00:18:06.400
+série específica, consequência inicial e final, posso buscar por um tipo de produto específico,
+
+00:18:06.400 --> 00:18:13.080
+posso buscar pela categoria papel de segurança ou selos e também pelo período aqui, caso eu
+
+00:18:13.080 --> 00:18:19.320
+tenha esse período em mente, caso eu não tenha o período, eu posso buscar apenas por exemplo pela
+
+00:18:19.320 --> 00:18:23.920
+sequência, se eu não quiser buscar um período, eu não sei quando esse selo foi consumido ou
+
+00:18:23.920 --> 00:18:29.640
+cancelado, não tem problema, eu posso buscar pela série e pela sequência que o sistema me traz
+
+00:18:29.640 --> 00:18:36.480
+essa informação sem esprechimentos, bom pessoal o Iron Stock era isso, agradeço e até a próxima.
+

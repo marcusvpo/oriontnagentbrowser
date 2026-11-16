@@ -1,0 +1,630 @@
+WEBVTT
+
+66e8f5d8-3f0e-4d98-b2ab-fc02ea658e16-0
+00:00:00.960 --> 00:00:04.755
+Olá,
+nesse vídeo eu vou mostrar para você como
+
+66e8f5d8-3f0e-4d98-b2ab-fc02ea658e16-1
+00:00:04.755 --> 00:00:11.377
+realizar o cadastro de um protocolo das
+custas e a geração de um recibo para esse
+
+66e8f5d8-3f0e-4d98-b2ab-fc02ea658e16-2
+00:00:11.377 --> 00:00:16.223
+protocolo. Para isso,
+basta clicar no menu de notas e ir na
+
+66e8f5d8-3f0e-4d98-b2ab-fc02ea658e16-3
+00:00:16.223 --> 00:00:21.633
+opção de novo protocolo.
+Na tela do cadastro de um novo protocolo,
+
+66e8f5d8-3f0e-4d98-b2ab-fc02ea658e16-4
+00:00:21.633 --> 00:00:26.560
+você vai perceber que para salvar um
+protocolo é necessário.
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-0
+00:00:26.920 --> 00:00:31.224
+Que haja o preenchimento de alguns Campos
+obrigatórios.
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-1
+00:00:31.224 --> 00:00:34.760
+Quando você parar o mouse na opção de
+salvar,
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-2
+00:00:34.760 --> 00:00:40.832
+o sistema já vai emitir uma mensagem
+dizendo que é preciso preencher os Campos
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-3
+00:00:40.832 --> 00:00:44.983
+obrigatórios.
+Esses Campos obrigatórios estarão sendo
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-4
+00:00:44.983 --> 00:00:49.441
+indicados por 1* logo na sua descrição,
+como por exemplo,
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-5
+00:00:49.441 --> 00:00:54.591
+o campo da espécie e da natureza,
+que serão Campos obrigatórios já
+
+6def8e42-42ea-4b6e-8bf1-e8d5fd01736e-6
+00:00:54.591 --> 00:00:55.359
+definidos.
+
+b66fd3b7-a4e8-4784-9525-497a4d014f46-0
+00:00:55.760 --> 00:01:01.574
+Como padrão no sistema outro campo
+obrigatório definido por padrão no
+
+b66fd3b7-a4e8-4784-9525-497a4d014f46-1
+00:01:01.574 --> 00:01:07.555
+sistema é o campo do escrevente,
+que normalmente já virá preenchido com
+
+b66fd3b7-a4e8-4784-9525-497a4d014f46-2
+00:01:07.555 --> 00:01:11.792
+base no último protocolo cadastrado nessa
+máquina.
+
+b66fd3b7-a4e8-4784-9525-497a4d014f46-3
+00:01:11.792 --> 00:01:16.028
+Se for o primeiro protocolo cadastrado na
+máquina,
+
+b66fd3b7-a4e8-4784-9525-497a4d014f46-4
+00:01:16.028 --> 00:01:21.261
+o campo estará vazio e a indicação que é
+um campo obrigatório,
+
+b66fd3b7-a4e8-4784-9525-497a4d014f46-5
+00:01:21.261 --> 00:01:25.000
+outra maneira de ver os Campos
+obrigatórios.
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-0
+00:01:25.160 --> 00:01:30.783
+É você parar o mouse no ícone de
+exclamação na opção de salvar na barra
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-1
+00:01:30.783 --> 00:01:34.611
+lateral do protocolo.
+Se você parar o mouse ali,
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-2
+00:01:34.611 --> 00:01:38.126
+o sistema vai listar os Campos
+obrigatórios,
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-3
+00:01:38.126 --> 00:01:42.578
+assim como destaca Los em vermelho na
+tela do protocolo.
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-4
+00:01:42.578 --> 00:01:48.202
+Lembrando que a lista dos Campos
+obrigatórios podem ser configuradas no
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-5
+00:01:48.202 --> 00:01:53.748
+sistema para que existam mais Campos
+obrigatórios a serem preenchidos,
+
+0c3cddc3-8343-4070-bb93-73b73a39bc3e-6
+00:01:53.748 --> 00:01:54.920
+mas por padrão.
+
+3dbbee73-359a-4f83-a6f9-2f2a5c33f5a7-0
+00:01:55.360 --> 00:02:00.469
+Haverá apenas a necessidade de
+preenchimento da espécie natureza e do
+
+3dbbee73-359a-4f83-a6f9-2f2a5c33f5a7-1
+00:02:00.469 --> 00:02:03.754
+escrevente.
+Como já falei ao preencher aqui,
+
+3dbbee73-359a-4f83-a6f9-2f2a5c33f5a7-2
+00:02:03.754 --> 00:02:07.258
+por exemplo,
+o campo da espécie como escritura,
+
+3dbbee73-359a-4f83-a6f9-2f2a5c33f5a7-3
+00:02:07.258 --> 00:02:12.295
+ele estará condicionando o campo da
+natureza para aparecer apenas as
+
+3dbbee73-359a-4f83-a6f9-2f2a5c33f5a7-4
+00:02:12.295 --> 00:02:17.916
+naturezas relacionadas à escritura.
+Se você colocar na espécie, por exemplo,
+
+3dbbee73-359a-4f83-a6f9-2f2a5c33f5a7-5
+00:02:17.916 --> 00:02:22.880
+procuração no campo da natureza,
+vai vir só os tipos de procuração.
+
+f625e7f9-17f4-439c-99ca-3c615917978c-0
+00:02:23.920 --> 00:02:29.569
+Essas naturezas estão já como padrão do
+signo para que haja uma consistência
+
+f625e7f9-17f4-439c-99ca-3c615917978c-1
+00:02:29.569 --> 00:02:34.412
+maior na hora da comunicação.
+Vamos colocar aqui uma escritura de
+
+f625e7f9-17f4-439c-99ca-3c615917978c-2
+00:02:34.412 --> 00:02:39.254
+compra e venda, por exemplo.
+Perceba que quando você preencheu os
+
+f625e7f9-17f4-439c-99ca-3c615917978c-3
+00:02:39.254 --> 00:02:43.657
+Campos obrigatórios,
+o sistema já liberou a opção de salvar
+
+f625e7f9-17f4-439c-99ca-3c615917978c-4
+00:02:43.657 --> 00:02:48.720
+tanto na barra lateral como nominou acima,
+ao ser clicado no salvar.
+
+2386fd84-f36d-4bd0-8936-6edf7b48f38e-0
+00:02:49.840 --> 00:02:56.226
+O sistema já vai abrir para você um passo
+a passo para o preenchimento dos dados e
+
+2386fd84-f36d-4bd0-8936-6edf7b48f38e-1
+00:02:56.226 --> 00:03:01.767
+a confecção deste ato notarial,
+para que você possa gerar o recibo para
+
+2386fd84-f36d-4bd0-8936-6edf7b48f38e-2
+00:03:01.767 --> 00:03:05.845
+esse protocolo.
+Basta parar o mouse aqui na opção do
+
+2386fd84-f36d-4bd0-8936-6edf7b48f38e-3
+00:03:05.845 --> 00:03:12.155
+gerar recibo e perceba que o sistema já
+vai indicar para você quais são os Campos
+
+2386fd84-f36d-4bd0-8936-6edf7b48f38e-4
+00:03:12.155 --> 00:03:15.079
+obrigatórios para a geração do recibo.
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-0
+00:03:15.520 --> 00:03:18.729
+No caso, aqui,
+o sistema já está indicando o
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-1
+00:03:18.729 --> 00:03:24.291
+preenchimento do campo do número do livro,
+da folha inicial e da folha final,
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-2
+00:03:24.291 --> 00:03:28.855
+que fica logo abaixo. Aqui,
+não confunda o campo do livre folha
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-3
+00:03:28.855 --> 00:03:34.132
+inicial e folha final com o campo de
+livre folha inicial para busca nessa
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-4
+00:03:34.132 --> 00:03:38.054
+mesma tela que fica escondido aqui na
+lupinha lateral.
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-5
+00:03:38.054 --> 00:03:42.761
+Se você clicar na lupinha,
+você vai ter os mesmos Campos de livre
+
+e51a6aa2-53f8-4601-96e4-a7016d4936ff-6
+00:03:42.761 --> 00:03:45.399
+folha, assim como o protocolo o nome.
+
+96783b37-dff3-4a75-8eca-7d92b2e0e085-0
+00:03:45.680 --> 00:03:50.176
+E data de recepção e também o número do
+recibo para busca.
+
+96783b37-dff3-4a75-8eca-7d92b2e0e085-1
+00:03:50.176 --> 00:03:56.197
+Mas esses Campos não são os Campos de
+preenchimento do ato, apenas para busca,
+
+96783b37-dff3-4a75-8eca-7d92b2e0e085-2
+00:03:56.197 --> 00:04:01.303
+para carregar o ato desejado na tela.
+Se você esconder essa busca,
+
+96783b37-dff3-4a75-8eca-7d92b2e0e085-3
+00:04:01.303 --> 00:04:07.400
+ela vai ficar aqui no canto direito da
+sua tela. E você terá aqui à disposição,
+
+96783b37-dff3-4a75-8eca-7d92b2e0e085-4
+00:04:07.400 --> 00:04:13.039
+aí sim, para o cadastro do protocolo,
+o número do livro da folha inicial.
+
+467fe4e1-766a-448c-8d59-8c81d924c260-0
+00:04:13.200 --> 00:04:19.009
+E da folha final para este ato que você
+está fazendo? Se eu preencher aqui,
+
+467fe4e1-766a-448c-8d59-8c81d924c260-1
+00:04:19.009 --> 00:04:24.743
+por exemplo, um livro e der um tab,
+você vai perceber que o sistema já vai
+
+467fe4e1-766a-448c-8d59-8c81d924c260-2
+00:04:24.743 --> 00:04:30.324
+carregar a folha inicial com base no
+último ato lavrado para este livro.
+
+467fe4e1-766a-448c-8d59-8c81d924c260-3
+00:04:30.324 --> 00:04:34.758
+E a folha final?
+Ele sempre vai repetir o mesmo número da
+
+467fe4e1-766a-448c-8d59-8c81d924c260-4
+00:04:34.758 --> 00:04:38.962
+folha inicial.
+Então basta aqui você mudar o número da
+
+467fe4e1-766a-448c-8d59-8c81d924c260-5
+00:04:38.962 --> 00:04:39.880
+folha final.
+
+42e5130e-5d46-4549-a1a4-08e0bef15389-0
+00:04:41.160 --> 00:04:45.780
+Para que você possa então dar andamento
+para o seu protocolo.
+
+42e5130e-5d46-4549-a1a4-08e0bef15389-1
+00:04:45.780 --> 00:04:51.964
+Lembrando que para os cartórios que usam
+o editor e para a impressão do livro pelo
+
+42e5130e-5d46-4549-a1a4-08e0bef15389-2
+00:04:51.964 --> 00:04:55.839
+editor do sistema,
+esta folha final será atualizada
+
+42e5130e-5d46-4549-a1a4-08e0bef15389-3
+00:04:55.839 --> 00:05:01.577
+automaticamente de acordo com as páginas
+que eu estiver imprimindo lá no meu
+
+42e5130e-5d46-4549-a1a4-08e0bef15389-4
+00:05:01.577 --> 00:05:05.899
+editor de texto.
+Mas se o cartório não usa a impressão do
+
+42e5130e-5d46-4549-a1a4-08e0bef15389-5
+00:05:05.899 --> 00:05:08.880
+livro pelo editor de textos do Orion TN.
+
+447e6e1f-a193-4bf6-806c-6e218e74eb76-0
+00:05:09.400 --> 00:05:14.777
+Deverá informar aqui, então,
+a folha que foi usada por fora do sistema.
+
+447e6e1f-a193-4bf6-806c-6e218e74eb76-1
+00:05:14.777 --> 00:05:18.586
+Quando você parar o mouse e aqui não
+gerar recibo,
+
+447e6e1f-a193-4bf6-806c-6e218e74eb76-2
+00:05:18.586 --> 00:05:24.262
+o sistema já vai indicar quais são os
+próximos Campos obrigatórios para que
+
+447e6e1f-a193-4bf6-806c-6e218e74eb76-3
+00:05:24.262 --> 00:05:27.773
+você consiga gerar o teu recibo.
+No caso aqui,
+
+447e6e1f-a193-4bf6-806c-6e218e74eb76-4
+00:05:27.773 --> 00:05:32.553
+ele exige que você coloque o nome e o
+documento do solicitante.
+
+447e6e1f-a193-4bf6-806c-6e218e74eb76-5
+00:05:32.553 --> 00:05:38.080
+Esse documento e o nome do solicitante
+está aqui na opção do solicitante.
+
+e66fad2f-d02e-4e31-8b5a-28ddab20003d-0
+00:05:39.040 --> 00:05:44.250
+E é o campo do CPF e o nome.
+Você vai ver que cada campo que tiver uma
+
+e66fad2f-d02e-4e31-8b5a-28ddab20003d-1
+00:05:44.250 --> 00:05:47.700
+lupinha do lado,
+ele disponibiliza para você a
+
+e66fad2f-d02e-4e31-8b5a-28ddab20003d-2
+00:05:47.700 --> 00:05:53.351
+possibilidade de fazer uma busca com
+aquele número de CPF aqui, por exemplo,
+
+e66fad2f-d02e-4e31-8b5a-28ddab20003d-3
+00:05:53.351 --> 00:05:57.827
+no caso do CPF ou uma busca pelo nome que
+você digitar aqui.
+
+e66fad2f-d02e-4e31-8b5a-28ddab20003d-4
+00:05:57.827 --> 00:06:02.378
+No caso do nome e da lupinha que tiver
+aqui no campo do nome,
+
+e66fad2f-d02e-4e31-8b5a-28ddab20003d-5
+00:06:02.378 --> 00:06:04.799
+eu vou fazer uma busca pelo nome.
+
+38ce8437-9919-4300-b8ea-0679544b2d81-0
+00:06:05.440 --> 00:06:09.431
+Digitando aqui o nome no campo e clicando
+na lupinha,
+
+38ce8437-9919-4300-b8ea-0679544b2d81-1
+00:06:09.431 --> 00:06:15.344
+o sistema vai disponibilizar para mim os
+possíveis cadastros que eu posso estar
+
+38ce8437-9919-4300-b8ea-0679544b2d81-2
+00:06:15.344 --> 00:06:20.814
+reaproveitando a informação para
+preencher automaticamente todos os dados
+
+38ce8437-9919-4300-b8ea-0679544b2d81-3
+00:06:20.814 --> 00:06:24.731
+do solicitante.
+Lembrando que esse comportamento ele
+
+38ce8437-9919-4300-b8ea-0679544b2d81-4
+00:06:24.731 --> 00:06:30.571
+também acontece aqui no campo do CPF,
+que é o mais indicado para que você faça
+
+38ce8437-9919-4300-b8ea-0679544b2d81-5
+00:06:30.571 --> 00:06:31.679
+as suas buscas.
+
+43f33684-cb18-4c50-9134-46cdc4e455af-0
+00:06:32.840 --> 00:06:38.943
+O solicitante é no nome de quem vai sair
+o recibo que você estará gerando daqui a
+
+43f33684-cb18-4c50-9134-46cdc4e455af-1
+00:06:38.943 --> 00:06:42.441
+pouco.
+Então no caso aqui do solicitante aonde
+
+43f33684-cb18-4c50-9134-46cdc4e455af-2
+00:06:42.441 --> 00:06:46.684
+eu coloquei o nome,
+eu vou reaproveitar os meus dados do
+
+43f33684-cb18-4c50-9134-46cdc4e455af-3
+00:06:46.684 --> 00:06:50.629
+último protocolo,
+então usa a opção entre parentes e
+
+43f33684-cb18-4c50-9134-46cdc4e455af-4
+00:06:50.629 --> 00:06:54.500
+protocolo.
+Se eu quiser usar os dados do meu último
+
+43f33684-cb18-4c50-9134-46cdc4e455af-5
+00:06:54.500 --> 00:06:59.114
+solicitante cadastrado,
+ele vai estar aqui disponibilizando a
+
+43f33684-cb18-4c50-9134-46cdc4e455af-6
+00:06:59.114 --> 00:07:01.720
+opção entre parentes e solicitante.
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-0
+00:07:02.720 --> 00:07:08.293
+O mesmo cadastro vale para o tomador que
+logo logo eu estarei explicando para que
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-1
+00:07:08.293 --> 00:07:11.352
+serve.
+Ou então eu posso aproveitar o último
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-2
+00:07:11.352 --> 00:07:15.226
+cartão que foi cadastrado com esse nome
+ou com esse CPF,
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-3
+00:07:15.226 --> 00:07:20.936
+com a indicação entre parentes e cartão.
+Se eu clicar aqui, por exemplo, em cartão,
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-4
+00:07:20.936 --> 00:07:23.995
+e lá no meu cartão de firmas que foi
+aberto,
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-5
+00:07:23.995 --> 00:07:28.617
+eu tiver todos os dados de endereço e de
+contato desse solicitante,
+
+1ef37230-aa2e-41e5-8611-7739f982e6c3-6
+00:07:28.617 --> 00:07:31.880
+eles já serão preenchidos aqui
+automaticamente.
+
+d9877c4b-f1c2-4c5d-9c84-32be1e06461f-0
+00:07:32.360 --> 00:07:38.526
+Lembrando que essa sugestão é apenas uma
+sugestão, ele vai estar aqui na tela,
+
+d9877c4b-f1c2-4c5d-9c84-32be1e06461f-1
+00:07:38.526 --> 00:07:44.537
+mas você pode vir aqui e alterar a
+informação sugerida que ele vai atualizar
+
+d9877c4b-f1c2-4c5d-9c84-32be1e06461f-2
+00:07:44.537 --> 00:07:48.206
+essa informação para o protocolo em
+andamento.
+
+d9877c4b-f1c2-4c5d-9c84-32be1e06461f-3
+00:07:48.206 --> 00:07:54.138
+Ele não vai alterar esse cadastro,
+por exemplo, lá no cartão de assinatura,
+
+d9877c4b-f1c2-4c5d-9c84-32be1e06461f-4
+00:07:54.138 --> 00:07:57.729
+apenas no protocolo atual. Nesse caso,
+agora,
+
+d9877c4b-f1c2-4c5d-9c84-32be1e06461f-5
+00:07:57.729 --> 00:08:01.320
+quando eu parar o mouse aqui em gerar
+recibo.
+
+34711918-3bc2-4cae-a526-c582e7e5d8ed-0
+00:08:01.680 --> 00:08:07.534
+Você vai ver que o sistema exige aqui
+pelo menos uma custa para que você possa
+
+34711918-3bc2-4cae-a526-c582e7e5d8ed-1
+00:08:07.534 --> 00:08:12.128
+então gerar o teu recibo.
+Cadastro das custas estará aqui, ó,
+
+34711918-3bc2-4cae-a526-c582e7e5d8ed-2
+00:08:12.128 --> 00:08:16.723
+na guia de custas.
+Quando você clicar aqui na guia de custas,
+
+34711918-3bc2-4cae-a526-c582e7e5d8ed-3
+00:08:16.723 --> 00:08:22.281
+o sistema automaticamente desce a barra
+de rolagem até a opção das custas.
+
+34711918-3bc2-4cae-a526-c582e7e5d8ed-4
+00:08:22.281 --> 00:08:28.061
+Nada impede que você possa vir até às
+custas sem usar estas guias superiores,
+
+34711918-3bc2-4cae-a526-c582e7e5d8ed-5
+00:08:28.061 --> 00:08:29.839
+como eu acabei de fazer.
+
+17243ae3-61fc-4756-a186-aeefe69681b5-0
+00:08:30.160 --> 00:08:36.221
+Você pode usar apenas a barra de rolagem
+e lá embaixo você abre a opção de custas
+
+17243ae3-61fc-4756-a186-aeefe69681b5-1
+00:08:36.221 --> 00:08:41.321
+que você consegue preencher as custas que
+estão sendo exigidas aqui.
+
+17243ae3-61fc-4756-a186-aeefe69681b5-2
+00:08:41.321 --> 00:08:44.795
+Para geração do recibo,
+o cadastro das custas,
+
+17243ae3-61fc-4756-a186-aeefe69681b5-3
+00:08:44.795 --> 00:08:48.121
+você poderá buscar as naturezas de 2
+formas.
+
+17243ae3-61fc-4756-a186-aeefe69681b5-4
+00:08:48.121 --> 00:08:53.221
+A primeira delas é digitar aqui a
+descrição das custas, por exemplo,
+
+17243ae3-61fc-4756-a186-aeefe69681b5-5
+00:08:53.221 --> 00:08:57.656
+a escritura com valor declarado.
+Se você começar a digitar,
+
+17243ae3-61fc-4756-a186-aeefe69681b5-6
+00:08:57.656 --> 00:08:59.799
+o sistema já vai trazer aqui.
+
+fc09f932-95ce-48e5-ae41-3646a0970387-0
+00:09:00.080 --> 00:09:05.760
+As opções pelas quais você está digitando,
+para que você possa selecionar aqui na
+
+fc09f932-95ce-48e5-ae41-3646a0970387-1
+00:09:05.760 --> 00:09:10.332
+barra de rolagem. Você digitar aqui,
+por exemplo, uma procuração.
+
+fc09f932-95ce-48e5-ae41-3646a0970387-2
+00:09:10.332 --> 00:09:15.805
+O sistema já vai listar as procurações
+disponíveis de acordo com o cadastro da
+
+fc09f932-95ce-48e5-ae41-3646a0970387-3
+00:09:15.805 --> 00:09:20.169
+tabela de custas para que você selecione.
+Ou você pode, então,
+
+fc09f932-95ce-48e5-ae41-3646a0970387-4
+00:09:20.169 --> 00:09:25.019
+não usar o campo da descrição,
+ir no campo do item com ele em branco,
+
+fc09f932-95ce-48e5-ae41-3646a0970387-5
+00:09:25.019 --> 00:09:28.760
+sem nenhum preenchimento e dar um tab no
+seu teclado.
+
+e20953c9-9279-4b7f-82ba-a4fa959f6637-0
+00:09:29.560 --> 00:09:34.140
+Quando você fizer assim,
+o sistema vai listar todos os itens da
+
+e20953c9-9279-4b7f-82ba-a4fa959f6637-1
+00:09:34.140 --> 00:09:39.651
+tabela de custas para que você possa ter
+uma visualização aqui diferenciada.
+
+e20953c9-9279-4b7f-82ba-a4fa959f6637-2
+00:09:39.651 --> 00:09:43.587
+E aí você consegue dar 2 cliques na
+natureza desejada,
+
+e20953c9-9279-4b7f-82ba-a4fa959f6637-3
+00:09:43.587 --> 00:09:48.954
+como por exemplo aqui uma escritura com
+valor declarado e o sistema já vai
+
+e20953c9-9279-4b7f-82ba-a4fa959f6637-4
+00:09:48.954 --> 00:09:52.604
+carregar lá a natureza das custas que
+você lançou.
+
+e20953c9-9279-4b7f-82ba-a4fa959f6637-5
+00:09:52.604 --> 00:09:56.039
+Você terá aqui a opção de colocar a
+quantidade.

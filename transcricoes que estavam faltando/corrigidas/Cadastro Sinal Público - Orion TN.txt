@@ -1,0 +1,423 @@
+00:00:00.000 --> 00:00:02.000
+.
+
+00:00:02.000 --> 00:00:04.000
+.
+
+00:00:04.000 --> 00:00:06.000
+.
+
+00:00:06.000 --> 00:00:08.000
+.
+
+00:00:08.000 --> 00:00:10.000
+.
+
+00:00:10.000 --> 00:00:12.000
+.
+
+00:00:12.000 --> 00:00:14.000
+Olá,
+
+00:00:14.000 --> 00:00:16.000
+neste vídeo, irei demonstrar
+
+00:00:16.000 --> 00:00:18.000
+como realizar o cadastro de **Sinal Público**.
+
+00:00:18.000 --> 00:00:20.000
+Para realizarmos um novo
+
+00:00:20.000 --> 00:00:22.000
+cadastro, iremos acessar o menu
+
+00:00:22.000 --> 00:00:24.000
+**Firmas**, depois o
+
+00:00:24.000 --> 00:00:26.000
+submenu Cadastros e selecionar
+
+00:00:26.000 --> 00:00:28.000
+**Sinal Público**.
+
+00:00:28.000 --> 00:00:30.000
+Nesta tela, então,
+
+00:00:30.000 --> 00:00:32.000
+podemos realizar a consulta de
+
+00:00:32.000 --> 00:00:34.000
+**Sinais Públicos** já cadastrados
+
+00:00:34.000 --> 00:00:36.000
+anteriormente ou, de fato,
+
+00:00:36.000 --> 00:00:38.000
+realizar um novo cadastro. Para
+
+00:00:38.000 --> 00:00:40.000
+isso, clico no botão "Adicionar".
+
+00:00:40.000 --> 00:00:42.000
+Serei
+
+00:00:42.000 --> 00:00:44.000
+redirecionado, então, para esta tela,
+
+00:00:44.000 --> 00:00:46.000
+onde realizarei o cadastro de um novo
+
+00:00:46.000 --> 00:00:48.000
+**Sinal Público**. Na parte
+
+00:00:48.000 --> 00:00:50.000
+superior, serão preenchidos
+
+00:00:50.000 --> 00:00:52.000
+os campos referentes ao
+
+00:00:52.000 --> 00:00:54.000
+**Cartório** ao qual o escrevente
+
+00:00:54.000 --> 00:00:56.000
+é vinculado. Para
+
+00:00:56.000 --> 00:00:58.000
+este exemplo, irei realizar o
+
+00:00:58.000 --> 00:01:00.000
+cadastro com dados fictícios,
+
+00:01:00.000 --> 00:01:02.000
+lembrando que os campos que
+
+00:01:02.000 --> 00:01:04.000
+possuem um asterisco são
+
+00:01:04.000 --> 00:01:06.000
+campos de preenchimento obrigatório.
+
+00:01:06.000 --> 00:01:08.000
+Devo preencher o nome do **Cartório**,
+
+00:01:08.000 --> 00:01:10.000
+.
+
+00:01:10.000 --> 00:01:12.000
+.
+
+00:01:12.000 --> 00:01:14.000
+.
+
+00:01:14.000 --> 00:01:16.000
+data do recebimento,
+
+00:01:16.000 --> 00:01:18.000
+.
+
+00:01:18.000 --> 00:01:20.000
+.
+
+00:01:20.000 --> 00:01:22.000
+um e-mail, se
+
+00:01:22.000 --> 00:01:24.000
+necessário,
+
+00:01:24.000 --> 00:01:26.000
+.
+
+00:01:26.000 --> 00:01:28.000
+.
+
+00:01:28.000 --> 00:01:30.000
+e um site.
+
+00:01:30.000 --> 00:01:32.000
+.
+
+00:01:32.000 --> 00:01:34.000
+.
+
+00:01:34.000 --> 00:01:36.000
+.
+
+00:01:36.000 --> 00:01:38.000
+.
+
+00:01:38.000 --> 00:01:40.000
+O digitador
+
+00:01:40.000 --> 00:01:42.000
+é o usuário que está logado no sistema
+
+00:01:42.000 --> 00:01:44.000
+para fazer o cadastro.
+
+00:01:44.000 --> 00:01:46.000
+O campo "Digitado em"
+
+00:01:46.000 --> 00:01:48.000
+será preenchido automaticamente com
+
+00:01:48.000 --> 00:01:50.000
+a data da digitação. Ao
+
+00:01:50.000 --> 00:01:52.000
+preenchermos o campo CEP,
+
+00:01:52.000 --> 00:01:54.000
+.
+
+00:01:54.000 --> 00:01:56.000
+automaticamente os
+
+00:01:56.000 --> 00:01:58.000
+campos Tipo de Logradouro,
+
+00:01:58.000 --> 00:02:00.000
+Logradouro,
+
+00:02:00.000 --> 00:02:02.000
+Cidade, UF e
+
+00:02:02.000 --> 00:02:04.000
+Bairro serão preenchidos
+
+00:02:04.000 --> 00:02:06.000
+automaticamente a depender do
+
+00:02:06.000 --> 00:02:08.000
+cadastro dos Correios.
+
+00:02:08.000 --> 00:02:10.000
+Também posso preencher, se necessário,
+
+00:02:10.000 --> 00:02:12.000
+os campos título,
+
+00:02:12.000 --> 00:02:14.000
+complemento
+
+00:02:14.000 --> 00:02:16.000
+e observações.
+
+00:02:16.000 --> 00:02:18.000
+Na aba de pessoas, então,
+
+00:02:18.000 --> 00:02:20.000
+irei realizar o cadastro com
+
+00:02:20.000 --> 00:02:22.000
+o nome do escrevente,
+
+00:02:22.000 --> 00:02:24.000
+.
+
+00:02:24.000 --> 00:02:26.000
+preenchendo
+
+00:02:26.000 --> 00:02:28.000
+o nome e
+
+00:02:28.000 --> 00:02:30.000
+o cargo. Caso
+
+00:02:30.000 --> 00:02:32.000
+necessário, posso também
+
+00:02:32.000 --> 00:02:34.000
+adicionar mais de um escrevente:
+
+00:02:34.000 --> 00:02:36.000
+basta apenas clicar no botão "+".
+
+00:02:36.000 --> 00:02:38.000
+Caso
+
+00:02:38.000 --> 00:02:40.000
+eu deseje excluir
+
+00:02:40.000 --> 00:02:42.000
+este outro escrevente e
+
+00:02:42.000 --> 00:02:44.000
+incluí-lo posteriormente, basta clicar no
+
+00:02:44.000 --> 00:02:46.000
+botão "-". Em arquivos
+
+00:02:46.000 --> 00:02:48.000
+anexos, podemos incluir alguma
+
+00:02:48.000 --> 00:02:50.000
+documentação, caso necessário.
+
+00:02:50.000 --> 00:02:52.000
+Através do botão "Selecionar",
+
+00:02:52.000 --> 00:02:54.000
+podemos anexar, por exemplo, um RG,
+
+00:02:54.000 --> 00:02:56.000
+procuração ou CPF.
+
+00:02:56.000 --> 00:02:58.000
+.
+
+00:02:58.000 --> 00:03:00.000
+Independentemente do tipo do arquivo,
+
+00:03:00.000 --> 00:03:02.000
+como, por exemplo, JPG,
+
+00:03:02.000 --> 00:03:04.000
+TIFF ou PDF,
+
+00:03:04.000 --> 00:03:06.000
+todos ficarão
+
+00:03:06.000 --> 00:03:08.000
+salvos na parte de arquivos
+
+00:03:08.000 --> 00:03:10.000
+e apresentados abaixo.
+
+00:03:10.000 --> 00:03:12.000
+Podemos também tirar uma foto do
+
+00:03:12.000 --> 00:03:14.000
+escrevente através do botão "Capturar",
+
+00:03:14.000 --> 00:03:16.000
+.
+
+00:03:16.000 --> 00:03:18.000
+.
+
+00:03:18.000 --> 00:03:20.000
+ou realizar a digitalização
+
+00:03:20.000 --> 00:03:22.000
+de algum documento, caso necessário,
+
+00:03:22.000 --> 00:03:24.000
+através do botão "Digitalizar".
+
+00:03:24.000 --> 00:03:26.000
+.
+
+00:03:26.000 --> 00:03:28.000
+.
+
+00:03:28.000 --> 00:03:30.000
+.
+
+00:03:30.000 --> 00:03:32.000
+Após realizarmos todo o
+
+00:03:32.000 --> 00:03:34.000
+preenchimento necessário, podemos
+
+00:03:34.000 --> 00:03:36.000
+clicar no botão "Concluir".
+
+00:03:36.000 --> 00:03:38.000
+.
+
+00:03:38.000 --> 00:03:40.000
+Podemos, então, realizar a
+
+00:03:40.000 --> 00:03:42.000
+consulta dos nossos **Sinais Públicos**
+
+00:03:42.000 --> 00:03:44.000
+através dos campos **Cartório**,
+
+00:03:44.000 --> 00:03:46.000
+número de **Sinal Público** ou data
+
+00:03:46.000 --> 00:03:48.000
+da digitação. E
+
+00:03:48.000 --> 00:03:50.000
+irei realizar a consulta do
+
+00:03:50.000 --> 00:03:52.000
+cadastro que fizemos anteriormente.
+
+00:03:52.000 --> 00:03:54.000
+Ao
+
+00:03:54.000 --> 00:03:56.000
+preencher o campo **Cartório**, por exemplo,
+
+00:03:56.000 --> 00:03:58.000
+o sistema irá sugerir os
+
+00:03:58.000 --> 00:04:00.000
+**Cartórios** que temos cadastrados.
+
+00:04:00.000 --> 00:04:02.000
+Seleciono e
+
+00:04:02.000 --> 00:04:04.000
+clico em "Filtrar". O sistema,
+
+00:04:04.000 --> 00:04:06.000
+então, apresentará o resultado da consulta
+
+00:04:06.000 --> 00:04:08.000
+que realizamos.
+
+00:04:08.000 --> 00:04:10.000
+Ele também nos dará a possibilidade,
+
+00:04:10.000 --> 00:04:12.000
+através de atalhos, de
+
+00:04:12.000 --> 00:04:14.000
+acompanharmos os andamentos — que
+
+00:04:14.000 --> 00:04:16.000
+seriam os logs deste cadastro —,
+
+00:04:16.000 --> 00:04:18.000
+os anexos
+
+00:04:18.000 --> 00:04:20.000
+do **Sinal Público**,
+
+00:04:20.000 --> 00:04:22.000
+visualizar o
+
+00:04:22.000 --> 00:04:24.000
+**Sinal Público**, editar
+
+00:04:24.000 --> 00:04:26.000
+ou inativá-lo.
+
+00:04:26.000 --> 00:04:28.000
+Neste vídeo, então, apresentei
+
+00:04:28.000 --> 00:04:30.000
+para vocês o cadastro e a consulta
+
+00:04:30.000 --> 00:04:32.000
+dos **Sinais Públicos**.
+
+00:04:32.000 --> 00:04:34.000
+Muito obrigado e até a próxima!
+
+00:04:34.000 --> 00:04:36.000
+.
+
+00:04:36.000 --> 00:04:38.000
+.
+
+00:04:38.000 --> 00:04:40.000
+.
+
+00:04:40.000 --> 00:04:42.000
+.
+

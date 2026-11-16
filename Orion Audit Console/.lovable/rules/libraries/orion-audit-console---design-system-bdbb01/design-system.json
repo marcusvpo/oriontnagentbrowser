@@ -1,0 +1,995 @@
+{
+  "meta": {
+    "name": "Orion Audit Console - Design System",
+    "package": "@ws-4zuu9xzfkw75hrkzktk6/f1ae014e-ac92-4952-ac1c-2fe8ac54020f",
+    "version": "1.0.0",
+    "framework": "react",
+    "css_framework": "css-variables",
+    "starter_template": "custom_design_system",
+    "theme_files": [
+      "src/design-system/theme.css"
+    ],
+    "source_type": "local",
+    "source_manifest": {
+      "#enrichment": "95638fbd733f5094fff0c1aa521932057268c1d807d970d9065070e1d06bd476",
+      ".dsignore": "2c7d76468c15bc0f1499420154f01ae3",
+      ".gitignore": "6059213806e442947666752f3db6bfdc",
+      ".lovable/meta.yaml": "741c3eafda0760cb63dd46f35131ad2e",
+      ".lovable/sources.yaml": "224156c036ff699c76cf9f048ba85276",
+      ".lovable/system.md": "13d261375e3651b69f22ec8abbe6a1ae",
+      "AGENTS.md": "1e9d5d0701c59b4390d741dd25fcb1b7",
+      "README.md": "d19675c449605f23c7cfa133c69b398b",
+      "bunfig.toml": "25f4c8696b22b0943db7191e0cdf7942",
+      "eslint.config.js": "07a67437fb1a45ab36d6de0145ff09de",
+      "lovable.toml": "9636c1bf32f9901bfba4eabb92981217",
+      "mockupPreviewPlugin.ts": "331c56b72ab88e9510bdaf1f21f2370e",
+      "package.json": "3fba801c70207ec4164eefb83c2eae49",
+      "public/favicon.ico": "9f504444f85a5af2eef9264b02ae40be",
+      "src/design-system/cn.ts": "fe040f0c5d3ade93a52b91d8098c0fa4",
+      "src/design-system/components/Badge.tsx": "c80549d8ab2a149905d08f1f0ff91fb9",
+      "src/design-system/components/Button.tsx": "8e7d62acba0a1f523024f158f32817d2",
+      "src/design-system/components/Card.tsx": "5a93aba1775fa7f9fb0a0a4c82800264",
+      "src/design-system/components/Data.tsx": "aa3bf15ebcc486489d98c43dd4ed3761",
+      "src/design-system/components/Feedback.tsx": "7bab8f06ab81c1f3a4f6e866bc6de37f",
+      "src/design-system/components/Field.tsx": "247a56b801d20887eccde800a3c324e8",
+      "src/design-system/components/Header.tsx": "ca8bea05f1ac740546b2e231dd9cd532",
+      "src/design-system/components/Overlay.tsx": "1864e01b4f15567dde0ff3e8ae07b115",
+      "src/design-system/components/Tabs.tsx": "ac2792a604b181a2b36d42945cb55be0",
+      "src/design-system/components/Toggles.tsx": "934829974e8e4fd8aa46b108feb19a2b",
+      "src/design-system/index.ts": "7e7cdc54630180cfad8b8e386325ff76",
+      "src/design-system/theme.css": "e6509e22f19765885de89e33002b94c5",
+      "src/index.ts": "ab35d8f1c11e0b18cc3bb7f06af3d665",
+      "src/mockup-preview.d.ts": "ae9d81e2b8514e13fd59b5b6bece9a64",
+      "src/routeTree.gen.ts": "0776a80f3eb6dd9b41a8c7d9250c5caf",
+      "src/router.tsx": "8f905e713b0eba7fa8148b7995a708c9",
+      "src/routes/[__component].preview.$.tsx": "e63e4b151fa738d36cb24710d2dbea18",
+      "src/routes/[__mockup].preview.$.tsx": "bc9ea23fc46521b323ef461c9e77ff48",
+      "src/routes/__root.tsx": "878690f61d681aec27c75bbd32233605",
+      "src/routes/index.tsx": "cbc6fc8dd38bd04ffac2429665428023",
+      "src/showcase/ColorsSection.tsx": "d325a477022b8c6c8a866971c636df1f",
+      "src/showcase/ComponentsSection.tsx": "48310a5ffb2f725800d0673125ea9d82",
+      "src/showcase/Shell.tsx": "1bca1d1b510ad2129ca38f1ca44487a6",
+      "src/showcase/TypographySection.tsx": "4f60ed72cfe9b7ec3d9213c4d0fe5791",
+      "src/styles.css": "5aa1cc14e69112e0e4bda4d1fe77112a",
+      "tsconfig.json": "994abf64c2b9f78b568879f80ed0170e",
+      "vite.config.ts": "a99d983076495f848761d0f97f17062a",
+      "wrangler.jsonc": "680b897d48e44bcc65fe437c29b38f3b"
+    },
+    "pipeline_version": 8
+  },
+  "tokens": {
+    "color": [
+      {
+        "name": "--color-ink",
+        "raw": "#0b0b0c",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-graphite",
+        "raw": "#131315",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-graphite-hover",
+        "raw": "#16161a",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-slate",
+        "raw": "#181b1e",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-filament",
+        "raw": "#26262a",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-filament-strong",
+        "raw": "#34343a",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-disabled-track",
+        "raw": "#1c1c1f",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-overlay-scrim",
+        "raw": "rgba(0, 0, 0, 0.72)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-bone",
+        "raw": "#f2f2f3",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-ash",
+        "raw": "#8b8b92",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-ash-dim",
+        "raw": "#5c5c63",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-white",
+        "raw": "#ffffff",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-crimson",
+        "raw": "#dc143c",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-crimson-bright",
+        "raw": "#f53b5e",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-crimson-deep",
+        "raw": "#a50e2d",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-crimson-wash",
+        "raw": "rgba(220, 20, 60, 0.08)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-crimson-glow",
+        "raw": "rgba(220, 20, 60, 0.35)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-success",
+        "raw": "#3dd68c",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-success-wash",
+        "raw": "rgba(61, 214, 140, 0.08)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-warning",
+        "raw": "#f0a93b",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-warning-wash",
+        "raw": "rgba(240, 169, 59, 0.08)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-danger",
+        "raw": "#ff3b30",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-danger-wash",
+        "raw": "rgba(255, 59, 48, 0.08)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-danger-ring",
+        "raw": "rgba(255, 59, 48, 0.15)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--border-hairline",
+        "raw": "1px solid var(--color-filament)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--duration-color",
+        "raw": "120ms",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--primary",
+        "raw": "hover",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--secondary",
+        "raw": "hover",
+        "source": "src/design-system/theme.css"
+      }
+    ],
+    "spacing": [
+      {
+        "name": "--space-1",
+        "raw": "4px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-1-5",
+        "raw": "6px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-2",
+        "raw": "8px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-3",
+        "raw": "12px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-4",
+        "raw": "16px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-5",
+        "raw": "20px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-6",
+        "raw": "24px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-7",
+        "raw": "28px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-8",
+        "raw": "32px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-10",
+        "raw": "40px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-12",
+        "raw": "48px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-16",
+        "raw": "64px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-24",
+        "raw": "96px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--space-32",
+        "raw": "128px",
+        "source": "src/design-system/theme.css"
+      }
+    ],
+    "typography": [
+      {
+        "name": "--color-crimson-text",
+        "raw": "#ff4669",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-success-line",
+        "raw": "rgba(61, 214, 140, 0.45)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-warning-line",
+        "raw": "rgba(240, 169, 59, 0.45)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--color-danger-line",
+        "raw": "rgba(255, 59, 48, 0.45)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--font-display",
+        "raw": "\"Space Grotesk\", system-ui, sans-serif",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--font-body",
+        "raw": "\"Inter\", system-ui, sans-serif",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--font-mono",
+        "raw": "\"JetBrains Mono\", ui-monospace, monospace",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-display-xl",
+        "raw": "4rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-display-l",
+        "raw": "3rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-h1",
+        "raw": "2rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-h2",
+        "raw": "1.5rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-h3",
+        "raw": "1.125rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-body-l",
+        "raw": "1rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-body",
+        "raw": "0.875rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-body-s",
+        "raw": "0.8125rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-label",
+        "raw": "0.75rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-overline",
+        "raw": "0.6875rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-overline-xs",
+        "raw": "0.625rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-metric",
+        "raw": "1.75rem",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--text-code",
+        "raw": "0.78125rem",
+        "source": "src/design-system/theme.css"
+      }
+    ],
+    "radius": [
+      {
+        "name": "--radius-xs",
+        "raw": "2px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--radius-md",
+        "raw": "4px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--radius-lg",
+        "raw": "6px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--radius-full",
+        "raw": "9999px",
+        "source": "src/design-system/theme.css"
+      }
+    ],
+    "shadow": [
+      {
+        "name": "--shadow-overlay",
+        "raw": "0 12px 32px rgba(0, 0, 0, 0.6)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--shadow-focus",
+        "raw": "0 0 0 3px var(--color-crimson-glow)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--shadow-cta",
+        "raw": "0 8px 24px rgba(220, 20, 60, 0.18)",
+        "source": "src/design-system/theme.css"
+      }
+    ],
+    "other": [
+      {
+        "name": "--tracking-tightest",
+        "raw": "-0.03em",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--tracking-tighter",
+        "raw": "-0.02em",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--tracking-tight",
+        "raw": "-0.01em",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--tracking-wide",
+        "raw": "0.06em",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--tracking-widest",
+        "raw": "0.08em",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--ease-strict",
+        "raw": "cubic-bezier(0.2, 0, 0, 1)",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--duration-transform",
+        "raw": "180ms",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--duration-panel",
+        "raw": "240ms",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--container-max",
+        "raw": "1280px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--prose-max",
+        "raw": "68ch",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--header-height",
+        "raw": "64px",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--ghost",
+        "raw": "hover",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--danger",
+        "raw": "hover",
+        "source": "src/design-system/theme.css"
+      },
+      {
+        "name": "--interactive",
+        "raw": "hover",
+        "source": "src/design-system/theme.css"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "file": "src/design-system/components/Button.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "primary",
+            "secondary",
+            "ghost",
+            "danger"
+          ],
+          "default": "secondary"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        },
+        {
+          "name": "iconOnly",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "Field",
+      "file": "src/design-system/components/Field.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hint",
+          "type": "string"
+        },
+        {
+          "name": "error",
+          "type": "string"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": "ds-field__label"
+        },
+        {
+          "name": "children",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Input",
+      "file": "src/design-system/components/Field.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "font",
+          "type": "enum",
+          "values": [
+            "body",
+            "mono"
+          ],
+          "default": "body"
+        }
+      ]
+    },
+    {
+      "name": "Textarea",
+      "file": "src/design-system/components/Field.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "font",
+          "type": "enum",
+          "values": [
+            "body",
+            "mono"
+          ],
+          "default": "body"
+        }
+      ]
+    },
+    {
+      "name": "Select",
+      "file": "src/design-system/components/Field.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "font",
+          "type": "enum",
+          "values": [
+            "body",
+            "mono"
+          ],
+          "default": "body"
+        }
+      ]
+    },
+    {
+      "name": "Switch",
+      "file": "src/design-system/components/Toggles.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "name": "Checkbox",
+      "file": "src/design-system/components/Toggles.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "Radio",
+      "file": "src/design-system/components/Toggles.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "Badge",
+      "file": "src/design-system/components/Badge.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "status",
+          "type": "enum",
+          "values": [
+            "neutral",
+            "running",
+            "passed",
+            "warning",
+            "failed"
+          ],
+          "default": "neutral"
+        },
+        {
+          "name": "hideDot",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "Tabs",
+      "file": "src/design-system/components/Tabs.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "onValueChange",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "file": "src/design-system/components/Card.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "padding",
+          "type": "enum",
+          "values": [
+            "compact",
+            "default",
+            "feature"
+          ],
+          "default": "default"
+        },
+        {
+          "name": "interactive",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "kicker",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Metric",
+      "file": "src/design-system/components/Card.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "delta",
+          "type": "string"
+        },
+        {
+          "name": "trend",
+          "type": "enum",
+          "values": [
+            "up",
+            "down",
+            "flat"
+          ],
+          "default": "flat"
+        }
+      ]
+    },
+    {
+      "name": "Table",
+      "file": "src/design-system/components/Data.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "columns",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "rows",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "rowKey",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "CodeBlock",
+      "file": "src/design-system/components/Data.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "code",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Avatar",
+      "file": "src/design-system/components/Data.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "src",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        }
+      ]
+    },
+    {
+      "name": "Progress",
+      "file": "src/design-system/components/Data.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Divider",
+      "file": "src/design-system/components/Data.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "Skeleton",
+      "file": "src/design-system/components/Data.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "width",
+          "type": "any",
+          "default": "100%"
+        },
+        {
+          "name": "height",
+          "type": "any",
+          "default": "16"
+        }
+      ]
+    },
+    {
+      "name": "Alert",
+      "file": "src/design-system/components/Feedback.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "tone",
+          "type": "enum",
+          "values": [
+            "accent",
+            "error",
+            "success"
+          ],
+          "default": "accent"
+        },
+        {
+          "name": "title",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "Toast",
+      "file": "src/design-system/components/Feedback.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "EmptyState",
+      "file": "src/design-system/components/Feedback.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "icon",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "action",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "Spinner",
+      "file": "src/design-system/components/Feedback.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Loading"
+        }
+      ]
+    },
+    {
+      "name": "Modal",
+      "file": "src/design-system/components/Overlay.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onClose",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "footer",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "Dropdown",
+      "file": "src/design-system/components/Overlay.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "any",
+          "default": "Close",
+          "required": true
+        },
+        {
+          "name": "options",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string"
+        },
+        {
+          "name": "onValueChange",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Tooltip",
+      "file": "src/design-system/components/Overlay.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "content",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Header",
+      "file": "src/design-system/components/Header.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "logo",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "nav",
+          "type": "any"
+        },
+        {
+          "name": "actions",
+          "type": "any"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,566 @@
+00:00:00.000 --> 00:00:04.000
+.
+
+00:00:04.000 --> 00:00:08.000
+.
+
+00:00:08.000 --> 00:00:12.000
+.
+
+00:00:12.000 --> 00:00:16.000
+Olá! No vídeo de hoje, eu irei apresentar
+
+00:00:16.000 --> 00:00:20.000
+a vocês a rotina para cadastro do **Termo de Comparecimento** no
+
+00:00:20.000 --> 00:00:24.000
+sistema **ORION TN**. Para iniciarmos, vou acessar o menu **Firmas**
+
+00:00:24.000 --> 00:00:28.000
+e então o submenu **Reconhecimento de Firmas**.
+
+00:00:28.000 --> 00:00:32.000
+Seremos então redirecionados à tela de
+
+00:00:32.000 --> 00:00:36.000
+**Reconhecimento de Firmas**, na qual poderemos adicionar o serviço de reconhecimento por
+
+00:00:36.000 --> 00:00:40.000
+autenticidade (ou **Firma** autêntica, como também é chamado), que normalmente é
+
+00:00:40.000 --> 00:00:44.000
+utilizado na confecção do **Termo de Comparecimento**. Se você possuir
+
+00:00:44.000 --> 00:00:48.000
+alguma dúvida com relação à rotina de **Reconhecimento de Firmas**,
+
+00:00:48.000 --> 00:00:52.000
+sugiro que dê uma conferida no vídeo tutorial referente aos serviços de
+
+00:00:52.000 --> 00:00:56.000
+**Firmas**, no qual é explicada com detalhes toda a rotina
+
+00:00:56.000 --> 00:01:00.000
+para reconhecimento de alguma **Firma**, bem como as informações a ela
+
+00:01:00.000 --> 00:01:04.000
+atreladas. Dando continuidade, irei buscar
+
+00:01:04.000 --> 00:01:08.000
+o **Cartão de Assinatura** referente à pessoa que terá sua **Firma** reconhecida
+
+00:01:08.000 --> 00:01:12.000
+por autenticidade.
+
+00:01:12.000 --> 00:01:16.000
+Digito o nome, clico em Filtrar,
+
+00:01:16.000 --> 00:01:20.000
+clico para adicionar a ficha, finalizo,
+
+00:01:20.000 --> 00:01:24.000
+clico então em Imprimir. É aberta a tela referente
+
+00:01:24.000 --> 00:01:28.000
+à impressão da etiqueta: seleciono o tipo de reconhecimento como
+
+00:01:28.000 --> 00:01:32.000
+reconhecimento por autenticidade, posso mudar a quantidade, seleciono
+
+00:01:32.000 --> 00:01:36.000
+o modelo, o escrevente, o tipo de cálculo e as observações,
+
+00:01:36.000 --> 00:01:40.000
+seleciono a impressora e clico em Imprimir. Neste
+
+00:01:40.000 --> 00:01:44.000
+momento, é realizado o consumo do **Selo** físico cadastrado no
+
+00:01:44.000 --> 00:01:48.000
+**Estoque** e a tela para cadastro do **Termo de Comparecimento** é aberta
+
+00:01:48.000 --> 00:01:52.000
+automaticamente. Falando então da tela do **Termo de Comparecimento**,
+
+00:01:52.000 --> 00:01:56.000
+aqui acima podemos visualizar o número do pedido, a data e a
+
+00:01:56.000 --> 00:02:00.000
+hora em que o mesmo foi feito. Abaixo, neste primeiro campo,
+
+00:02:00.000 --> 00:02:04.000
+posso visualizar os modelos de termos que estão cadastrados no sistema.
+
+00:02:04.000 --> 00:02:08.000
+Eu posso realizar o cadastro de diversos modelos de termos se
+
+00:02:08.000 --> 00:02:12.000
+for necessário. Irei selecionar esse de **DUT**/**CRV** a
+
+00:02:12.000 --> 00:02:16.000
+fim de exemplificação. Ao lado, posso selecionar o escrevente
+
+00:02:16.000 --> 00:02:20.000
+e o livro físico que foi cadastrado no sistema (lembrando que
+
+00:02:20.000 --> 00:02:24.000
+eu posso realizar o cadastro de mais de um livro físico ao mesmo tempo),
+
+00:02:24.000 --> 00:02:28.000
+e selecionarei o livro 3. Em "Termos Subsequentes",
+
+00:02:28.000 --> 00:02:32.000
+eu posso selecionar a opção que seria referente a situações nas
+
+00:02:32.000 --> 00:02:36.000
+quais o solicitante do serviço realiza diversos
+
+00:02:36.000 --> 00:02:40.000
+**Termos de Comparecimento**, porém efetua apenas uma assinatura no
+
+00:02:40.000 --> 00:02:44.000
+último termo. Neste caso, deixarei a opção "Termos Subsequentes"
+
+00:02:44.000 --> 00:02:48.000
+desmarcada. Abaixo, em "Participantes", eu
+
+00:02:48.000 --> 00:02:52.000
+posso visualizar todos os nomes que foram selecionados no
+
+00:02:52.000 --> 00:02:56.000
+**Reconhecimento de Firma** por autenticidade. Neste caso, como selecionei
+
+00:02:56.000 --> 00:03:00.000
+apenas um nome, somente ele é listado aqui; porém, se houvesse
+
+00:03:00.000 --> 00:03:04.000
+a seleção de mais de um nome, todos eles seriam listados nesta
+
+00:03:04.000 --> 00:03:08.000
+parte. Em "Comparece", eu posso selecionar se este nome
+
+00:03:08.000 --> 00:03:12.000
+compareceu fisicamente ao **Cartório** para realizar o reconhecimento;
+
+00:03:12.000 --> 00:03:16.000
+se deixar desmarcado, o sistema entende que o mesmo não compareceu.
+
+00:03:16.000 --> 00:03:20.000
+Porém, é necessário o preenchimento de ao menos um comparecente
+
+00:03:20.000 --> 00:03:24.000
+e um comprador para o sistema habilitar o cadastro do termo. Posso selecionar
+
+00:03:24.000 --> 00:03:28.000
+também, se houvesse mais de uma pessoa selecionada para cadastrar o termo,
+
+00:03:28.000 --> 00:03:32.000
+diversos comparecentes e compradores se assim fosse necessário de acordo
+
+00:03:32.000 --> 00:03:36.000
+com a minha necessidade. Neste exemplo, irei selecionar o Eric como
+
+00:03:36.000 --> 00:03:40.000
+comparecente. Em **Selo**, posso visualizar a série e a
+
+00:03:40.000 --> 00:03:44.000
+sequência do **Selo** de reconhecimento que foi consumido e foi atrelado
+
+00:03:44.000 --> 00:03:48.000
+a este termo. Posso também verificar o **Cartão de Assinatura**,
+
+00:03:48.000 --> 00:03:52.000
+o nome, o CPF, e em "Participação" eu
+
+00:03:52.000 --> 00:03:56.000
+seleciono se o solicitante do meu serviço seria o comprador,
+
+00:03:56.000 --> 00:04:00.000
+o vendedor, representante ou outros. Neste caso, ele seria o
+
+00:04:00.000 --> 00:04:04.000
+comprador. Posso também adicionar mais participações
+
+00:04:04.000 --> 00:04:08.000
+ao meu termo: no caso do vendedor que não compareceu fisicamente
+
+00:04:08.000 --> 00:04:12.000
+ao **Cartório**, seja pessoa física ou jurídica,
+
+00:04:12.000 --> 00:04:16.000
+neste exemplo, deixarei o vendedor como uma pessoa física. Neste campo,
+
+00:04:16.000 --> 00:04:20.000
+eu posso buscar o nome do vendedor, clico na
+
+00:04:20.000 --> 00:04:24.000
+lupa, e todos os nomes serão listados de acordo com
+
+00:04:24.000 --> 00:04:28.000
+a inserção dos meus caracteres. Neste caso, me lista apenas um nome,
+
+00:04:28.000 --> 00:04:32.000
+automaticamente é preenchido o número do CPF, e então eu
+
+00:04:32.000 --> 00:04:36.000
+seleciono a sua participação: neste caso, ele seria o vendedor.
+
+00:04:36.000 --> 00:04:40.000
+Efetuado então o cadastro das participações, podemos partir para o cadastro
+
+00:04:40.000 --> 00:04:44.000
+do endereço. Preencho então o **CEP** e,
+
+00:04:44.000 --> 00:04:48.000
+automaticamente,
+
+00:04:48.000 --> 00:04:52.000
+as informações referentes ao tipo de logradouro,
+
+00:04:52.000 --> 00:04:56.000
+logradouro, bairro, UF e cidade são preenchidas
+
+00:04:56.000 --> 00:05:00.000
+automaticamente de acordo com as informações disponíveis no **CEP**, no
+
+00:05:00.000 --> 00:05:04.000
+cadastro dos Correios. Realizado
+
+00:05:04.000 --> 00:05:08.000
+o preenchimento do endereço do comprador, podemos partir para o preenchimento
+
+00:05:08.000 --> 00:05:12.000
+das informações do veículo, que ficarão disponíveis de acordo
+
+00:05:12.000 --> 00:05:16.000
+com o modelo cadastrado. Irei preencher então um **RENAVAM** fictício,
+
+00:05:16.000 --> 00:05:20.000
+a data
+
+00:05:20.000 --> 00:05:24.000
+da venda (que pode ser igual ou anterior à data do pedido),
+
+00:05:24.000 --> 00:05:28.000
+o espelho,
+
+00:05:28.000 --> 00:05:32.000
+a placa
+
+00:05:32.000 --> 00:05:36.000
+e o
+
+00:05:36.000 --> 00:05:40.000
+valor correspondente à venda do veículo.
+
+00:05:40.000 --> 00:05:44.000
+.
+
+00:05:44.000 --> 00:05:48.000
+Lembrando que a disponibilidade destes campos referentes
+
+00:05:48.000 --> 00:05:52.000
+ao cadastro do veículo varia de acordo com o modelo
+
+00:05:52.000 --> 00:05:56.000
+selecionado que foi cadastrado no sistema. Clico então em
+
+00:05:56.000 --> 00:06:00.000
+"Salvar e Imprimir", o meu termo será salvo e a etiqueta do
+
+00:06:00.000 --> 00:06:04.000
+mesmo será impressa. Esta opção referente a "Criar em Lote" seria
+
+00:06:04.000 --> 00:06:08.000
+se eu tivesse mais de um termo a ser feito com as
+
+00:06:08.000 --> 00:06:12.000
+mesmas informações do comprador. Dessa maneira, eu poderia aproveitar
+
+00:06:12.000 --> 00:06:16.000
+e clicar em "Criar em Lote": selecionaria o tipo do modelo,
+
+00:06:16.000 --> 00:06:20.000
+escrevente, a participação, o endereço do comprador,
+
+00:06:20.000 --> 00:06:24.000
+as informações do veículo, e se houvesse mais de um **Selo** disponível
+
+00:06:24.000 --> 00:06:28.000
+(ou seja, mais de um serviço de reconhecimento por autenticidade que tivesse
+
+00:06:28.000 --> 00:06:32.000
+sido efetuado), eu poderia marcar todos eles aqui e, desta maneira,
+
+00:06:32.000 --> 00:06:36.000
+todos os termos seriam cadastrados de uma vez só.
+
+00:06:36.000 --> 00:06:40.000
+Neste caso, como selecionei apenas um **Selo** para reconhecimento,
+
+00:06:40.000 --> 00:06:44.000
+não precisarei utilizar essa rotina; porém, a mesma fica disponível
+
+00:06:44.000 --> 00:06:48.000
+como um facilitador quando houver a necessidade de realizar a
+
+00:06:48.000 --> 00:06:52.000
+geração dos termos em lote para o mesmo comprador.
+
+00:06:52.000 --> 00:06:56.000
+Seguindo então, vou clicar em "Salvar e Imprimir". Ele
+
+00:06:56.000 --> 00:07:00.000
+realiza então o consumo do livro, da folha, do lado e da
+
+00:07:00.000 --> 00:07:04.000
+posição disponíveis no meu livro selecionado, e a tela para a impressão
+
+00:07:04.000 --> 00:07:08.000
+do termo será apresentada. Seleciono então o modelo da
+
+00:07:08.000 --> 00:07:12.000
+impressão que poderá também ser cadastrado no sistema (neste caso,
+
+00:07:12.000 --> 00:07:16.000
+irei deixar como **DUT** de comprador). Ao selecionar
+
+00:07:16.000 --> 00:07:20.000
+o modelo, ele faz a mescla das informações disponíveis no meu termo.
+
+00:07:20.000 --> 00:07:24.000
+Posso visualizar então as informações ou adicionar uma nova,
+
+00:07:24.000 --> 00:07:28.000
+se for necessário, pois o modelo de etiqueta fica aberto
+
+00:07:28.000 --> 00:07:32.000
+para eu colocar qualquer informação que for necessária. Posso também
+
+00:07:32.000 --> 00:07:36.000
+realizar a edição do meu texto, colocando em negrito,
+
+00:07:36.000 --> 00:07:40.000
+centralizando ou deixando à esquerda, à direita ou
+
+00:07:40.000 --> 00:07:44.000
+justificado. Seleciono então a impressora,
+
+00:07:44.000 --> 00:07:48.000
+clico em Imprimir e
+
+00:07:48.000 --> 00:07:52.000
+a etiqueta do meu termo será impressa com sucesso.
+
+00:07:52.000 --> 00:07:56.000
+Ao voltar, posso visualizar que o meu termo já foi cadastrado:
+
+00:07:56.000 --> 00:08:00.000
+foi consumido então, para o livro 3, a folha 2,
+
+00:08:00.000 --> 00:08:04.000
+lado frente e posição 1. Ele me informa então que não se trata de
+
+00:08:04.000 --> 00:08:08.000
+um termo subsequente, me informa também o tipo do termo
+
+00:08:08.000 --> 00:08:12.000
+e o **Papel de Segurança** gerado para o mesmo. O **Papel de Segurança** seria
+
+00:08:12.000 --> 00:08:16.000
+a numeração da etiqueta do termo, que eu também posso controlar no sistema
+
+00:08:16.000 --> 00:08:20.000
+através do cadastro no **ORION Estoque**.
+
+00:08:20.000 --> 00:08:24.000
+Ele me informa também o número do termo e o código do
+
+00:08:24.000 --> 00:08:28.000
+mesmo. No canto direito, eu posso visualizar algumas opções disponíveis
+
+00:08:28.000 --> 00:08:32.000
+para o meu termo: a primeira delas seria "Copiar e Criar um
+
+00:08:32.000 --> 00:08:36.000
+Novo", na qual eu posso copiar este termo que acabei de criar
+
+00:08:36.000 --> 00:08:40.000
+e gerar um novo a partir dele. A segunda opção seria
+
+00:08:40.000 --> 00:08:44.000
+referente à impressão da etiqueta (se eu precisasse reimprimi-la,
+
+00:08:44.000 --> 00:08:48.000
+seria aberta novamente a tela para impressão).
+
+00:08:48.000 --> 00:08:52.000
+A terceira opção seria "Reutilizar" este termo (por exemplo, se
+
+00:08:52.000 --> 00:08:56.000
+não houvesse a necessidade de confeccioná-lo agora, eu poderia utilizar
+
+00:08:56.000 --> 00:09:00.000
+esta opção, e a numeração do termo e a sua posição no
+
+00:09:00.000 --> 00:09:04.000
+livro seriam reutilizadas e ficariam disponíveis para utilizar
+
+00:09:04.000 --> 00:09:08.000
+no cadastro de um novo termo). Ao lado, tem a opção "Inutilizar",
+
+00:09:08.000 --> 00:09:12.000
+com a qual eu cancelaria essa posição do meu termo e
+
+00:09:12.000 --> 00:09:16.000
+ela não ficaria disponível para utilizar em nenhum outro termo
+
+00:09:16.000 --> 00:09:20.000
+que eu fizesse posterior a esse. A outra opção seria referente à
+
+00:09:20.000 --> 00:09:24.000
+digitalização do documento, do **DUT** ou do **CRV**. Ao
+
+00:09:24.000 --> 00:09:28.000
+clicar em "Digitalizar", será aberta a tela de digitalização do sistema.
+
+00:09:28.000 --> 00:09:32.000
+Eu posso realizar a importação do documento se já tivesse sido
+
+00:09:32.000 --> 00:09:36.000
+feita anteriormente no meu computador, ou posso fazer a digitalização no
+
+00:09:36.000 --> 00:09:40.000
+momento. Neste exemplo, irei realizar a digitalização neste momento.
+
+00:09:40.000 --> 00:09:44.000
+Ao clicar em "Digitalizar", é aberta uma tela na qual eu
+
+00:09:44.000 --> 00:09:48.000
+posso selecionar o meu scanner, clico em "Digitalizar",
+
+00:09:48.000 --> 00:09:52.000
+será aberto o driver do meu scanner, no qual eu posso mudar as configurações
+
+00:09:52.000 --> 00:09:56.000
+de escaneamento, como colorido, preto e branco e a
+
+00:09:56.000 --> 00:10:00.000
+resolução. Este procedimento ficará a cargo do driver do
+
+00:10:00.000 --> 00:10:04.000
+seu scanner. Ao finalizar então, eu clico em "Escanear",
+
+00:10:04.000 --> 00:10:08.000
+e o documento será adicionado ao termo. Clico em
+
+00:10:08.000 --> 00:10:12.000
+"Concluir". E em "Tamanho do Anexo",
+
+00:10:12.000 --> 00:10:16.000
+eu posso visualizar o tamanho em que essa digitalização ficou no meu
+
+00:10:16.000 --> 00:10:20.000
+termo. Do mesmo modo, se o tamanho tivesse sido superior ao
+
+00:10:20.000 --> 00:10:24.000
+aceito pela Central **SEFAZ** Veículos, automaticamente o sistema
+
+00:10:24.000 --> 00:10:28.000
+entraria com uma compactação, reduzindo o tamanho do arquivo,
+
+00:10:28.000 --> 00:10:32.000
+que posteriormente será comunicado à Central. Seguindo com as opções,
+
+00:10:32.000 --> 00:10:36.000
+eu posso visualizar o anexo que acabei de digitalizar: é
+
+00:10:36.000 --> 00:10:40.000
+só clicar na penúltima opção e será aberta a tela referente à visualização
+
+00:10:40.000 --> 00:10:44.000
+da minha digitalização. Posso diminuir ou expandir o
+
+00:10:44.000 --> 00:10:48.000
+tamanho, rotacionar para a esquerda ou para a direita para encaixar
+
+00:10:48.000 --> 00:10:52.000
+a visualização da melhor maneira. Posso também baixar
+
+00:10:52.000 --> 00:10:56.000
+esse anexo como um **PDF** ou então realizar a impressão
+
+00:10:56.000 --> 00:11:00.000
+do mesmo se for necessário. Desta maneira, todas as
+
+00:11:00.000 --> 00:11:04.000
+digitalizações dos documentos dos termos realizados no sistema ficam
+
+00:11:04.000 --> 00:11:08.000
+salvas; assim sendo, eu posso baixar ou imprimir o documento a
+
+00:11:08.000 --> 00:11:12.000
+qualquer momento. A última opção seria para
+
+00:11:12.000 --> 00:11:16.000
+excluir a digitalização do meu termo. Cadastrado então o meu
+
+00:11:16.000 --> 00:11:20.000
+**Termo de Comparecimento**, o mesmo já fica disponível na tela
+
+00:11:20.000 --> 00:11:24.000
+de comunicações do sistema, para que posteriormente eu comunique
+
+00:11:24.000 --> 00:11:28.000
+este termo à Central **SEFAZ** Veículos. A questão se o termo
+
+00:11:28.000 --> 00:11:32.000
+será comunicado ou não (em casos em que não houver a necessidade de comunicá-
+
+00:11:32.000 --> 00:11:36.000
+-lo) deverá ser informada na configuração do tipo do
+
+00:11:36.000 --> 00:11:40.000
+termo. Ou seja, quando eu realizar o cadastro deste modelo,
+
+00:11:40.000 --> 00:11:44.000
+haverá uma opção na qual posso selecionar se o termo
+
+00:11:44.000 --> 00:11:48.000
+cadastrado neste modelo será ou não comunicado à Central **SEFAZ**
+
+00:11:48.000 --> 00:11:52.000
+Veículos. Neste vídeo então, apresentei a vocês a
+
+00:11:52.000 --> 00:11:56.000
+rotina para cadastro do **Termo de Comparecimento** no sistema, o
+
+00:11:56.000 --> 00:12:00.000
+consumo das posições do livro físico e a digitalização do documento.
+
+00:12:00.000 --> 00:12:04.000
+Muito obrigado e até a próxima!
+
+00:12:04.000 --> 00:12:08.000
+.
+
+00:12:08.000 --> 00:12:12.000
+.
+
+00:12:12.000 --> 00:12:16.000
+.
+
+00:12:16.000 --> 00:12:20.000
+.
+
+00:12:20.000 --> 00:12:24.000
+.
+
+00:12:24.000 --> 00:12:28.000
+.
+
+00:12:28.000 --> 00:12:32.000
+.
+
+00:12:32.000 --> 00:12:36.000
+.

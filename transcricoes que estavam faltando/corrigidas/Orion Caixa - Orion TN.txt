@@ -1,0 +1,915 @@
+00:00:00.000 --> 00:00:20.200
+Olá pessoal, tudo bem? Hoje vou estar realizando a demonstração do módulo **ORION Caixa**. Bom,
+
+00:00:20.200 --> 00:00:26.560
+o **ORION Caixa** fica localizado dentro do **ORION TN**, assim como os outros módulos; então a gente
+
+00:00:26.560 --> 00:00:35.560
+vai fazer através do mesmo link para acesso ao **ORION TN**. Então aqui ele me mostra os módulos
+
+00:00:35.560 --> 00:00:42.160
+que eu tenho liberado para o meu perfil e o módulo **ORION Caixa** é um desses. Então eu vou fazer o acesso
+
+00:00:42.160 --> 00:00:50.920
+aqui ao caixa. Assim como o **ORION TN** e o **ORION PRO**, o **ORION Stock**, aqui todos os módulos, eles são bem
+
+00:00:50.920 --> 00:00:59.680
+limpos, com esse visual bem limpo e intuitivo, de fácil utilização. Então aqui a gente tem alguns
+
+00:00:59.680 --> 00:01:08.880
+menus e, dentro de cada menu, a gente tem os submenus com as rotinas específicas para cada menu.
+
+00:01:08.880 --> 00:01:16.880
+Então aqui, começando, a gente tem o menu de configurações, onde eu tenho algumas funcionalidades.
+
+00:01:16.880 --> 00:01:22.080
+Então, primeiramente, Dados de Cartório: são os dados do **Cartório**, do cadastro e do cliente.
+
+00:01:22.080 --> 00:01:30.720
+Modelo de impressão, onde eu configuro os modelos para impressão de relatórios, de pagamento de
+
+00:01:30.720 --> 00:01:36.840
+caixa, de fechamento de caixa. Então aqui é onde eu faço a configuração de todos os modelos
+
+00:01:36.840 --> 00:01:45.280
+desse módulo. Então aqui ele me abre o campo de filtro para eu localizar se eu já tenho um
+
+00:01:45.280 --> 00:01:51.280
+cadastrado. Neste caso aqui eu não tenho meu modelo; então, se eu quiser adicionar o modelo,
+
+00:01:51.280 --> 00:02:03.480
+basta clicar em 'Adicionar'. Seleciono o tipo de modelo, o modelo de retiradas, e aí é só eu
+
+00:02:03.480 --> 00:02:13.480
+seguir com o cadastro aqui e a configuração deste modelo. Passando ao menu de modelo, a gente tem
+
+00:02:13.480 --> 00:02:19.360
+os dados auxiliares. Aqui é onde a gente configura as formas de pagamento, tipos de
+
+00:02:19.360 --> 00:02:28.160
+saída e outros serviços. Como vocês podem ver, por o sistema rodar em web, então a gente consegue
+
+00:02:28.160 --> 00:02:34.800
+utilizar várias abas em conjunto sem a necessidade de fechar a aba em que eu estou trabalhando no momento.
+
+00:02:34.800 --> 00:02:39.960
+Então aqui, Forma de Pagamento é onde eu cadastro todas as formas de pagamento que eu vou utilizar
+
+00:02:39.960 --> 00:02:46.760
+para fechar. Então aqui a gente tem várias formas de pagamento; eu posso realizar quantas formas,
+
+00:02:46.760 --> 00:02:52.680
+posso cadastrar aqui quantas formas de pagamento eu desejar, incluindo as formas de pagamento para
+
+00:02:52.680 --> 00:03:00.280
+uso da integração com o Parcela Express. Então, nos nossos sistemas **ORION**, temos integração com o
+
+00:03:00.280 --> 00:03:06.440
+Parcela Express; então a gente pode configurar aqui Pix Parcela, transferência Parcela, enfim,
+
+00:03:06.440 --> 00:03:12.200
+todos os tipos que o Parcela tem nessa integração. Isso porque a gente também tem relatórios aqui
+
+00:03:12.200 --> 00:03:18.960
+somente do provedor, que eu vou passar posteriormente. Então aqui a gente pode configurar as formas de
+
+00:03:18.960 --> 00:03:25.640
+pagamento. Então, se eu quiser adicionar uma forma nova, basta clicar em 'Adicionar', coloco a descrição
+
+00:03:25.640 --> 00:03:34.120
+dessa forma de pagamento, a sigla — então eu deixo o cadastro aqui no teste, a sigla TE —, código no
+
+00:03:34.120 --> 00:03:39.880
+relatório, como essa forma de pagamento vai para a comunicação **SIGNO**; então vou colocar aqui
+
+00:03:39.880 --> 00:03:46.360
+'Outras', e aqui eu tenho mais alguns campos que eu posso estar refinando nesse cadastro. Então,
+
+00:03:46.360 --> 00:03:51.160
+se eu estivesse cadastrando aqui uma forma de pagamento apenas para uso interno, por exemplo,
+
+00:03:51.160 --> 00:03:56.080
+eu posso selecionar aqui que ela seria uma forma de pagamento para serviço interno. Quando eu
+
+00:03:56.080 --> 00:04:01.840
+realizar o serviço interno no lançamento, ela vai aparecer disponível, essa forma de pagamento.
+
+00:04:01.840 --> 00:04:06.480
+Aí eu tenho aqui também para escreventes, provedor de pagamento caso eu vá utilizar
+
+00:04:06.480 --> 00:04:12.880
+com essa integração do Parcela, basta eu selecionar aqui o tipo em que esse pagamento vai entrar.
+
+00:04:12.880 --> 00:04:20.400
+Posso aqui exigir dados bancários; então, quando for realizar essa forma de pagamento, o sistema
+
+00:04:20.400 --> 00:04:25.960
+vai exigir dados bancários. Forma de pagamento padrão, caso eu queira que o sistema sempre
+
+00:04:25.960 --> 00:04:31.760
+cadastre essa forma como padrão; e aqui dados mensalistas, caso eu queira cadastrar uma forma
+
+00:04:31.760 --> 00:04:37.360
+de pagamento para a utilização para serviços de mensalista. Então aqui basta eu fazer a conclusão
+
+00:04:37.360 --> 00:04:46.080
+que o sistema já vai cadastrar essa nova forma de pagamento, tá bom? Tipos de saída: aqui a gente
+
+00:04:46.080 --> 00:04:55.160
+pode cadastrar tipos de saída para que eu lance nessas movimentações financeiras, saídas para
+
+00:04:55.160 --> 00:05:01.040
+uma **Firma** e aí eu cadastro aqui o tipo de saída. Então posso estar cadastrando, por exemplo, devolução,
+
+00:05:02.880 --> 00:05:09.320
+para eu lançar uma saída no meu caixa como devolução, caso eu vá devolver um dinheiro
+
+00:05:09.320 --> 00:05:14.200
+ao cliente ou, enfim, qualquer tipo de saída que eu queira cadastrar. Então aqui, da mesma
+
+00:05:14.200 --> 00:05:22.080
+forma que eu cadastro: eu clico em 'Adicionar', coloco o tipo aqui: devolução, devolução,
+
+00:05:23.320 --> 00:05:32.520
+e aqui eu seleciono caso eu queira que essa forma de devolução vá para o meu **Livro Caixa**.
+
+00:05:32.520 --> 00:05:41.120
+Então aqui eu cadastro uma saída, uma conta, uma despesa que está vinculada ao meu **Livro Caixa**,
+
+00:05:41.160 --> 00:05:46.840
+então sempre que eu utilizar isso ela vai para o **Livro Caixa** para essa despesa e essa conta.
+
+00:05:49.040 --> 00:05:54.520
+Outros serviços: então aqui a gente cadastra tipos de outros serviços,
+
+00:05:54.520 --> 00:06:00.000
+então a gente pode cadastrar diversos também. Quando eu vou realizar um pagamento no caixa,
+
+00:06:00.000 --> 00:06:05.800
+na opção de outros serviços, esses cadastros irão aparecer para que eu faça o lançamento.
+
+00:06:05.800 --> 00:06:14.560
+Então eu consigo deixar vários cadastros já fixos e também consigo deixar duas opções:
+
+00:06:14.560 --> 00:06:19.600
+ou com o valor fixo, ou com o campo em aberto para que eu digite o valor na hora. Então na hora que
+
+00:06:19.600 --> 00:06:26.720
+eu realizar o pagamento deste serviço, realizar e selecionar esse outro serviço, então posso
+
+00:06:26.720 --> 00:06:32.600
+colocar aqui, por exemplo, táxi e eu não quero deixar o valor fixo, até porque eu não sei o valor que
+
+00:06:33.280 --> 00:06:40.280
+é esse táxi. Então eu faço a conclusão aqui e, quando eu selecionar dentro do pagamento esse tipo
+
+00:06:40.280 --> 00:06:45.240
+aqui de serviço, o sistema vai me trazer o campo em aberto para eu digitar o valor. Caso eu deixe o
+
+00:06:45.240 --> 00:06:51.080
+valor fixo, como esse exemplo aqui de 'Demais Despesas', ele já vai me trazer sempre esse valor na tela.
+
+00:06:54.320 --> 00:07:00.160
+Então aqui, partindo para o próximo menu: Cadastro de Usuários. Então aqui é onde a gente, de fato,
+
+00:07:00.160 --> 00:07:06.880
+vai ter cada usuário que vai ter acesso ao módulo **ORION Caixa** e também é onde a gente configura
+
+00:07:06.880 --> 00:07:14.480
+os grupos de perfis e permissões. Então aqui, como nos outros sistemas, a gente tem uma rotina bem
+
+00:07:14.480 --> 00:07:22.120
+ampla de permissões. Então, todas as telas do módulo a gente tem a opção de ativar ou inativar.
+
+00:07:22.120 --> 00:07:28.280
+Então cada usuário só tem acesso ao que é liberado a ele; então a gente consegue ter um
+
+00:07:28.280 --> 00:07:35.000
+acesso bem grande aqui do que de fato ele precisa ter acesso ou ele não pode ter o acesso. Então a
+
+00:07:35.000 --> 00:07:41.000
+gente faz uma configuração aqui bem detalhada para todos os usuários para que ninguém tenha
+
+00:07:41.000 --> 00:07:48.680
+acesso aonde não tem que ter o acesso. Então aqui: os grupos de permissões e usuários. As
+
+00:07:48.680 --> 00:07:54.920
+parametrizações é onde de fato eu faço a configuração geral de como vai ser a minha
+
+00:07:54.920 --> 00:08:00.560
+integração desse caixa. Então aqui é onde eu ativo o caixa para a rotina de **Firmas**, **Notas**,
+
+00:08:00.560 --> 00:08:05.480
+onde eu vou utilizar o caixa. Posso selecionar aqui abertura sem troco para que eu consiga abrir o
+
+00:08:05.480 --> 00:08:12.800
+caixa sem troco e aqui uma permissão para estornar pagamentos com ou sem autorização na parte de
+
+00:08:12.800 --> 00:08:20.480
+**Firmas**. Provedor de pagamento é onde eu configuro essa integração com o Parcela, caso eu tenha essa
+
+00:08:20.480 --> 00:08:26.280
+configuração. Então aqui eu seleciono o provedor, coloco os dados aqui de cadastro e aqui é onde eu
+
+00:08:26.280 --> 00:08:32.600
+configuro as minhas maquininhas. Então eu posso configurar aqui diversas maquininhas e aí a gente
+
+00:08:32.600 --> 00:08:37.960
+cadastra essa maquininha e a gente coloca uma descrição para ela. Então, por exemplo, se eu
+
+00:08:37.960 --> 00:08:46.360
+selecionar uma maquininha de **Firmas**: **Firmas** 1 e **Firmas** 2. Então eu tenho duas maquininhas no meu
+
+00:08:47.120 --> 00:08:55.360
+balcão e uma para **Notas**: **Notas** Escreventes. Então, ao selecionar esse serviço, o sistema
+
+00:08:55.360 --> 00:09:02.320
+realiza com vinculação a descrição dessa maquininha até para ficar mais fácil a localização,
+
+00:09:02.320 --> 00:09:08.960
+e utilização e conferência. Então aqui é onde a gente faz a configuração com a integração do
+
+00:09:09.680 --> 00:09:16.440
+provedor. Aqui é onde a gente configura a parte de impressora, modelos e impressão. Então eu posso
+
+00:09:16.440 --> 00:09:23.760
+configurar aqui uma impressora padrão, assim como o modelo padrão. Maquininhas do Parcela:
+
+00:09:23.760 --> 00:09:28.320
+posso deixar a maquininha padrão também. Então sempre que eu realizar um pagamento com o Parcela
+
+00:09:28.320 --> 00:09:32.920
+ele vai me trazer uma maquininha padrão e posso aqui adicionar mais de uma maquininha também.
+
+00:09:33.720 --> 00:09:39.720
+Painel de atalhos: a gente consegue configurar atalhos para algumas rotinas,
+
+00:09:39.720 --> 00:09:46.320
+então a gente pode estar fazendo a configuração de forma personalizada para ficar mais fácil a
+
+00:09:46.320 --> 00:09:49.960
+utilização. Tem bastante gente que gosta de trabalhar com atalhos, já tem esse costume,
+
+00:09:49.960 --> 00:09:56.440
+então a gente consegue fazer uma configuração aqui de algumas telas. Conciliação bancária é
+
+00:09:56.440 --> 00:10:00.760
+uma rotina que a gente tem também no sistema. Então aqui é onde a gente faz o cadastro com todas
+
+00:10:00.760 --> 00:10:04.760
+as informações do cliente. Então a gente cadastra a conta do cliente aqui, o endereço,
+
+00:10:04.760 --> 00:10:08.640
+razão social, CNPJ, para que a gente consiga fazer a importação desse extrato bancário.
+
+00:10:08.640 --> 00:10:15.920
+Produtos **ORION**, para a gente fazer a integração aqui, ativar a integração com o SGA, que é o nosso
+
+00:10:15.920 --> 00:10:20.720
+sistema de gerenciamento de atendimentos, um sistema de senhas. Então a gente consegue fazer
+
+00:10:20.720 --> 00:10:27.560
+esse encerramento de senhas utilizando apenas a conclusão do pagamento. Então quando eu faço a
+
+00:10:27.560 --> 00:10:35.640
+integração do pagamento de um pedido, o sistema automaticamente já encerra essa senha. E aqui:
+
+00:10:35.640 --> 00:10:41.960
+**Inteligência Artificial**. A gente também tem essa integração dentro do módulo do caixa para algumas
+
+00:10:41.960 --> 00:10:47.960
+funções. Então eu posso utilizar para cadastro de despesa, cadastro de fornecedores e **OCR**.
+
+00:10:47.960 --> 00:10:53.080
+Nada mais é do que: eu faço a leitura de uma nota fiscal ou de um boleto, por exemplo, e o sistema
+
+00:10:53.080 --> 00:11:00.600
+faz a leitura das informações e traz esse cadastro sem eu precisar digitar manualmente.
+
+00:11:00.600 --> 00:11:06.600
+Então o sistema faz a leitura e traz as informações para dentro do sistema. No meu caso aqui,
+
+00:11:06.600 --> 00:11:13.600
+a gente não tem essa configuração ativa ainda, mas ela já está em funcionalidade. Então aqui,
+
+00:11:13.600 --> 00:11:18.400
+as parametrizações seriam essas configurações. Partindo aqui, a gente tem o menu de históricos,
+
+00:11:19.360 --> 00:11:27.760
+onde mostra um log, um registro de cada ação que o usuário realizou. Então é um controle bem
+
+00:11:27.760 --> 00:11:34.520
+rigoroso. A gente consegue visualizar tudo que foi realizado com esse usuário específico ou para
+
+00:11:34.520 --> 00:11:41.520
+todos os usuários. Então ele registra data e hora, o usuário que fez as alterações, os tipos de
+
+00:11:41.520 --> 00:11:46.720
+alterações que foram realizados. Então aqui é um controle bem rigoroso, a gente consegue visualizar
+
+00:11:47.200 --> 00:11:54.320
+o que cada usuário realizou numa data específica e também se eu quiser um usuário específico.
+
+00:11:54.320 --> 00:12:01.120
+Então, partindo aqui para o próximo menu: menu de relatórios, onde de fato a gente tem todos
+
+00:12:01.120 --> 00:12:06.880
+os relatórios do módulo **ORION Caixa**. Então aqui, primeiramente, um relatório de caixa,
+
+00:12:07.920 --> 00:12:16.080
+onde eu consigo fazer apenas a visualização de como está meu caixa no dia atual, no dia anterior.
+
+00:12:16.240 --> 00:12:22.480
+Consigo fazer também o fechamento de caixa através desse relatório. Então aqui a gente tem duas
+
+00:12:22.480 --> 00:12:29.400
+opções: **Firmas** e **Notas**; os tipos: analítico ou sintético. Então eu consigo confeccionar esse
+
+00:12:29.400 --> 00:12:35.440
+relatório, caso queira mais analítico ou caso queira algo mais simples. Então eu posso retirar
+
+00:12:35.440 --> 00:12:41.440
+também o relatório sintético. E o relatório de fechamento de caixa para eu fazer a conferência e
+
+00:12:41.440 --> 00:12:48.160
+ver se eu tenho meu caixa mesmo, caso já vá fazer o fechamento desse caixa. Então aqui um relatório
+
+00:12:48.160 --> 00:12:55.120
+de caixa, se eu utilizar **Firmas**, por exemplo, como o dia de hoje, tenho aqui algumas opções de tipos
+
+00:12:55.120 --> 00:13:00.800
+de pagamento, de tipos de serviço para eu refinar a minha busca. Também posso deixar todos, como
+
+00:13:00.800 --> 00:13:07.760
+está no exemplo aqui. Forma de pagamento: então eu posso filtrar aqui somente algum tipo de serviço,
+
+00:13:07.760 --> 00:13:12.680
+se eu quiser saber apenas de mensalista. Eu posso estar tirando um relatório aqui no dia de hoje
+
+00:13:12.680 --> 00:13:22.560
+para mensalista. Vou deixar aqui todos os caixas. Então, caso eu tenha serviço no dia de hoje para
+
+00:13:22.560 --> 00:13:32.160
+mensalista, o sistema vai me mostrar o serviço que foi realizado, qual o item que foi utilizado nesse
+
+00:13:32.160 --> 00:13:38.560
+momento. Então aqui eu tenho a autenticação de fotocópia e aqui o caixa que utilizou para esse
+
+00:13:38.560 --> 00:13:43.600
+serviço do mensalista. Então aqui eu fiz o serviço para mensalista com autenticação de fotocópia,
+
+00:13:43.600 --> 00:13:51.640
+utilizando o caixa pelo usuário do editor. E aqui ele me traz um total geral, de quanto eu tenho no
+
+00:13:51.640 --> 00:13:58.560
+meu caixa no momento. Então aqui é uma forma de visualizar; então eu posso tirar também de **Notas**,
+
+00:13:58.880 --> 00:14:06.120
+se eu tiver algum serviço lançado na parte de **Notas**. Então aqui a gente pode ver que eu tenho um
+
+00:14:06.120 --> 00:14:14.280
+protocolo que foi gerado, protocolo de número 160. Então ele me traz aqui o **ITBI**, o valor total do
+
+00:14:14.280 --> 00:14:21.440
+protocolo e totalizando aqui a soma dos dois. Certidões eu não tenho nada e o total geral
+
+00:14:21.440 --> 00:14:29.320
+do pagamento. Então aqui eu vejo que eu gerei um protocolo, então o sistema tem um sinal de menos
+
+00:14:29.320 --> 00:14:34.960
+aqui na frente, sinalizando o negativo. Então esse total aqui está em aberto no meu caixa,
+
+00:14:34.960 --> 00:14:40.960
+eu não realizei o pagamento. Então eu estou com um subtotal aqui de 19 mil negativos, até que eu
+
+00:14:40.960 --> 00:14:48.080
+realize a baixa desse protocolo. Então ele está em aberto ainda. E aí o fechamento de caixa,
+
+00:14:48.480 --> 00:14:56.800
+que eu posso, no caso aqui, unificar esse fechamento. Então se eu selecionar aqui para unificar o
+
+00:14:56.800 --> 00:15:03.760
+fechamento, ele vai trazer **Notas** e **Firmas**. Então aqui vou colocar o responsável, o editor,
+
+00:15:03.760 --> 00:15:13.760
+faço a impressão do relatório, faço a conferência dos valores, então ele me traz aqui os serviços de
+
+00:15:13.760 --> 00:15:21.240
+serviços de **Firmas**, abertura, se eu já fiz abertura na parte de **Firmas**, se eu já fiz abertura na parte
+
+00:15:21.240 --> 00:15:29.240
+de **Notas**, e caso esteja ok esse relatório, faço a conferência; aí basta encerrar o meu caixa aqui
+
+00:15:29.240 --> 00:15:36.200
+para não ficar em aberto. Então eu clico aqui e o caixa vai ser encerrado. Tenho aqui um relatório
+
+00:15:36.200 --> 00:15:41.400
+de controle de cheques: o sistema tem essa possibilidade de você controlar tudo que você
+
+00:15:41.480 --> 00:15:49.960
+recebeu de cheques. Então aqui no meu caso eu não tenho nenhum cheque lançado, por isso que ele não
+
+00:15:49.960 --> 00:15:55.640
+trouxe resultado, mas é um relatório específico para isso. Tenho aqui um relatório de provedor
+
+00:15:55.640 --> 00:16:00.120
+de pagamentos para eu visualizar tudo que foi lançado com essa integração do Parcela,
+
+00:16:00.120 --> 00:16:05.480
+por exemplo. Então se eu fizer uma busca aqui num período, posso colocar aqui todas as
+
+00:16:05.480 --> 00:16:10.680
+as regiões, todos os pagamentos, todos os status, todos os usuários. Faço a impressão; no caso
+
+00:16:10.680 --> 00:16:16.280
+aqui eu não tenho esse modelo cadastrado, não tenho essa integração, então eu não consigo
+
+00:16:16.280 --> 00:16:21.520
+visualizar. Mas caso eu tivesse, ele já me traria um relatório de tudo que foi realizado com a
+
+00:16:21.520 --> 00:16:27.920
+integração desse provedor. Então aqui eu posso aumentar a minha busca também para visualizar,
+
+00:16:27.920 --> 00:16:32.120
+então eu posso fechar o mês, por exemplo, o relatório do mês para saber o que foi realizado
+
+00:16:32.120 --> 00:16:39.200
+com o Parcela Express. Então eu tenho relatório específico para isso. E aí aqui, por fim, a tela de
+
+00:16:39.200 --> 00:16:45.440
+Administração, onde de fato ficam concentrados todos os menus para a utilização mesmo do
+
+00:16:45.440 --> 00:16:51.000
+módulo **ORION Caixa** para realizar os serviços mesmo. Então aqui, Controle de Caixa: tem a opção de fazer
+
+00:16:51.000 --> 00:16:56.600
+abertura de caixa; neste caso aqui o meu caixa já está aberto, então ele me dá uma mensagem de que
+
+00:16:56.600 --> 00:17:01.800
+foi realizada já a abertura para esse caixa. Para fazer uma nova abertura, primeiro preciso fazer
+
+00:17:01.800 --> 00:17:06.440
+o fechamento desse atual. Então aqui basta selecionar o valor em que eu vou começar no meu
+
+00:17:06.440 --> 00:17:12.440
+caixa, se eu tiver valor em cheque, o responsável, alguma observação, e clico aqui: ele já faz a abertura
+
+00:17:12.440 --> 00:17:23.800
+do caixa. Suprimento e sangria: é onde a gente consegue fazer o lançamento de algum dinheiro
+
+00:17:23.800 --> 00:17:29.280
+dentro do meu caixa ou até mesmo a retirada, a sangria de algum valor. Então aqui basta selecionar
+
+00:17:29.360 --> 00:17:34.920
+o valor que eu estou adicionando ao meu caixa — posso escrever aqui 'troco', por exemplo —,
+
+00:17:36.520 --> 00:17:44.720
+e fiz a adição. E a mesma coisa para sangria: seleciono aqui o valor de que eu estou fazendo a sangria;
+
+00:17:45.880 --> 00:17:54.320
+aqui eu não tenho o tipo de saída configurado, então não consigo selecionar; ele vai me obrigar ao
+
+00:17:54.320 --> 00:17:59.080
+tipo de saída, então eu preciso cadastrar para que eu consiga fazer a retirada. No caixa,
+
+00:17:59.080 --> 00:18:06.320
+posso fazer a transferência desse dinheiro para outro caixa; então vou fazer uma transferência
+
+00:18:06.320 --> 00:18:16.040
+de 10 reais para outro caixa. Fiz a retirada, fiz a transferência para outro caixa. Aí, partindo
+
+00:18:16.040 --> 00:18:23.120
+para o próximo menu: menu de pagamentos. Normalmente o financeiro ou caixa específico do **Cartório**
+
+00:18:23.440 --> 00:18:29.280
+fica com essa tela o dia todo em aberto para fazer, de fato, todos os pagamentos: **Firmas**,
+
+00:18:29.280 --> 00:18:38.160
+**Notas**, certidões. Então aqui é uma tela com as três especialidades: **Notas**, certidões e balcão.
+
+00:18:38.160 --> 00:18:45.480
+Então aqui basta selecionar qual eu quero realizar a baixa do pagamento e aí fazer a busca pelo ato
+
+00:18:45.480 --> 00:18:50.240
+que eu preciso dar a baixa. Então aqui, por exemplo: **Notas**, certidões e serviços; vou localizar aqui
+
+00:18:50.480 --> 00:18:58.520
+uma certidão. O sistema já carrega aqui o valor que foi debitado dessa certidão para que eu
+
+00:18:58.520 --> 00:19:04.080
+realize a baixa do pagamento. Então aqui eu seleciono a forma de pagamento, vou deixar em dinheiro,
+
+00:19:04.080 --> 00:19:11.600
+clico aqui para o sistema carregar o valor. Posso fazer o pagamento retroativo, caso a data seja
+
+00:19:11.600 --> 00:19:19.120
+do dia anterior, por exemplo. Aqui tem a opção de impressão do recibo ou não; então seleciono o
+
+00:19:19.680 --> 00:19:25.920
+pagamento e faço a conclusão desse pagamento. Automaticamente o sistema já me lança na
+
+00:19:25.920 --> 00:19:32.720
+movimentação financeira dessa certidão a baixa do valor que estava em aberto. Então aqui para
+
+00:19:32.720 --> 00:19:40.160
+certidões e **Notas** o processo é o mesmo. Então seleciono aqui a parte, busco o protocolo que eu
+
+00:19:40.160 --> 00:19:48.680
+desejo realizar a baixa. Então esse valor aqui é o valor da **Lavratura** do protocolo; me traz aqui o
+
+00:19:48.680 --> 00:19:57.440
+**ITBI**, o valor dos **Emolumentos**. Vejo que aqui só está negativo, estou com saldo negativo e aí eu
+
+00:19:57.440 --> 00:20:05.400
+de fato vou lançar esse pagamento. Então eu venho aqui para abrir meu caixa — meu caixa de **Notas** não
+
+00:20:05.400 --> 00:20:12.280
+estava aberto ainda —, vou fazer a abertura dele. E aí aqui vou realizar o pagamento; então vou realizar
+
+00:20:12.280 --> 00:20:19.560
+o pagamento em dinheiro, seleciono a tecla igual, ele já me carrega as informações do solicitante
+
+00:20:19.560 --> 00:20:28.280
+aqui: o nome e o documento, o tipo; então eu seleciono aqui 'Pagamento do Ato' e o valor eu vou colocar
+
+00:20:28.280 --> 00:20:38.920
+aqui: 20 mil reais. E aí eu faço o pagamento; o sistema me pergunta se eu confirmo esse lançamento;
+
+00:20:39.000 --> 00:20:44.800
+não quero imprimir o recibo; ele me dá uma mensagem caso eu queira imprimir esse recibo dessa
+
+00:20:44.800 --> 00:20:52.560
+baixa. E aqui eu já lancei o pagamento e o sistema já me trouxe aqui esses 20 mil reais que eu
+
+00:20:52.560 --> 00:20:58.440
+creditei nesse protocolo. Então o sistema já faz a compensação e o valor que estava negativo aqui,
+
+00:20:58.440 --> 00:21:05.560
+19 mil reais, ele já atualizou; então eu tenho aqui agora um valor, um crédito dentro desse protocolo
+
+00:21:05.640 --> 00:21:12.160
+de 942 a devolver para o cliente porque ele me pagou 20 mil reais; então tem um troco aqui a
+
+00:21:12.160 --> 00:21:20.640
+devolver. Então, basicamente, certidões e protocolo é o mesmo processo: basta realizar a busca pelo
+
+00:21:20.640 --> 00:21:26.920
+número do pedido, o protocolo da certidão e aqui na movimentação financeira realizar o pagamento.
+
+00:21:26.920 --> 00:21:33.680
+E **Firmas** é a mesma coisa, caso tenha um caixa para todos os guichês do **Cartório**, por exemplo;
+
+00:21:34.680 --> 00:21:40.880
+basta o caixa realizar aqui a busca pelo pedido; ele já me trouxe aqui o serviço que foi realizado
+
+00:21:41.920 --> 00:21:46.000
+e aí aqui eu realizo a baixa do pagamento. Então eu posso colocar aqui, por exemplo:
+
+00:21:49.760 --> 00:21:57.760
+20 reais, caso o cliente vá fazer duas formas de pagamento e o restante foi no PIX.
+
+00:21:57.760 --> 00:22:02.320
+Então clico aqui para atualizar, o sistema já traz o valor que ficou faltante:
+
+00:22:02.400 --> 00:22:09.080
+ele pagou 20 reais em dinheiro e 18,80 no PIX. Seleciono o modelo caso eu queira fazer a impressão;
+
+00:22:09.080 --> 00:22:15.400
+caso eu não queira fazer impressão, basta eu concluir aqui e este pedido está pago;
+
+00:22:15.400 --> 00:22:21.960
+automaticamente o status de cada movimentação, seja ela de **Firmas** ou de **Notas**, já altera o status
+
+00:22:21.960 --> 00:22:27.560
+para pago. Então, após realizar os pagamentos, caso agora eu gere um relatório aqui de caixa
+
+00:22:27.560 --> 00:22:31.880
+e eu vá fazer o fechamento do meu caixa ao final do dia, seleciono aqui o fechamento,
+
+00:22:31.880 --> 00:22:40.360
+coloco aqui 'Unificar Fechamento' para ele me trazer **Notas** e **Firmas**, faço a impressão para a conferência
+
+00:22:40.360 --> 00:22:46.600
+e aí ele vai me trazer todos os serviços que foram realizados: então aqui **Notas**, R$ 1,50 em
+
+00:22:46.600 --> 00:22:53.520
+dinheiro; a parte de **Firmas**, recebimento, transferência — que foi aquela transferência de caixa que eu
+
+00:22:53.840 --> 00:22:59.960
+fiz. E aí, caso esteja tudo ok na minha conferência, basta eu selecionar 'Encerrar o Caixa';
+
+00:22:59.960 --> 00:23:07.600
+o sistema me pergunta se eu realmente quero encerrar e aí eu faço o encerramento do caixa;
+
+00:23:07.600 --> 00:23:12.320
+caso eu queira realizar algum serviço agora, eu tenho que fazer uma nova abertura, tá bom?
+
+00:23:13.240 --> 00:23:22.320
+Tenho aqui a parte de conciliação bancária, que é onde a gente importa o extrato OFX,
+
+00:23:22.320 --> 00:23:28.360
+o arquivo .ofx, que é o extrato bancário. Então eu venho aqui para fazer a importação;
+
+00:23:28.360 --> 00:23:31.400
+aqui é uma tela de consulta para ver se eu já fiz alguma importação;
+
+00:23:33.040 --> 00:23:37.360
+venho aqui para adicionar um novo extrato, aqui vou importar o arquivo.
+
+00:23:39.360 --> 00:23:47.960
+Então esse arquivo que é importado é o arquivo gerado pelo banco; faço a importação e a conclusão.
+
+00:23:48.280 --> 00:23:55.400
+Aí, nesse momento, se eu filtrar aqui, o sistema já carrega esse extrato que eu importei aqui dentro.
+
+00:23:55.400 --> 00:24:00.200
+Então eu tenho um débito aqui da minha conta, de tudo que saiu da minha conta,
+
+00:24:00.200 --> 00:24:08.960
+e tenho aqui um total de tudo que entrou e um saldo final deste período. Então aqui a gente pode ver
+
+00:24:08.960 --> 00:24:14.440
+que eu tenho valores em verde com o 'C', que sinaliza crédito, e tenho também valores com um 'D',
+
+00:24:14.920 --> 00:24:19.840
+que sinaliza débito, então tudo que saiu da minha conta. Então aqui nesse momento é onde eu faço a
+
+00:24:19.840 --> 00:24:25.880
+conciliação: então o que for pagamento eu já consigo vincular ao meu **Livro Caixa**;
+
+00:24:25.880 --> 00:24:33.920
+então, por exemplo, esse valor aqui de 2.322 foi um pagamento do aluguel do meu **Cartório**;
+
+00:24:33.920 --> 00:24:40.000
+então seleciono esse valor aqui abaixo, vou colocar aqui como salários e encargos,
+
+00:24:41.000 --> 00:24:49.000
+fiz o pagamento do 13º dos meus colaboradores e aí, quando eu fizer a conciliação, esses valores
+
+00:24:49.000 --> 00:24:56.840
+automaticamente vão para o meu **Livro Caixa** nessas contas de despesas; e a mesma coisa para
+
+00:24:56.840 --> 00:25:04.600
+crédito: então aqui, por exemplo, esse valor de 7.539, eu vou fazer o pagamento de um protocolo;
+
+00:25:04.600 --> 00:25:10.920
+eu vou fazer o protocolo número 160, **Notas** já sinaliza aqui; então, quando eu fizer a conciliação,
+
+00:25:10.920 --> 00:25:17.160
+esse valor aqui automaticamente é lançado a baixa desse pagamento dentro desse protocolo de
+
+00:25:17.160 --> 00:25:25.440
+número 160. Então aqui tenho mais alguns valores; vou pegar aqui, por exemplo, uma certidão. Então
+
+00:25:25.440 --> 00:25:31.160
+basta selecionar o número aqui, ele já me carrega se eu tenho protocolo, certidão ou até fatura
+
+00:25:31.160 --> 00:25:35.680
+de mensalista; também consigo fazer essa baixa por aqui. Então aqui vou selecionar o pagamento de uma
+
+00:25:35.680 --> 00:25:42.320
+certidão. E a gente tem também a opção de rateio: então, por exemplo, caso o valor seja
+
+00:25:42.320 --> 00:25:48.480
+pagamento de dois serviços — então vou pegar esse aqui de exemplo, de 5.080 —, vou clicar aqui nesse
+
+00:25:48.480 --> 00:25:56.720
+botão; o sistema me abre uma tela de rateio, onde eu seleciono a quantidade de valores que eu vou
+
+00:25:56.720 --> 00:26:03.320
+fazer com o rateio: então vou pagar 3 mil para um protocolo aqui de número 159
+
+00:26:06.840 --> 00:26:18.640
+e o restante, 2.080,25, vou fazer o pagamento dentro de outro protocolo:
+
+00:26:19.640 --> 00:26:26.640
+o pagamento do ato. Aí basta fazer a conclusão; automaticamente ele me registra aqui como rateio.
+
+00:26:26.640 --> 00:26:33.880
+Então, dentro dos dois protocolos que eu selecionei, de 158 e 159, quando eu fizer a conciliação aqui, o
+
+00:26:33.880 --> 00:26:41.160
+sistema vai fazer o lançamento dessa movimentação nesses protocolos, e as despesas vai fazer o
+
+00:26:41.160 --> 00:26:49.440
+lançamento no meu **Livro Caixa**. Aqui no meu caso não tem configuração ativa porque é um ambiente
+
+00:26:49.440 --> 00:26:55.200
+de teste, então esse extrato também é um extrato de testes, então a gente não consegue fazer a
+
+00:26:55.200 --> 00:27:01.240
+conciliação; mas caso eu tivesse realizado, aí bastaria eu entrar dentro do protocolo e eu conseguiria
+
+00:27:01.240 --> 00:27:07.320
+visualizar esse lançamento que eu fiz de forma automática pela conciliação bancária. Então
+
+00:27:07.320 --> 00:27:13.440
+é bem interessante o que a gente tem dentro do módulo **ORION Caixa**, onde a gente consegue fazer todas as
+
+00:27:13.440 --> 00:27:19.400
+vinculações de crédito e débito através dessa rotina de conciliação bancária. Consultas: onde
+
+00:27:19.400 --> 00:27:26.800
+eu busco basicamente tudo que foi realizado no dia; posso buscar por recibo, por protocolos.
+
+00:27:26.800 --> 00:27:33.000
+Então vou deixar aqui a data de hoje para o filtro; então ele me traz aqui tudo que foi realizado no
+
+00:27:33.000 --> 00:27:40.280
+dia de hoje, os tipos de pagamentos que passaram pelo caixa, o status de cada um. Aqui eu consigo
+
+00:27:40.280 --> 00:27:45.760
+fazer a impressão desse relatório também e também consigo fazer algumas ações aqui, como visualizar.
+
+00:27:45.760 --> 00:27:53.880
+Se eu clicar em 'Visualizar', ele já me abre o que foi realizado na tela do caixa; posso fazer o estorno
+
+00:27:53.880 --> 00:27:59.760
+aqui do pagamento, se eu quiser; posso enviar esse comprovante via WhatsApp para algum cliente;
+
+00:27:59.760 --> 00:28:08.200
+consigo fazer busca por protocolos; então aqui ele me lista todos os protocolos, o status de cada
+
+00:28:08.200 --> 00:28:14.520
+protocolo, com os dados aqui: número de recibo, nome do escrevente, natureza, solicitante. E aí eu
+
+00:28:14.520 --> 00:28:20.800
+consigo também por aqui já abrir a movimentação financeira desse protocolo, caso eu queira dar
+
+00:28:20.800 --> 00:28:26.200
+a baixa, no caso se estiverem abertos, ou até mesmo fazer uma atualização qualquer aqui;
+
+00:28:26.280 --> 00:28:34.480
+então aqui eu consigo visualizar se tem algum documento em anexo, consigo fazer lançamento de
+
+00:28:34.480 --> 00:28:41.120
+movimentações financeiras e consigo fazer a visualização aqui do extrato financeiro,
+
+00:28:41.120 --> 00:28:48.880
+caso já tenha alguma coisa lançada, e até imprimir também. Certidões: mesma coisa;
+
+00:28:48.880 --> 00:28:56.320
+então eu consigo fazer aqui a busca na tela por períodos, colocar aqui o período de hoje,
+
+00:28:56.320 --> 00:29:01.280
+e se eu tiver alguma certidão que passou pelo meu caixa, ele vai me trazer aqui;
+
+00:29:01.280 --> 00:29:05.080
+eu consigo também fazer a impressão deste relatório. Aqui a mesma coisa: ele traz as
+
+00:29:05.080 --> 00:29:10.360
+informações da certidão que passou no caixa, consigo visualizar a movimentação financeira,
+
+00:29:10.360 --> 00:29:16.280
+caso eu deseje fazer algum lançamento — estornar, adicionar —, enfim, qualquer tipo de movimentação,
+
+00:29:17.160 --> 00:29:25.480
+e aqui o log é onde ele me registra tudo que foi realizado dentro deste pedido;
+
+00:29:26.480 --> 00:29:34.240
+então ele fica registrado aqui todas as ações. E a consulta de caixa, onde eu consigo ver
+
+00:29:34.240 --> 00:29:40.280
+suprimentos, retiradas, tudo que foi realizado nesse período. Então eu consigo tirar um relatório
+
+00:29:40.280 --> 00:29:46.480
+do exemplo de hoje; ele vai mostrar aqui que teve uma retirada, uma transferência para outro caixa,
+
+00:29:46.480 --> 00:29:53.000
+no valor de 10 reais. E aí aqui posso fazer a mesma coisa com o suprimento: ele vai mostrar
+
+00:29:53.000 --> 00:29:59.760
+se teve lançamentos aqui de suprimento; então ele mostra aqui quem realizou, o que foi realizado,
+
+00:29:59.760 --> 00:30:05.600
+e eu consigo aqui também abrir esse lançamento mais detalhado.
+
+00:30:06.600 --> 00:30:14.440
+Partindo aqui: Contratos e Fornecedores é onde eu cadastro despesas e fornecedores,
+
+00:30:14.440 --> 00:30:21.600
+os contratos. E aí aqui basta eu selecionar o nome ou razão social; então vou colocar aqui,
+
+00:30:24.280 --> 00:30:31.440
+por exemplo, o nome da empresa, o ciclo de pagamento,
+
+00:30:31.800 --> 00:30:38.240
+e faço o filtro. Então não localizei nenhum cadastro para esse 'Henrique Imobiliária';
+
+00:30:38.240 --> 00:30:42.920
+então basta adicionar aqui nesse botão de 'Adicionar'; é onde vou fazer o cadastro aqui
+
+00:30:42.920 --> 00:30:50.640
+desse fornecedor. Vou colocar um documento aqui de teste, vou colocar aqui 'Henrique Imobiliária',
+
+00:30:53.080 --> 00:30:58.000
+vou selecionar aqui um grupo de contas: então vou colocar sede da unidade, aluguel.
+
+00:30:58.000 --> 00:31:05.080
+Aqui é onde vai entrar no meu **Livro Caixa**, para essa conta que eu tenho cadastrada no meu **Livro Caixa**;
+
+00:31:05.080 --> 00:31:11.800
+e aí aqui posso anexar um contrato, um documento; e aí aqui eu consigo ativar uma recorrência.
+
+00:31:11.800 --> 00:31:17.360
+Então, se eu tiver que fazer o pagamento desse aluguel durante um tempo indeterminado,
+
+00:31:17.360 --> 00:31:22.360
+eu consigo fazer através dessa recorrência. Vou colocar aqui o pagamento de aluguel,
+
+00:31:22.360 --> 00:31:26.840
+ativei a recorrência, seleciono aqui o ciclo de pagamento — se é mensal ou anual —,
+
+00:31:26.840 --> 00:31:33.040
+vou colocar aqui o dia de pagamento todo dia 10, iniciando pelo próximo mês,
+
+00:31:33.040 --> 00:31:39.840
+indo até o mesmo mês do próximo ano, do ano seguinte, totalizando 12 meses.
+
+00:31:39.840 --> 00:31:47.680
+Coloco aqui o valor deste pagamento, posso também digitalizar ou importar aqui contrato,
+
+00:31:47.680 --> 00:31:54.960
+imagens, documentos. E aí, quando eu faço esse cadastro, todo dia específico que eu cadastrei
+
+00:31:55.040 --> 00:32:00.760
+o sistema automaticamente vai gerar uma despesa no meu **Livro Caixa**, para o pagamento de aluguel
+
+00:32:00.760 --> 00:32:06.920
+de mil reais, que foi o que eu realizei o cadastro aqui. E aí, partindo aqui para o último menu:
+
+00:32:06.920 --> 00:32:14.360
+o menu de despesas, que basicamente é a mesma função dos contratos e fornecedores, porém para cadastro
+
+00:32:14.360 --> 00:32:19.680
+de uma única despesa, sem recorrência. Então isso aqui são despesas que eu cadastro para enviar
+
+00:32:19.680 --> 00:32:24.360
+para o meu **Livro Caixa**. Então posso fazer uma busca nessa tela inicial, para ver se eu tenho
+
+00:32:24.360 --> 00:32:34.280
+cadastrada já a conta, por exemplo, para o Henrique. Posso filtrar aqui com campos mais refinados
+
+00:32:34.280 --> 00:32:38.920
+para minha busca, ou simplesmente posso buscar pelo nome, e aí o sistema localiza o que foi realizado
+
+00:32:38.920 --> 00:32:44.960
+de cadastro de despesa para esse nome de Henrique em que eu fiz a busca, onde eu consigo visualizar
+
+00:32:45.360 --> 00:32:53.120
+os andamentos desse registro: então, desde quando ele foi registrado, cadastro de despesa, pelo IP
+
+00:32:53.120 --> 00:33:00.160
+da máquina em que foi realizado e o usuário, com data e hora em que foi realizado. Consigo visualizar
+
+00:33:00.160 --> 00:33:10.520
+também qual a despesa que foi cadastrada, com as informações completas, e também consigo fazer
+
+00:33:10.520 --> 00:33:16.920
+uma alteração naquela despesa, caso eu queira realizar algum ajuste. Então vou fazer a busca
+
+00:33:16.920 --> 00:33:25.720
+aqui novamente e quero fazer uma alteração nessa despesa, então eu consigo realizar aqui a alteração
+
+00:33:25.720 --> 00:33:33.120
+também, tá bom? E aí caso eu queira cadastrar uma nova despesa, basta selecionar o botão 'Adicionar'
+
+00:33:34.120 --> 00:33:50.600
+e coloco aqui o nome dessa despesa, vinculo um documento para essa despesa; então vou colocar
+
+00:33:52.600 --> 00:34:00.960
+aqui o CPF de teste. Posso fazer a busca por esse CPF, que ele já me traz,
+
+00:34:01.520 --> 00:34:10.640
+caso eu tenha realizado já alguma despesa para esse cliente. Seleciono aqui a minha despesa
+
+00:34:10.640 --> 00:34:16.400
+que eu quero lançar; então vou colocar aqui 'Diversos', por exemplo, e vou colocar aqui 'Aquisição de
+
+00:34:16.400 --> 00:34:23.600
+Móveis', coloco o valor dessa despesa; caso eu queira adicionar aqui o número da nota fiscal
+
+00:34:23.600 --> 00:34:30.320
+também, posso adicionar a data dessa despesa, posso vincular aqui fotos, documentos, contratos,
+
+00:34:31.280 --> 00:34:37.280
+e faço a conclusão aqui. E aí, neste momento, o sistema me cadastra uma despesa no meu **Livro Caixa**,
+
+00:34:37.280 --> 00:34:44.640
+com essas informações que foram adicionadas aqui. E aí, aqui para finalizar, a gente tem os alertas:
+
+00:34:44.640 --> 00:34:52.320
+caso tenha algum alerta do sistema, a gente vai ter essa notificação aqui. Tem aqui o Atendimento,
+
+00:34:52.320 --> 00:34:57.720
+que é o nosso sistema integrado de senhas, que é o SGA; então por aqui eu consigo
+
+00:34:58.520 --> 00:35:06.200
+chamar um atendimento para fazer o encerramento, o pagamento, e aí consigo também por aqui acessar
+
+00:35:06.200 --> 00:35:12.120
+os outros módulos que eu tenho liberados para o meu acesso. Então, basicamente, este é o módulo
+
+00:35:12.120 --> 00:35:14.960
+**ORION Caixa**. Obrigado, pessoal, até a próxima!
+

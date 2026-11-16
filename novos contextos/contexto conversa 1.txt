@@ -1,0 +1,120 @@
+# CONTEXTO TÉCNICO E ARQUITETURA DA BASE DE CONHECIMENTO DO ASSISTENTE (ORION TN)
+
+Você está assumindo o papel de **Arquiteto de Soluções de IA, Engenheiro de RAG (Retrieval-Augmented Generation) e Especialista em Design de Bases de Conhecimento**. 
+
+O objetivo desta conversa é **revisar, auditar, otimizar e reformular toda a estrutura de dados, o funcionamento de recuperação (retrieval/matching) e os padrões de resposta** do assistente virtual do sistema **ORION TN**.
+
+Abaixo está o mapeamento técnico completo de como o assistente opera, a anatomia de sua base de conhecimento, a engenharia de dados já executada e os padrões estabelecidos até aqui.
+
+---
+
+## 1. VISÃO GERAL DO SISTEMA E DO MECANISMO RAG
+
+O assistente foi concebido como um agente conversacional técnico de suporte e treinamento procedural.
+* **Mecanismo Operacional:** Baseado em RAG estrito (Retrieval-Augmented Generation). O modelo gerador não deve inferir fluxos de software da memória paramétrica; ele deve agir ancorado 100% no conteúdo das rotinas recuperadas (*grounded generation*).
+* **Repositório Central (SSOT):** O arquivo principal é o `OrionTN.md` (um monolito consolidado com mais de 15.300 linhas e 366 blocos procedurais catalogados).
+* **Repositório Modular:** A pasta `/rotinas` contém arquivos individuais (`*_rotinas.md`) derivados de treinamentos, tutoriais e procedimentos específicos, que servem como unidades atômicas de manutenção antes da consolidação no arquivo mestre.
+
+---
+
+## 2. ANATOMIA TÉCNICA DO BLOCO DE CONTEÚDO (SCHEMA MASTER)
+
+Cada rotina da base de conhecimento segue um contrato estrutural rigoroso e padronizado, composto por **dois blocos integrados**: um cabeçalho de metadados em **YAML Frontmatter** e um corpo procedural em **Markdown H4**.
+
+### Molde Canônico de Cada Bloco:
+
+```yaml
+---
+id: [PREFIXO]-[X].[X]
+titulo: "Título Claro, Autoexplicativo e Padronizado da Rotina"
+tags:
+  - tag_primaria
+  - tag_secundaria
+  - funcionalidade
+  - modulo
+objetivo: "Uma frase única, concisa e de alto impacto que resume com precisão a finalidade da rotina."
+sinonimos:
+  - termo alternativo de busca
+  - acao coloquial em linguagem natural
+  - variacao operacional
+perguntas_usuario:
+  - "Pergunta direta ou leiga que um usuário comum faria?"
+  - "Como faço para executar o procedimento X?"
+  - "Pergunta situacional ou voltada a resolver uma dúvida/erro?"
+---
+#### Descrição:
+Parágrafo conceitual e contextual conciso explicando o que o procedimento faz, seu escopo técnico e impactos no fluxo de trabalho.
+
+#### Passo a passo:
+1. Primeiro passo sequencial com **Menus > Submenus > Botões** estritamente em negrito.
+2. Ações de preenchimento, atalhos de teclado (ex: **Ctrl + Alt + S**) e seleções de tela.
+3. Tratamento de fluxos alternativos, abas ou telas modais.
+
+* **Observação:** Detalhes adicionais, comportamentos automáticos do sistema ou dependências.
+* **Alerta Operacional Importante:** Avisos sobre consumo de numeração, irreversibilidade ou travas operacionais.
+---
+```
+
+---
+
+## 3. ENGENHARIA DOS CAMPOS E MECÂNICA DE RECUPERAÇÃO (RETRIEVAL)
+
+O design dos metadados foi projetado para alimentar motores de busca híbrida (Sparse/BM25 + Dense/Vector Embeddings):
+
+1. **`id` (Chave Primária de Rastreamento):**
+   * `R-X.X`: Rotinas do Service Desk / Suporte Técnico (procedimentos de manutenção e resolução de chamados).
+   * `V-X.X`: Rotinas extraídas de Vídeos/Aulas práticas (foco operacional no uso das telas).
+   * `M-X.X`: Rotinas extraídas de Manuais formais do sistema.
+   * *Organização Hierárquica:* Exemplo: `V-7.0.1` a `V-7.0.5` cobrem a esteira fundamental do Editor; `V-7.1.1` em diante tratam das parametrizações avançadas do mesmo módulo.
+2. **`titulo`:** Âncora léxica que define o escopo exato da rotina sem ambiguidades.
+3. **`tags`:** Vetorização rasa e filtragem booleana/categórica. Padronizadas em letras minúsculas (exceto siglas).
+4. **`objetivo`:** Texto denso e sumarizado, fundamental para cálculos de similaridade por cosseno em embeddings de sentenças curtas.
+5. **`sinonimos`:** Expansão de consulta (*Query Expansion*). Cobre lacunas de vocabulário, termos coloquiais de operadores e jargões operacionais alternativos.
+6. **`perguntas_usuario`:** Ancoragem por *Few-Shot Intent Matching*. Inclui perguntas de diferentes níveis cognitivos (desde dúvidas rasas/leigas até perguntas situacionais de usuários avançados), servindo como "ponteiros diretos" para a rotina correta.
+7. **`#### Descrição:` e `#### Passo a passo:`:**
+   * Lista numerada sequencial estrita (`1.`, `2.`, `3.`).
+   * Elementos visuais de interface do usuário obrigatoriamente destacados em **Negrito**.
+   * Regras de bifurcação e notas operacionais destacadas com marcadores em bullet point (`* **Observação:**`, `* **Dica:**`).
+
+---
+
+## 4. ESTRUTURAÇÃO DO ARQUIVO MESTRE (`OrionTN.md`)
+
+O arquivo mestre é estruturado em seções macro para organização do pipeline de processamento e particionamento:
+* **SEÇÃO PRINCIPAL 1:** Manuais do Sistema e Rotinas do Service Desk (`R-X.X` / `M-X.X`).
+* **SEÇÃO PRINCIPAL 2:** Rotinas extraídas de videoaulas e tutoriais práticos (`V-X.X`), organizadas por módulos operacionais do software.
+* **SEÇÃO PRINCIPAL 3 (e subsequentes):** Apêndices, configurações avançadas e integrações de sistema.
+
+Cada bloco individual de rotina é isolado por divisores triplos (`---`), garantindo que parsers de markdown ou chunkers de LLM consigam dividir os documentos mantendo a integridade semântica de cada rotina como um chunk independente.
+
+---
+
+## 5. DESENVOLVIMENTOS E PROCESSOS DE ENGENHARIA EXECUTADOS
+
+Durante a construção e consolidação desta base de conhecimento, foram implementados os seguintes fluxos de trabalho e boas práticas de engenharia de software:
+
+1. **Pipeline de Ingestão de Transcrições e Legendas (TXT / VTT):**
+   * Tratamento de arquivos brutos de áudio e legendas WebVTT, com eliminação sistemática de cabeçalhos, índices de bloco e timestamps (`00:00:00.000 --> ...`).
+   * Desduplicação de termos redundantes da fala e estruturação sintática fluida.
+2. **Atomização Procedural (Chunking Semântico):**
+   * Transcrições longas e contínuas foram decompostas em unidades procedurais menores e autônomas (evitando chunks gigantescos que diluem a relevância no vetor de busca).
+3. **Controle Estrito de Colisões de IDs:**
+   * Validação algorítmica (via scripts Python de introspecção) para garantir unicidade absoluta dos 366 IDs existentes no arquivo mestre.
+4. **Sincronização Bidirecional:**
+   * Toda rotina gerada passa por versionamento autônomo na pasta `/rotinas` (`*_rotinas.md`) e posterior injeção controlada na seção correspondente do arquivo mestre `OrionTN.md`.
+5. **Auditoria Automatizada de Integridade:**
+   * Scripts de validação léxica e sintática aplicados para verificar conformidade do schema YAML, integridade dos blocos `---`, indentação de listas e formatação de marcação UI.
+
+---
+
+## 6. DIRETRIZES PARA A NOSSA PRÓXIMA ETAPA
+
+Agora que você possui todo o entendimento da infraestrutura, arquitetura de dados e estado da base de conhecimento, vamos iniciar o processo de **revisão e reformulação do assistente**.
+
+Os tópicos que trabalharemos a seguir incluem:
+1. **Otimização do Schema:** Avaliar se novos campos (como pré-requisitos técnicos, permissões de usuário, mensagens de erro comuns e saídas esperadas) devem ser incorporados formalmente ao padrão YAML.
+2. **Engenharia de Prompt do Assistente (System Prompt):** Definir as regras de geração de resposta quando uma rotina for recuperada (tom de voz, nível de detalhamento, formatação do passo a passo para o usuário final, tratamento de casos em que o procedimento não existe na base).
+3. **Estratégias de Recuperação e Matching:** Otimizar as listas de `perguntas_usuario`, `tags` e `sinonimos` para mitigar falsos positivos e garantir precisão cirúrgica em buscas ambíguas.
+4. **Governança da Base de Conhecimento:** Criar rotinas padronizadas para auditoria contínua, atualização modular e integração de novos módulos do software.
+
+Por favor, confirme o recebimento e assimilação deste contexto técnico para que possamos iniciar as revisões e reformulações necessárias.

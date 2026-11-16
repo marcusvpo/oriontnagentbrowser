@@ -1,0 +1,176 @@
+00:00:00.000 --> 00:00:18.880
+Olá! Hoje irei demonstrar para vocês como realizar uma aquisição ou distribuição
+
+00:00:18.880 --> 00:00:21.360
+no sistema **ORION TN**.
+
+00:00:21.360 --> 00:00:27.680
+Após realizarmos o login no sistema, iremos acessar o módulo **ORION Stock**.
+
+00:00:27.680 --> 00:00:34.320
+Para realizarmos uma nova aquisição de um produto, iremos acessar o menu Administração
+
+00:00:34.320 --> 00:00:37.600
+e o submenu Aquisição.
+
+00:00:37.600 --> 00:00:42.280
+Serei, então, redirecionado para a tela de aquisição de produto, lembrando que apenas
+
+00:00:42.280 --> 00:00:46.680
+os campos marcados com asterisco são campos obrigatórios.
+
+00:00:46.680 --> 00:00:54.440
+Sendo assim, os campos Fornecedor, Nota Fiscal, Data de Aquisição, Comprador e Valor Unitário
+
+00:00:54.600 --> 00:00:58.800
+não têm seu preenchimento obrigatório para realizar a aquisição do produto.
+
+00:00:58.800 --> 00:01:05.040
+Vale ressaltar que o campo Data de Aquisição virá preenchido com a data atual do sistema,
+
+00:01:05.040 --> 00:01:15.880
+porém pode ser alterado através do botão com um ícone de calendário ou digitado manualmente.
+
+00:01:15.880 --> 00:01:19.720
+Vamos, então, realizar a aquisição de um novo produto.
+
+00:01:19.800 --> 00:01:25.760
+Primeiro, selecionamos a categoria: **Selos** ou **Papel de Segurança**.
+
+00:01:25.760 --> 00:01:31.160
+Para este exemplo, irei selecionar a categoria de **Selos**.
+
+00:01:31.160 --> 00:01:38.240
+Depois, selecionamos o produto — por exemplo, um reconhecimento por autenticidade — e vamos
+
+00:01:38.240 --> 00:01:40.360
+para o campo Série.
+
+00:01:40.360 --> 00:01:46.740
+É importante lembrar que este campo Série dos produtos da categoria de **Selos** deve
+
+00:01:46.740 --> 00:01:54.100
+ser preenchido conforme o tipo de **Selo** correspondente, de acordo com o exemplo abaixo.
+
+00:01:54.100 --> 00:02:00.180
+Já na categoria **Papel de Segurança**, o campo Série, por ser designado como livre, diferencia-se
+
+00:02:00.180 --> 00:02:05.700
+dos **Selos**, permitindo, assim, um preenchimento de acordo com a preferência da serventia;
+
+00:02:05.700 --> 00:02:11.740
+porém, ressalta-se a necessidade de inserir uma numeração coerente ao físico.
+
+00:02:11.740 --> 00:02:17.700
+Dito isso, vamos, então, realizar o preenchimento do campo Série, sendo ele composto pelas duas primeiras
+
+00:02:17.700 --> 00:02:25.980
+letras referentes à sigla do **Selo** digital, pelos quatro próximos números referentes ao
+
+00:02:25.980 --> 00:02:33.300
+prefixo do **Cartório** e pelas duas últimas letras referentes à série em que o **Selo** se encontra
+
+00:02:33.300 --> 00:02:39.660
+na serventia — por exemplo: AA, AB, AC e assim por diante.
+
+00:02:39.740 --> 00:02:44.060
+Irei, então, realizar o preenchimento das sequências inicial e final.
+
+00:02:44.060 --> 00:02:48.220
+Para este exemplo, irei inserir de 1 a 100.
+
+00:02:48.220 --> 00:02:54.420
+Automaticamente, o sistema irá nos mostrar a quantidade total de **Selos** para esta sequência.
+
+00:02:54.420 --> 00:03:00.620
+Caso necessário, posso adicionar mais um produto clicando no botão "Mais" (+).
+
+00:03:00.620 --> 00:03:03.540
+Realizo, então, o preenchimento deste novo produto;
+
+00:03:09.660 --> 00:03:23.500
+porém, se achar necessário, posso realizar a exclusão dele através do botão "Menos" (-).
+
+00:03:23.500 --> 00:03:27.940
+Após realizarmos todo o preenchimento de nossa aquisição, basta clicar no botão
+
+00:03:27.940 --> 00:03:28.940
+"Concluir".
+
+00:03:28.940 --> 00:03:34.020
+E pronto! Nossa aquisição foi concluída com sucesso.
+
+00:03:34.020 --> 00:03:37.740
+Agora, vamos realizar a distribuição do nosso produto.
+
+00:03:37.740 --> 00:03:47.380
+Para isso, iremos acessar o menu Administração e o submenu Distribuição.
+
+00:03:47.380 --> 00:03:51.540
+Seremos, então, direcionados para a tela de Distribuição.
+
+00:03:51.540 --> 00:03:59.180
+Na aba Distribuição, iremos selecionar a categoria e depois o produto do qual fizemos a
+
+00:03:59.180 --> 00:04:07.700
+aquisição, e o sistema, automaticamente, irá nos apresentar todos os **Selos** que temos disponíveis
+
+00:04:07.780 --> 00:04:09.380
+em **Estoque**.
+
+00:04:09.380 --> 00:04:13.220
+Podemos, então, realizar a distribuição de duas formas diferentes.
+
+00:04:13.220 --> 00:04:20.220
+Primeiro, seleciono a série e clico na seta no canto direito da tela.
+
+00:04:20.220 --> 00:04:29.380
+O sistema, então, irá me entregar a sequência total dessa série, e seleciono apenas o portador.
+
+00:04:29.380 --> 00:04:35.620
+Também posso clicar no botão "Mais", digitar manualmente a série que desejo,
+
+00:04:36.620 --> 00:04:40.620
+a sequência inicial e final,
+
+00:04:42.620 --> 00:04:44.620
+e selecionar o portador.
+
+00:04:44.620 --> 00:04:51.620
+Caso necessário, posso clicar no botão "Mais" e realizar mais uma distribuição,
+
+00:04:51.620 --> 00:05:07.620
+ou excluir essa distribuição adicional através do botão "Menos".
+
+00:05:07.620 --> 00:05:13.620
+Feito, então, o preenchimento da distribuição, basta clicar no botão "Concluir".
+
+00:05:13.620 --> 00:05:18.620
+E pronto, realizamos a distribuição do produto.
+
+00:05:18.620 --> 00:05:22.620
+Podemos, então, realizar a consulta da distribuição que acabamos de fazer.
+
+00:05:22.620 --> 00:05:35.620
+Na aba Consulta, iremos selecionar a categoria, o produto e a data da distribuição, e clicamos
+
+00:05:35.620 --> 00:05:37.620
+em "Filtrar".
+
+00:05:37.620 --> 00:05:43.620
+O sistema, então, irá apresentar o resultado da nossa consulta, dando a possibilidade de
+
+00:05:43.620 --> 00:05:50.620
+realizarmos o estorno deste produto — desde que ele não tenha sido utilizado ainda —
+
+00:05:50.620 --> 00:05:54.620
+ou de visualizar os andamentos deste produto.
+
+00:05:54.620 --> 00:05:59.620
+Neste vídeo, então, demonstrei como realizar a aquisição e a distribuição de um produto
+
+00:05:59.620 --> 00:06:00.620
+no **ORION TN**.
+
+00:06:00.620 --> 00:06:02.620
+Obrigado e até a próxima!

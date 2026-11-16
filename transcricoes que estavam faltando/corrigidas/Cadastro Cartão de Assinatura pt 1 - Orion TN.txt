@@ -1,0 +1,381 @@
+00:00:00.000 --> 00:00:17.440
+Olá, eu vou mostrar para você neste vídeo como realizar o cadastro de um novo **Cartão**
+
+00:00:17.440 --> 00:00:18.440
+**de Assinatura**.
+
+00:00:18.440 --> 00:00:26.120
+Para isso, basta clicar no menu de **Firmas**, na opção Cadastros e **Cartão de Assinatura**.
+
+00:00:26.120 --> 00:00:30.160
+Na tela dos **Cartões de Assinatura**, basta clicar na opção de adicionar.
+
+00:00:30.160 --> 00:00:37.160
+Pronto, o sistema já vai disponibilizar para você os campos para o cadastro do novo **Cartão**
+
+00:00:37.160 --> 00:00:39.160
+**de Assinatura**.
+
+00:00:39.160 --> 00:00:43.840
+Perceba que alguns campos já vêm com um asterisco ao seu lado, o que é indicação
+
+00:00:43.840 --> 00:00:45.720
+de um campo obrigatório.
+
+00:00:45.720 --> 00:00:52.360
+Por padrão, o sistema estará deixando aqui como obrigatório o nome e o CPF.
+
+00:00:52.480 --> 00:00:58.040
+Enquanto esses campos não forem preenchidos, o sistema não vai habilitar a opção de
+
+00:00:58.040 --> 00:01:04.380
+concluir logo abaixo, que é para que você efetive o cadastro do seu novo cartão.
+
+00:01:04.380 --> 00:01:10.640
+Outros campos poderão ser configurados como obrigatórios, mas é opcional.
+
+00:01:10.640 --> 00:01:17.620
+Para agilizar o preenchimento do seu novo **Cartão de Assinatura**, você poderá se utilizar
+
+00:01:17.780 --> 00:01:24.020
+da opção de busca aqui ao lado do campo do nome, onde o sistema vai reaproveitar
+
+00:01:24.020 --> 00:01:28.540
+dados já cadastrados anteriormente.
+
+00:01:28.540 --> 00:01:35.500
+Poderá ser utilizada também a lupinha ao lado do campo do CPF para uma busca mais exata.
+
+00:01:35.500 --> 00:01:40.860
+Então, por exemplo, se eu quiser reaproveitar os dados de um nome que eu já tenho cadastrado
+
+00:01:40.860 --> 00:01:48.300
+no meu sistema ou de um CPF, basta clicar no campo desejado, digitar o que você deseja
+
+00:01:48.300 --> 00:01:49.300
+e clicar na lupinha.
+
+00:01:49.300 --> 00:01:55.500
+E o sistema já vai trazer aqui um resultado daquilo que você digitou, seja pelo campo
+
+00:01:55.500 --> 00:01:58.340
+do nome ou do campo do CPF.
+
+00:01:58.340 --> 00:02:05.060
+Se você buscar aqui do resultado o que estiver entre parênteses "(Protocolo)", serão reaproveitados
+
+00:02:05.060 --> 00:02:11.360
+os dados do índice de escritura e procuração, sempre do último protocolo que foi cadastrado
+
+00:02:11.360 --> 00:02:15.540
+para esse nome ou para o CPF que você estiver digitando.
+
+00:02:15.540 --> 00:02:22.080
+A mesma coisa para o **Cartão de Assinatura**, ele sempre vai sugerir o último cartão digitado
+
+00:02:22.080 --> 00:02:26.780
+para este nome ou CPF que você está fazendo a busca.
+
+00:02:26.780 --> 00:02:32.860
+Então quando você selecionar a informação desejada, como por exemplo aqui do último
+
+00:02:33.020 --> 00:02:39.220
+**Cartão de Assinatura**, o sistema vai emitir uma mensagem de confirmação para a importação
+
+00:02:39.220 --> 00:02:40.820
+dos dados.
+
+00:02:40.820 --> 00:02:47.260
+Basta confirmar e ele vai sugerir os dados cadastrados no último **Cartão de Assinatura**.
+
+00:02:47.260 --> 00:02:51.880
+E nada impede que você possa fazer aqui as alterações que você quiser para esse novo
+
+00:02:51.880 --> 00:02:53.300
+cadastro.
+
+00:02:53.300 --> 00:02:58.020
+Ele deixa abertos os campos para você fazer a digitação.
+
+00:02:58.020 --> 00:03:02.180
+Perceba que o campo da profissão também tem uma lupinha.
+
+00:03:02.220 --> 00:03:08.100
+Isso é importante porque se você digitar uma profissão que não existe no cadastro,
+
+00:03:08.100 --> 00:03:10.260
+como você vai saber que não existe?
+
+00:03:10.260 --> 00:03:15.580
+Você digitaria ela aqui, então eu vou colocar aqui uma profissão que não exista.
+
+00:03:21.580 --> 00:03:27.420
+E ao clicar na opção da lupinha, você vai ver que o sistema não traz nenhum resultado.
+
+00:03:27.540 --> 00:03:35.260
+Se você salvar a sua ficha ou seu **Cartão de Assinatura** com essa digitação sem selecionar
+
+00:03:35.260 --> 00:03:40.060
+da busca, ele não vai salvar nesse seu novo cartão.
+
+00:03:40.060 --> 00:03:43.300
+Então você ficará sem os dados da profissão aqui.
+
+00:03:43.300 --> 00:03:48.860
+Então, se não apareceu nada na busca, você pode selecionar o que você digitou, dar um
+
+00:03:48.860 --> 00:03:51.660
+Ctrl+C aqui ou botão direito e copiar.
+
+00:03:51.660 --> 00:03:57.980
+E aí você vai no mais (+) para que você faça o cadastro dessa nova profissão.
+
+00:03:57.980 --> 00:04:01.540
+E concluiu.
+
+00:04:01.540 --> 00:04:08.220
+Agora sim, já vai constar essa profissão no resultado da busca.
+
+00:04:08.220 --> 00:04:15.940
+E com o resultado da busca aqui, ele já estará vinculando à sua nova ficha.
+
+00:04:15.940 --> 00:04:19.900
+Perceba que esta tela de cadastro é uma tela dinâmica.
+
+00:04:19.940 --> 00:04:25.980
+À medida em que você estiver cadastrando as informações, vão ou não aparecer campos
+
+00:04:25.980 --> 00:04:29.900
+para o seu preenchimento, como por exemplo os dados do **Cônjuge**.
+
+00:04:29.900 --> 00:04:34.860
+Você só terá os dados do **Cônjuge** se você colocar a opção de estado civil de casado.
+
+00:04:34.860 --> 00:04:39.140
+Se você deixar aqui como solteiro, ele nem aparece os dados do **Cônjuge**.
+
+00:04:39.140 --> 00:04:43.940
+Então isso é importante para que você possa preencher de forma correta o seu **Cartão de**
+
+00:04:43.940 --> 00:04:46.180
+**Assinatura**.
+
+00:04:46.220 --> 00:04:52.820
+Perceba também que em alguns campos, como por exemplo o RG, você consegue fazer aqui uma
+
+00:04:52.820 --> 00:04:59.380
+digitalização apenas do RG e vincular ela aqui ao seu cadastro no **Cartão de Assinatura**.
+
+00:05:01.380 --> 00:05:06.820
+A mesma opção você vai ter também não só para digitalizar, mas também para tirar
+
+00:05:06.820 --> 00:05:07.820
+uma foto.
+
+00:05:07.820 --> 00:05:13.060
+Então de repente você quer tirar uma foto do teu RG e não digitalizá-lo, porque você
+
+00:05:13.060 --> 00:05:17.260
+tem uma webcam e não tem um scanner, então você pode usar essa opção aqui também
+
+00:05:17.260 --> 00:05:21.060
+da captura pela webcam.
+
+00:05:21.060 --> 00:05:25.580
+A mesma coisa para a CNH, ele vai permitir que você faça isso.
+
+00:05:25.580 --> 00:05:32.860
+E todos os campos que você tiver aqui com essa informação, esse "i" com esse ícone,
+
+00:05:32.860 --> 00:05:38.820
+é um campo explicativo, onde você para o mouse e ele explica a que se refere esse
+
+00:05:38.820 --> 00:05:45.900
+campo para que você consiga fazer aqui as suas digitações.
+
+00:05:45.900 --> 00:05:50.220
+Em alguns campos você vai perceber que tem a opção de acrescentar mais de um tipo,
+
+00:05:50.220 --> 00:05:55.820
+então por exemplo eu quero cadastrar um e-mail comercial e quero cadastrar também um
+
+00:05:55.820 --> 00:06:00.580
+e-mail pessoal dessa pessoa, então eu vou clicar aqui no meu botão mais (+) e ele permite
+
+00:06:00.580 --> 00:06:02.460
+cadastrar um e-mail comercial.
+
+00:06:02.460 --> 00:06:07.300
+Se eu quiser desfazer isso que eu fiz, eu só vou no botão menos (-) e ele tira essa informação
+
+00:06:07.300 --> 00:06:08.700
+da tela.
+
+00:06:08.700 --> 00:06:14.580
+Eu consigo fazer para o e-mail de contato e também para o telefone, que é o mesmo princípio
+
+00:06:14.580 --> 00:06:21.780
+aqui do botão mais (+) e do botão menos (-) para adicionar mais tipos de telefone. Então eu quero
+
+00:06:21.780 --> 00:06:27.540
+o telefone residencial, então eu consigo também
+
+00:06:27.540 --> 00:06:33.500
+fazer aqui a adição dele e consigo também marcar como o telefone principal para que
+
+00:06:33.500 --> 00:06:39.340
+em algumas telas sempre venha este telefone primeiro ou este e-mail primeiro. E aí eu
+
+00:06:39.340 --> 00:06:42.700
+tenho essa opção aqui do principal.
+
+00:06:42.700 --> 00:06:49.900
+Bom, o endereço é a mesma coisa: você também tem a indicação dele como principal, você pode
+
+00:06:49.900 --> 00:06:53.700
+adicionar mais um tipo de endereço. Então no caso aqui eu tenho residencial, eu posso
+
+00:06:53.700 --> 00:07:00.660
+adicionar aqui um endereço comercial, ou desfazer aqui essa adição
+
+00:07:00.660 --> 00:07:03.060
+que eu acabei de fazer.
+
+00:07:03.140 --> 00:07:10.060
+Todos os nomes que vocês estão vendo, que eu estou digitando, podem estar representando
+
+00:07:10.060 --> 00:07:17.500
+uma empresa, uma pessoa jurídica, e essa informação pode ser usada aqui. Então se você tiver
+
+00:07:17.500 --> 00:07:24.140
+uma empresa que é representada por esse nome, basta clicar aqui no mais (+) e digitar o
+
+00:07:24.140 --> 00:07:30.740
+nome da empresa e o seu CNPJ, que é obrigatório, que aí ele vai fazer esse cadastro aqui dessa
+
+00:07:30.740 --> 00:07:31.740
+empresa.
+
+00:07:31.740 --> 00:07:38.220
+E eu posso também deixá-la como padrão, se eu tiver mais de uma empresa adicionada,
+
+00:07:38.220 --> 00:07:45.580
+e é importante saber que essa informação vai aparecer lá no cadastro do **Termo de Comparecimento**.
+
+00:07:45.580 --> 00:07:54.660
+As imagens todas relacionadas aqui, tanto da foto da pessoa como também da biometria
+
+00:07:54.660 --> 00:08:00.020
+e também do **Cartão de Assinatura**, podem estar aparecendo aqui do lado direito para
+
+00:08:00.020 --> 00:08:01.020
+você cadastrar.
+
+00:08:01.020 --> 00:08:07.780
+Então você pode estar tirando a foto da pessoa aqui, que aí ele vai abrir a sua webcam para
+
+00:08:07.780 --> 00:08:11.060
+que você capture a foto.
+
+00:08:11.060 --> 00:08:17.380
+Você pode estar clicando aqui também na digital para colher a biometria, que uma vez configurada
+
+00:08:17.380 --> 00:08:21.140
+ele só vai pedir aqui para você posicionar a digital e concluir.
+
+00:08:21.140 --> 00:08:26.980
+E a mesma coisa aqui também para digitalizar o **Cartão de Assinatura**.
+
+00:08:27.980 --> 00:08:35.420
+Você pode estar usando a opção de buscar a imagem do cartão de uma pasta do Windows,
+
+00:08:35.420 --> 00:08:40.820
+se ela já estiver digitalizada, que aí ele busca lá em qualquer pasta que você tenha
+
+00:08:40.820 --> 00:08:46.700
+no seu Windows, que você pode estar escolhendo para adicionar aqui a sua imagem.
+
+00:08:46.700 --> 00:08:53.220
+E sempre que tiver uma imagem aqui, você tem que clicar no "Concluir", senão ele não vincula
+
+00:08:53.220 --> 00:08:54.980
+essa imagem ao seu cartão.
+
+00:08:54.980 --> 00:08:58.820
+Ou você pode chamar o seu scanner, que aí ele vem aqui com o seu periférico, que você
+
+00:08:58.820 --> 00:09:03.540
+tiver instalado o scanner, você seleciona ele aqui e faz a digitalização.
+
+00:09:03.540 --> 00:09:09.500
+E estando a imagem aqui, seja ela pelo scanner ou direto da pasta, você sempre tem que clicar
+
+00:09:09.500 --> 00:09:14.540
+no "Concluir" para efetivar o vínculo dessa imagem à ficha.
+
+00:09:14.540 --> 00:09:18.380
+Você pode estar tirando uma foto também, se você quiser, do seu cartão: às vezes
+
+00:09:18.380 --> 00:09:22.380
+você não tem scanner e quer tirar uma foto do seu cartão que foi preenchido manualmente
+
+00:09:22.380 --> 00:09:25.620
+pela parte, você usa essa opção aqui.
+
+00:09:25.620 --> 00:09:27.100
+E pronto.
+
+00:09:27.100 --> 00:09:31.540
+Aí para que você efetive aqui o seu cartão é só clicar no "Concluir".
+
+00:09:31.540 --> 00:09:35.980
+Lembrando: se tiver algum campo obrigatório não preenchido, ele não vai liberar aqui
+
+00:09:35.980 --> 00:09:40.700
+o "Concluir", e se tiver alguma inconsistência ele também não vai ficar liberado aqui o
+
+00:09:40.700 --> 00:09:41.700
+"Concluir".
+
+00:09:41.700 --> 00:09:49.020
+Por exemplo, se eu colocar aqui uma data de nascimento inválida, por exemplo, ele vai
+
+00:09:49.020 --> 00:09:51.580
+ficar aqui com uma indicação de que a data é inválida.
+
+00:09:51.740 --> 00:09:56.260
+Então é importante vocês olharem essa indicação porque é ela que vai interferir
+
+00:09:56.260 --> 00:09:59.380
+aqui na ativação do botão "Concluir".
+
+00:09:59.380 --> 00:10:06.260
+Então se eu me deparar com esse "Concluir" inativo é porque tem alguma coisa no meu
+
+00:10:06.260 --> 00:10:09.380
+cadastro na tela que está inconsistente.
+
+00:10:09.380 --> 00:10:13.100
+Aí eu olho aqui o triângulozinho, vejo qual é o campo, vejo que por exemplo a data
+
+00:10:13.100 --> 00:10:19.060
+está inconsistente, eu altero lá, já sai a inconsistência e já libera o "Concluir"
+
+00:10:19.060 --> 00:10:20.060
+aqui para mim.
+
+00:10:21.020 --> 00:10:22.020
+É só clicar no "Concluir".
+
+00:10:23.780 --> 00:10:28.100
+Essa é a primeira parte do cadastro de um novo **Cartão de Assinatura**.
+
+00:10:28.100 --> 00:10:34.060
+No próximo vídeo vocês vão ver como é feito aqui o consumo do **Papel de Segurança**,
+
+00:10:34.060 --> 00:10:39.820
+assim como o **Selo** digital, a edição dessas fichas e o cadastro dessas fichas do novo
+
+00:10:39.820 --> 00:10:42.300
+**Cartão de Assinatura** também na tela do **Reconhecimento de Firmas**.
+

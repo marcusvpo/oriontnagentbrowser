@@ -1,0 +1,1833 @@
+00:00:11.380 --> 00:00:18.680
+Bom pessoal, muito boa tarde a todos. Hoje a gente convidou vocês para conhecer a nova versão do
+
+00:00:18.680 --> 00:00:26.420
+Orion TN. Essa versão 6 conta com uma série de novos recursos que vão ser apresentados hoje à tarde,
+
+00:00:26.420 --> 00:00:31.380
+tanto pelo Luan e pelo Vinícius Silva, que fazem parte da nossa equipe,
+
+00:00:31.480 --> 00:00:33.140
+são responsáveis pelo produto.
+
+00:00:33.680 --> 00:00:38.520
+Então eu queria chamá-los aqui a darem também seu boa tarde
+
+00:00:38.520 --> 00:00:40.520
+e já iniciar a apresentação.
+
+00:00:40.800 --> 00:00:44.440
+Ressaltando que para quem entrar um pouquinho atrasado ou precisar
+
+00:00:44.440 --> 00:00:47.800
+sair mais cedo depois a gente vai disponibilizar a gravação também.
+
+00:00:48.140 --> 00:00:50.780
+Tá bom? Boa demonstração.
+
+00:00:51.300 --> 00:00:52.140
+Obrigado Renato.
+
+00:00:52.380 --> 00:00:56.100
+Tanto eu quanto o Vini fazemos parte da equipe de sistemas do
+
+00:00:56.420 --> 00:01:02.660
+do Orion TN. Hoje a gente vai passar rapidamente sobre as principais rotinas disponibilizadas
+
+00:01:02.660 --> 00:01:09.300
+na versão 6.0 do Orion TN. Ela já está há algum tempo rodando em produção, em alguns católios
+
+00:01:09.300 --> 00:01:15.700
+parceiros, e agora a gente vai expandir para toda a carteira. Eu vou fechar a minha câmera e vou
+
+00:01:15.700 --> 00:01:20.640
+compartilhar a tela para que a gente possa iniciar a disponibilização das rotinas.
+
+00:01:26.300 --> 00:01:32.520
+Então, essa aqui é a tela inicial do Oram TN, para quem já utiliza a nossa ferramenta
+
+00:01:32.520 --> 00:01:38.380
+tem bastante conhecimento, para quem ainda não, essa é a primeira visão.
+
+00:01:38.820 --> 00:01:44.460
+A gente tem os módulos Oram Cache, Stock, o principal que é o Oram TN, além de um
+
+00:01:44.460 --> 00:01:49.160
+GED, que é o gestor autônomo de documentos, não vai ser pauta nessa apresentação hoje,
+
+00:01:49.160 --> 00:01:51.460
+e também um modo de gestão de livros.
+
+00:01:53.300 --> 00:01:56.800
+A acessão do Orion 10, ele é um produto web, nativamente web,
+
+00:01:56.900 --> 00:01:59.820
+então eu posso acessar tanto do Chrome quanto do Edge
+
+00:01:59.820 --> 00:02:03.520
+e outros navegadores que dispôs na serventia.
+
+00:02:04.680 --> 00:02:08.220
+É um sistema que roda totalmente em ambiente Linux
+
+00:02:08.220 --> 00:02:10.160
+e usa banco de dados pústicos,
+
+00:02:10.880 --> 00:02:13.900
+ou seja, não requer que os cartórios que utilizassem
+
+00:02:13.900 --> 00:02:16.440
+utilizem essa ferramenta no seu dia a dia
+
+00:02:16.440 --> 00:02:19.320
+que tenha custos com o licenciamento de Windows Server
+
+00:02:19.320 --> 00:02:22.400
+ou até mesmo o licenciamento de SQL,
+
+00:02:23.800 --> 00:02:28.000
+que é o grande cenário do mercado,
+
+00:02:28.540 --> 00:02:29.500
+dos sistemas do mercado.
+
+00:02:30.600 --> 00:02:33.000
+E você acessando a nossa página principal,
+
+00:02:33.200 --> 00:02:36.020
+ele tem a possibilidade de você buscar por rotinas do sistema,
+
+00:02:36.100 --> 00:02:37.840
+então, de protocolo,
+
+00:02:37.900 --> 00:02:40.320
+então ele me traz várias possibilidades
+
+00:02:40.320 --> 00:02:41.920
+relacionadas a protocolos.
+
+00:02:42.540 --> 00:02:44.160
+A gente tem uma gama de dashboards
+
+00:02:44.160 --> 00:02:50.540
+que ajudam na gestão e organização das equipes e os atos que estão sendo praticados
+
+00:02:50.540 --> 00:02:51.680
+dentro da Cventia.
+
+00:02:52.060 --> 00:02:57.560
+Um dos dashboards que nós temos aqui é o de atos protocolares, onde, por estágio,
+
+00:02:57.840 --> 00:03:02.040
+ele traz todos os atos que estão vinculados ao cartório, a natureza deles, a quantidade
+
+00:03:02.040 --> 00:03:07.580
+de dias que estão em aberto, os emolumentos e o saldo de movimento financeiro, caso
+
+00:03:07.580 --> 00:03:12.120
+esse ato tenha recebido um depósito pregma, então tem um controle de até 60 dias
+
+00:03:12.120 --> 00:03:17.080
+que é a prática do ato. Então a visão no campanha a gente tem um aí no caso aqui de fato do
+
+00:03:17.080 --> 00:03:25.260
+espor onde você tem uma visão por times né uma visão por status consolidada e por atendentes do
+
+00:03:25.260 --> 00:03:31.660
+cartório também e a gente tem uma rotina hoje também que a gente chama de intermediador mas
+
+00:03:31.660 --> 00:03:41.500
+na verdade é uma rotina de parceiros comerciais né onde você pode vincular a escritórios de
+
+00:03:41.500 --> 00:03:49.400
+imobiliárias e afins ao protocolo que não fazem parte do ato diretamente né mas ela que juntou-se
+
+00:03:49.400 --> 00:03:54.980
+as partes ali para que aquele ato fosse celebrado tá. Temos um dashboard também de estruturas
+
+00:03:54.980 --> 00:04:04.660
+enviados para registro que foram feitas via Oreo MTN para API para a ONR então com base na
+
+00:04:04.660 --> 00:04:10.860
+tramitação desse ato que está em registro na central o sistema autorizar automaticamente o
+
+00:04:10.860 --> 00:04:15.460
+a mensagem ou dele dentro do nosso sistema. Então, quando ele é encaminhado e ele recebe
+
+00:04:17.440 --> 00:04:23.080
+uma numeração de protocolo do RI, ele faz esse vínculo automático. Se ele foi devolvido com alguma
+
+00:04:23.080 --> 00:04:29.280
+exigência, ele tem esse processo de tramitação automático também, com as notas devolutivas e
+
+00:04:29.280 --> 00:04:33.720
+se ele foi registrado e quando ele foi entregue de fato para a parte, também controlamos isso
+
+00:04:33.720 --> 00:04:39.680
+via sistema. E por fim, dentre os nossos dashboards que nós temos aqui, nós temos um
+
+00:04:39.680 --> 00:04:45.740
+de comunicações, então de todas as obrigações legais do cartório frente à transmissão dos dados
+
+00:04:45.740 --> 00:04:54.140
+das partes que praticaram o ato, que são a CFAS, a DOI, as signos, que é CTO, CEP, CED e a mais
+
+00:04:54.140 --> 00:05:01.500
+recente que é CTP, que é equivalente a DOI. Nós temos um processo de controle dos atos que
+
+00:05:01.500 --> 00:05:07.720
+foram lavados com base em cada uma das naturezas e a gente tem validações diárias de todo seu
+
+00:05:08.620 --> 00:05:13.400
+servo ali de protocolos. Então todos os dados que foram lavados eles passam por um motor refinado
+
+00:05:14.380 --> 00:05:21.800
+de validações e nós classificamos ele com base no que foi preenchido no protocolo. Então tudo que
+
+00:05:21.800 --> 00:05:26.660
+não foi validado ainda ele fica numa primeira coluna. Os dados que foram lavados, que já estão
+
+00:05:26.660 --> 00:05:32.040
+com todos os dados preenchidos e prontos para o envio, eles ficam nessa segunda coluna. Os que
+
+00:05:32.040 --> 00:05:36.800
+que estão atrasados nessa coluna ou com alguma pendência nessa última aqui.
+
+00:05:37.180 --> 00:05:40.020
+Vou clicar nessa com pendência, em qualquer uma dessas que você clicar,
+
+00:05:40.400 --> 00:05:45.300
+ele te traz um painel lateral, onde ele traz o protocolo, a natureza,
+
+00:05:45.460 --> 00:05:51.080
+quais são as pendências que para essa central impedem que esse ato seja transmitido,
+
+00:05:52.200 --> 00:05:57.560
+e qual que é o tempo de prazo que você ainda tem para transmitir esse protocolo à central.
+
+00:05:58.140 --> 00:06:06.620
+Quando ele está pronto para o envio, ele te traz aqui, você pode acessar a nota tela de comunicações que fazia transmissão
+
+00:06:06.620 --> 00:06:11.220
+ou pode ter uma visão consolidada por comunicações aqui também.
+
+00:06:11.420 --> 00:06:18.580
+Então aquele é um cambã bem detalhado do que nós temos de áreas praticadas em cada um dos estágios.
+
+00:06:18.760 --> 00:06:25.560
+Pode ser avaliado um a um e quando eu clico nele, ele me leva até a rotina de protocolo.
+
+00:06:25.560 --> 00:06:33.700
+Então aqui ele está fazendo o carregamento, então aqui ele fez todo o processo de protocolo.
+
+00:06:33.720 --> 00:06:38.600
+Esse pode editar, fazer as alterações que forem necessárias em sistema.
+
+00:06:39.940 --> 00:06:43.860
+Então esses são os nossos testes, posso fechar essa primeira aba aqui.
+
+00:06:44.480 --> 00:06:48.620
+Agora eu vou entrar no segundo ponto que é falar das nossas rotinas de inteligência
+
+00:06:48.620 --> 00:06:55.100
+artificial, elas já estão no produto há um bom tempo, mas recentemente a gente
+
+00:06:55.100 --> 00:07:01.160
+que a gente passou por um processo de maior estabilização, trazendo novos motores do Gemini,
+
+00:07:01.260 --> 00:07:08.520
+quanto da OpenAI, para o Orion TN, e trazendo um maior nível de assertividade com a melhoria
+
+00:07:08.520 --> 00:07:13.920
+contínua dos prórpios. Então a gente continua tendo rotinas de inteligência artificial no
+
+00:07:13.920 --> 00:07:19.900
+balcão de firma, para cadastros de cartões de assinatura, vão ser objetos agora. Eu vou
+
+00:07:19.900 --> 00:07:24.600
+apenas na rotina de protocolos, né. Então, essa etapa que eu acabei de fazer foi criar um novo
+
+00:07:25.160 --> 00:07:32.400
+protocolo. Então, eu vou vincular aqui uma escritura, uma compra e venda, né. Vou vincular um
+
+00:07:32.400 --> 00:07:46.540
+documento fake para abrir o protocolo. A bandeira. Vou colocar eu mesmo como um escrevente desse ato.
+
+00:07:49.600 --> 00:07:54.440
+Então, depois do protocolo OAB, ele tem uma dinâmica aqui de cards, onde ele tem essa
+
+00:07:54.440 --> 00:07:59.540
+organização, e quando eu expando um desses cards, ele me traz algumas participações
+
+00:07:59.540 --> 00:08:05.320
+padrões, mas que você pode vir e colocar qualquer nova participação, tá?
+
+00:08:06.780 --> 00:08:13.200
+Dentro dos recursos que nós temos dentro do Oram TN, nós temos uma rotina de consulta
+
+00:08:13.200 --> 00:08:18.860
+na base da Receita Federal para saber se esse documento da pessoa pertence a uma
+
+00:08:18.860 --> 00:08:23.800
+pessoa exposta politicamente ou não. Nós fazemos uma consulta na base da SEP,
+
+00:08:24.300 --> 00:08:30.000
+da signo SEP também, para identificar se esse documento e o nome da pessoa
+
+00:08:30.000 --> 00:08:34.040
+fazem conexão com algum daqueles comunicados que vocês possivelmente
+
+00:08:34.040 --> 00:08:41.740
+recebem diariamente por e-mail que a corrigidoria disponibiliza. Nesse exemplo
+
+00:08:41.740 --> 00:08:45.900
+aqui, não tem nenhum viés político ou coisa nesse sentido, mas eu usei o documento do
+
+00:08:45.900 --> 00:08:53.200
+Alexandre de Moraes, que está em grande pauta na mídia, e ele trouxe aqui que ele é uma
+
+00:08:53.200 --> 00:08:58.320
+pessoa exposta politicamente, então já classifica automaticamente aqui, e para o Coaf ele já
+
+00:08:58.320 --> 00:09:03.860
+também cai dentro de um dos enquadramentos possíveis com base no CNJ.
+
+00:09:06.180 --> 00:09:10.580
+Dentro da qualificação das partes aqui também, nós temos como fazer o preenchimento
+
+00:09:10.580 --> 00:09:15.180
+com inteligência artificial, sendo individualmente ou coletivamente,
+
+00:09:15.260 --> 00:09:17.140
+onde eu quero inserir vários documentos.
+
+00:09:17.820 --> 00:09:21.500
+Então, vou usar o exemplo aqui fazendo preenchimento com Dilma CNH.
+
+00:09:21.940 --> 00:09:24.080
+Vou só passar para o lado para importar ela.
+
+00:09:30.240 --> 00:09:31.680
+Já fiz a importação.
+
+00:09:32.160 --> 00:09:33.320
+Então, como vocês podem ver,
+
+00:09:34.420 --> 00:09:36.400
+por ser um sistema web, ele tem essa dinâmica
+
+00:09:36.400 --> 00:09:38.880
+que eu posso navegar entre os monitores
+
+00:09:38.880 --> 00:09:44.000
+que eu tenho aqui, sem grandes problemas ou dificuldades.
+
+00:09:46.020 --> 00:09:50.420
+Nesse momento, ele faz um processo de OCR e extração dos dados.
+
+00:09:50.680 --> 00:09:52.840
+Ele passa dentro de um pronto estruturado,
+
+00:09:53.260 --> 00:09:57.260
+com toda a inteligência da nossa equipe e de outras equipes internas desse plano,
+
+00:09:57.960 --> 00:10:01.840
+que tem um long haul de anos em desenvolvimento dos sistemas.
+
+00:10:02.580 --> 00:10:06.000
+E quando ele traz o retorno, você pode manter o que você já preencheu
+
+00:10:06.980 --> 00:10:12.900
+de dados da qualificação e complementar com o que falta, ou apenas sobreescrever todos os dados.
+
+00:10:13.120 --> 00:10:16.920
+Nesse exemplo aqui eu vou sobreescrever todos os dados, porque não tinha nada preenchido.
+
+00:10:17.860 --> 00:10:23.420
+Então ele estrutura todas as informações e preenche os dados da participação, tá?
+
+00:10:27.040 --> 00:10:28.120
+Carregando aqui.
+
+00:10:29.320 --> 00:10:36.460
+ele sempre dá esse alerta posterior. Então aqui preenche todos os dados, documento, nome,
+
+00:10:37.100 --> 00:10:43.580
+nascimento, os dados específicos da CNH, data de exposição da CNH. E se você complementar
+
+00:10:43.580 --> 00:10:51.320
+o documento com um provante de endereço, luz, telefone e afins, ele preenche sua aba de endereço
+
+00:10:51.320 --> 00:10:56.980
+também. E aqui a parte de mais informações acaba trazendo todos os outros dados relacionados
+
+00:10:56.980 --> 00:11:03.400
+se fosse uma certidão de nascimento ou casamento, se fosse um casamento ele preencheria também o
+
+00:11:03.400 --> 00:11:09.220
+cônjuge, e se fosse uma certidão de nascimento, preencheria esses dados de nascimento aqui também.
+
+00:11:10.660 --> 00:11:14.140
+Então a gente tem isso também dentro da nossa rotina de cadastro de imóvel,
+
+00:11:14.180 --> 00:11:19.400
+mas eu não tenho nenhuma matrícula para apresentá-los aqui, mas depois vocês vão
+
+00:11:19.400 --> 00:11:24.300
+ver esse preenchimento funcional quando ele é importado do próprio Orion Editor.
+
+00:11:24.300 --> 00:11:33.580
+vou fazer um preenchimento de uma custa qualquer aqui também, uma base de cálculo equivalente.
+
+00:11:34.260 --> 00:11:40.400
+E agora eu vou acessar a nossa rotina de editor de textos. Então dentro do nosso editor eu posso
+
+00:11:40.400 --> 00:11:47.500
+importar essa minuto de outro protocolo, ou através do nosso duplicar parcial. Eu posso acessar
+
+00:11:47.500 --> 00:11:52.160
+outro protocolo e escolher quais etapas daquele protocolo que já foi previamente preenchido. Eu
+
+00:11:52.160 --> 00:11:57.600
+eu quero trazê-lo para trabalhar novamente, nesse exemplo aqui eu não vou fazer importação,
+
+00:11:57.780 --> 00:12:06.060
+vou gerar um modelo novo. Ele vai fazer geração que eu possa fazer as edições. Eu vou usar uma
+
+00:12:06.060 --> 00:12:10.740
+minuta fake que eu montei a pouco também com inteligência artificial.
+
+00:12:17.200 --> 00:12:21.480
+Vou acessá-lo aqui. Depois eu falo um pouco dos recursos que nós temos dentro do editor de
+
+00:12:21.480 --> 00:12:29.700
+textos. Então esse aqui é a nova versão do editor de textos que nós temos. A gente continua
+
+00:12:29.700 --> 00:12:35.500
+utilizando o LibreOffice, só que nós estamos usando agora a versão 26, que é uma versão mais robusta
+
+00:12:35.500 --> 00:12:41.540
+e estável, com alguns recursos nativos muito mais interessantes, que é o que nós tínhamos em
+
+00:12:41.540 --> 00:12:47.040
+versões anteriores. Inclusive agora a gente tem a possibilidade de uso do modo escuro. Então eu
+
+00:12:47.040 --> 00:12:52.640
+tem essa parte do modo escuro. Aqui ele também tem o modo escuro. Para quem trabalha constantemente
+
+00:12:52.640 --> 00:13:00.080
+dentro desses editores textos, esse aqui é um ganho fundamental para o dia a dia. Mas vou acabar
+
+00:13:00.080 --> 00:13:07.280
+deixando no modo claro mesmo. Mais tarde. Se eu tiver os meus modelos pré-configurados com as
+
+00:13:07.280 --> 00:13:14.620
+variáveis de mescla para que eu puxe as informações do meu índice, esse modelo já chegaria
+
+00:13:14.620 --> 00:13:21.540
+gerado com essas informações, mas como não é o caso, vou acabar inserindo o modelo que
+
+00:13:21.540 --> 00:13:27.720
+eu tenho aqui, que eu trabalhei por fora e estou fazendo importação dentro do sistema.
+
+00:13:28.020 --> 00:13:34.140
+Então aqui ele faz a importação, ele trouxe tudo fora do padrão da serventia, então
+
+00:13:34.140 --> 00:13:40.340
+eu tenho essa funcionalidade de formatação de documento, que ele pega esse documento
+
+00:13:40.340 --> 00:13:45.480
+você deixa todo no padrão, no meu caso aqui a Times New Roman e a Fonte 12.
+
+00:13:46.060 --> 00:13:51.940
+Durante a minha escrita aqui, eu quero saber como vai ficar meu livro e meu traslado que
+
+00:13:51.940 --> 00:13:57.580
+posteriormente serão gerados, eu tenho esses dois botões, prévia de livro, que ele carrega
+
+00:13:57.580 --> 00:14:04.700
+com base no meu livro que vai ficar de forma final, e ele tem também a opção do traslado.
+
+00:14:08.880 --> 00:14:15.160
+Até explicando para vocês essa pequena latência que está tendo, eu resido em Porto Alegre e estou
+
+00:14:15.160 --> 00:14:21.420
+usando servidores na empresa em São Paulo, então pela distância e conexão via VPN, ele tem um
+
+00:14:21.420 --> 00:14:29.160
+pequeno delen. Então, ele trouxe a minha base de livro, que é totalmente customizável.
+
+00:14:30.020 --> 00:14:33.640
+Então, essas letras em vermelho que trouxe era porque o ato não foi lavrado ainda,
+
+00:14:33.640 --> 00:14:37.400
+Então eu não tenho essas informações para prestar para o cliente.
+
+00:14:37.580 --> 00:14:40.040
+Ele trouxe toda essa opção.
+
+00:14:40.240 --> 00:14:42.680
+Trouxe as linhas de assinatura das partes também.
+
+00:14:42.900 --> 00:14:45.980
+Trouxe o tabeleão, no caso aqui que sou eu.
+
+00:14:46.320 --> 00:14:50.860
+E eu posso baixar uma prévia desse documento e compartilhar com o meu advogado,
+
+00:14:51.620 --> 00:14:54.800
+com a corretora, com as partes envolvidas.
+
+00:14:55.020 --> 00:14:56.780
+E a Finza, que ele traz aqui.
+
+00:14:57.180 --> 00:15:00.680
+E traz aqui o tachado de que é uma prévia até para evitar fraude.
+
+00:15:00.680 --> 00:15:05.220
+E a gente sabe que hoje em dia está bem complicado esse cenário.
+
+00:15:06.340 --> 00:15:08.040
+A mesma coisa acontece na prévia.
+
+00:15:08.280 --> 00:15:10.560
+Eu tenho uma parte transcrição também.
+
+00:15:11.500 --> 00:15:13.900
+Então estou transcrivendo aqui 100 mil reais.
+
+00:15:14.020 --> 00:15:17.880
+Para não ter que escrever por extenso esse valor,
+
+00:15:18.060 --> 00:15:21.980
+eu posso inserir aqui atrás na formatação padrão.
+
+00:15:22.780 --> 00:15:27.240
+Tem outras possibilidades e medidas que ele pode ser utilizado.
+
+00:15:27.480 --> 00:15:28.760
+Vou colocar aqui a área, por exemplo.
+
+00:15:28.760 --> 00:15:35.620
+cento e trinta e quatro metros quadrados. Quatro coloca oitenta e oito, por exemplo.
+
+00:15:37.020 --> 00:15:43.600
+Inserir, então ele traz isso tudo formatadinho, é um baita ganho no dia a dia do escrevente.
+
+00:15:43.840 --> 00:15:49.040
+A gente tem a consulta CNIP também, eu não vou conseguir demonstrar para vocês por conta
+
+00:15:49.040 --> 00:15:53.800
+que eu não tenho acesso de tradução, mas basicamente ele pega as partes que estão
+
+00:15:53.800 --> 00:16:02.000
+que estão preenchidas no protocolo e fazem a consulta delas na CNIB e traz o hash e o motivo,
+
+00:16:02.080 --> 00:16:06.240
+caso ela tenha alguma disponibilidade para o sistema também, que ele tem a mescla e
+
+00:16:06.240 --> 00:16:12.540
+depois inserido no editor de texto. Então, eu vou concluir aqui. Eu vou salvar essa minha
+
+00:16:12.540 --> 00:16:26.660
+como versão 1, por exemplo, do editor de textos. Vou fechá-lo aqui, vou abrir novamente, simulando
+
+00:16:26.660 --> 00:16:33.480
+aqui como se fosse outra pessoa alterando o sistema. A pessoa vê que removeu essa parte,
+
+00:16:33.480 --> 00:16:43.420
+por exemplo, então versão pós-revisão, por exemplo, só vou colocar um comentário
+
+00:16:43.420 --> 00:16:51.060
+também. E aí a gente traz a grande novidade dessa versão que é o versionamento de
+
+00:16:51.060 --> 00:16:56.900
+modelos, de minutos que a gente diz. Esse versionamento consiste em toda vez que
+
+00:16:56.900 --> 00:17:03.440
+Alguém altere os textos do meu sistema, das minutos, seja livre,
+
+00:17:03.460 --> 00:17:08.880
+traz lá também. Eu grave uma cópia daquele documento ali para que depois eu
+
+00:17:08.880 --> 00:17:14.180
+faça algumas ações. Então eu quero comparar o modelo de versão
+
+00:17:14.180 --> 00:17:18.320
+pós-revisão com a versão 1 que eu tinha feito. Então tem um botão de
+
+00:17:18.320 --> 00:17:23.420
+comparação que ele carrega para mim que o autor Oreo, aqui no caso eu estou
+
+00:17:23.420 --> 00:17:28.180
+eu estava usando o mesmo usuário, mas quem que fez essa alteração fez a remoção
+
+00:17:28.960 --> 00:17:34.960
+dessas duas partes aqui do meu texto. Eu posso fechar elas, então ele fica aqui como tachado
+
+00:17:36.100 --> 00:17:43.100
+e se eu coloco o mouse em cima ele aparece que foi excluído pelo usuário. Então para eu saber
+
+00:17:43.640 --> 00:17:48.840
+quando eu lavei o ar, quando eu passei para a revisão não estava dessa forma, com esses erros,
+
+00:17:48.840 --> 00:17:54.760
+Então isso tira todas essas dúvidas. Eu posso restaurar uma versão antiga.
+
+00:17:55.120 --> 00:17:59.480
+Então não era para essa versão pós-revisão. Eu quero restaurar a versão anterior.
+
+00:17:59.900 --> 00:18:05.940
+Então posso colocar aqui no botão de restaurar, que ele restaura para mim essa versão.
+
+00:18:07.920 --> 00:18:11.020
+Acabou vindo tachado, mas não deveria.
+
+00:18:12.820 --> 00:18:21.760
+Eu posso também baixar versão 1, por exemplo, outras versões do meu sistema, que ele abre
+
+00:18:21.760 --> 00:18:29.500
+também uma visão para que eu possa fazer conferência. Eu posso só visualizá-la também.
+
+00:18:31.920 --> 00:18:36.280
+Aqui eu tenho a identificação do dia, no caso todas as alterações foram feitas hoje,
+
+00:18:36.280 --> 00:18:44.120
+mas eu tenho uma linha do tempo da data quem que fez o horário que foi feita essa alteração
+
+00:18:44.120 --> 00:18:44.620
+também.
+
+00:18:45.640 --> 00:18:48.500
+Então só clicar aqui em botar a versão atual.
+
+00:18:49.480 --> 00:18:55.840
+Então dentro dessa nova versão do Orange Tour além dos andamentos que nós já salvávamos
+
+00:18:55.840 --> 00:19:02.140
+dentro do protocolo agora eu tenho uma maior rastrabilidade de todas as alterações
+
+00:19:02.140 --> 00:19:10.700
+que foram feitas por quem quando só não sabe onde essa brincadeira da parte a gente tem toda
+
+00:19:10.700 --> 00:19:18.800
+essa maior rastrabilidade. Então depois do meu documento finalizado aqui eu fiz fechei a minha
+
+00:19:18.800 --> 00:19:25.880
+aba vou clicar nesse botão do Oreo editor e vou fazer todo o preenchimento do meu protocolo com
+
+00:19:25.880 --> 00:19:33.000
+base nas observa- nos textos inseridos ali dentro da minha minuto, né. Então a gente tem duas
+
+00:19:33.000 --> 00:19:38.140
+formas de trabalho hoje dentro do OrionTen que proporciona para o escrevente. Aquele escrevente
+
+00:19:39.180 --> 00:19:44.980
+que preenche o protocolo com o uso da inteligência artificial e depois gera os textos na base
+
+00:19:44.980 --> 00:19:50.100
+padronizada que o cartório determinou ou aquele meu escrevente que tem um pouco mais
+
+00:19:50.100 --> 00:19:54.900
+dificuldades com tecnologia, mas ele é essencial para o corpo do direitivo do
+
+00:19:54.900 --> 00:20:03.220
+cartório, que já usa as minutas em Word há muito tempo, ele consegue continuar
+
+00:20:03.220 --> 00:20:09.660
+com esse mesmo âmbito de trabalho, mas sem ter um retrabalho posterior de preenchimento de
+
+00:20:09.660 --> 00:20:14.420
+INS, onde as nossas rotinas de inteligência artificial trazem todo esse
+
+00:20:14.420 --> 00:20:23.780
+para o cartório. Então o primeiro que é o marco já tinha sido preenchido e é que ele trouxe agora o
+
+00:20:23.780 --> 00:20:30.240
+Carlos Eduardo. Então são pessoas fakes, tá? Então o Carlos Eduardo Almeida da Silva, documento,
+
+00:20:30.880 --> 00:20:36.240
+RG, todos os dados dele inclusive indicando que ele é casado e quando a pessoa é casada ou tem
+
+00:20:36.240 --> 00:20:42.680
+um representante dentro do nosso da minuta, o sistema tem esse entendimento e qualifica
+
+00:20:42.680 --> 00:20:46.740
+verificar corretamente aqui também. Nesse caso aqui Ana Paula Ferreira era
+
+00:20:46.740 --> 00:20:53.900
+a cônjuge. Deixa eu ver o Eduardo, tá? Vou abrir o editor de textos para mostrar para vocês.
+
+00:20:54.420 --> 00:21:00.940
+Então Carlos Eduardo, aí aqui os dados fakes, né? São 01, 01 também. E a Ana Paula e o outro
+
+00:21:00.940 --> 00:21:08.240
+que nós temos aqui é a Juliana, né? Casada com o Roberto. Então se eu vier aqui, tá a Juliana
+
+00:21:08.240 --> 00:21:16.600
+também preenchida em todos os dados. E o Roberto também preenchido com todos os dados. Se eu tiver
+
+00:21:16.600 --> 00:21:21.580
+endereço da pessoa, ele puxa. Aqui também a gente orienta que sempre preencha, não é habitual,
+
+00:21:21.820 --> 00:21:26.700
+mas que se preencher o CEP, ele puxa todos os dados irrelevantes, inclusive os dados da DOI.
+
+00:21:27.620 --> 00:21:31.640
+E aqui a gente tem um imóvel também que foi preenchido. Então, nesse meu documento,
+
+00:21:31.640 --> 00:21:38.420
+uma compra e venda de um imóvel que é um terreno e aqui tem a parte descritiva dele.
+
+00:21:39.040 --> 00:21:42.960
+Então aqui trouxe a inscrição municipal, que é bem extensa, o valor vernal aplicado
+
+00:21:43.720 --> 00:21:51.640
+nessa venda, a descrição que estava no documento, o endereço trouxe cortado, mas se eu tivesse
+
+00:21:51.640 --> 00:21:57.060
+o SEB, por exemplo, lá ele traria mais informações, a matrícula, o registro acabaram
+
+00:21:57.060 --> 00:22:00.260
+a gente está fazendo o cartório de RIC, está um dado fake lá também.
+
+00:22:01.920 --> 00:22:09.720
+Então, dentro da nossa rotina hoje de protocolos, temos todos esses
+
+00:22:09.720 --> 00:22:14.940
+recursos de inteligência artificial, de apostoliprocurações e outros
+
+00:22:14.940 --> 00:22:19.600
+documentos que ele tem através de um pronto estruturado, o entendimento
+
+00:22:19.600 --> 00:22:24.140
+dessas partes e a devida qualificação delas.
+
+00:22:25.380 --> 00:22:31.180
+A gente o tem, por mais que tenha essas rotinas de A, a gente pede sempre que a equipe do cartório
+
+00:22:31.180 --> 00:22:37.100
+revise os preenchimentos, porque o objetivo da inteligência artificial é facilitar e
+
+00:22:37.100 --> 00:22:43.720
+tirar a morosidade do processo que nós sabemos que atualmente tem no dia a dia
+
+00:22:43.720 --> 00:22:44.480
+do escrevente.
+
+00:22:45.380 --> 00:22:48.940
+Então ao invés de ele ficar horas ali fazendo preenchimentos de índices, que é uma mera
+
+00:22:49.120 --> 00:22:54.840
+ligação legal da serventia. Ele, com o uso da inteligência artificial, potenciaria esse tempo que
+
+00:22:54.840 --> 00:23:01.660
+ele perderia ali com preenchimentos, né? Ele pode estar alocado em uma outra tarefa mais estratégica
+
+00:23:02.360 --> 00:23:09.980
+do cartório também. Aí, além disso, depois de eu finalizar o protocolo e lavrar do ato,
+
+00:23:10.320 --> 00:23:17.280
+vou acessar esse outro ambiente que eu tava aqui. Pegar um outro protocolo, tá? Pegar um que
+
+00:23:17.280 --> 00:23:37.940
+já esteja lavrado, uma consulta de índices. E aí, para os protocolos que eu já tenho
+
+00:23:37.940 --> 00:23:43.780
+lavrado dentro da minha serventia e que ele possua um imóvel como é esse caso dessa
+
+00:23:43.780 --> 00:23:49.640
+compra e venda. Deixa eu ver se está com o imóvel aqui, não está com nenhum preenchimento.
+
+00:23:49.960 --> 00:23:52.380
+Fazer o preenchimento de qualquer aqui.
+
+00:23:54.100 --> 00:23:58.300
+Basile, desculpe interromper, mas a Erika levantou a mão, se você quiser abrir espaço
+
+00:23:58.300 --> 00:24:00.080
+para ela fazer a pergunta dela.
+
+00:24:01.000 --> 00:24:07.320
+Tá, vamos fazer o seguinte até para a gente ter uma organização. Tenham perguntas
+
+00:24:09.600 --> 00:24:16.520
+respostas. Se ela puder colocar ali a doutora Erika, que aí a gente vai responder todos no final, tudo bem?
+
+00:24:24.680 --> 00:24:31.740
+Então aí, fim dado o processo aqui de lavratura do ato, chavei de ambiente, porque aquele outro
+
+00:24:31.740 --> 00:24:36.740
+que tudo estava usando, ele não tem atos lavrados. Esse aqui é o ladrível escrituro de cumprimento.
+
+00:24:38.440 --> 00:24:43.960
+E aí, com o imóvel preenchido, eu posso fazer o encaminhamento desse ato para registros de
+
+00:24:43.960 --> 00:24:49.240
+imóveis ou não, que a gente faz a transmissão automática via TI para horas centrais. Então,
+
+00:24:49.860 --> 00:25:01.720
+o escrevente, ou a pessoa responsável do catório ali, deixa eu ver, de cumprimento lavrado de
+
+00:25:01.720 --> 00:25:05.000
+que ele automaticamente entra no controle de registros de morse.
+
+00:25:05.720 --> 00:25:09.140
+Então hoje a gente tem uma rotina dedicada
+
+00:25:09.140 --> 00:25:11.500
+apenas para escritores para registro.
+
+00:25:11.640 --> 00:25:16.860
+Então vou pegar nesse exemplo aqui o ato do 14.9.
+
+00:25:18.820 --> 00:25:20.420
+Filtrando errado aqui.
+
+00:25:20.600 --> 00:25:22.120
+Filtrar pelo dia 12.
+
+00:25:23.380 --> 00:25:25.420
+Então aqui nessa rotina que nós temos
+
+00:25:25.420 --> 00:25:28.680
+nesse sistema que é envio de escritores para registro,
+
+00:25:29.120 --> 00:25:30.960
+eu seleciono qual que é o protocolo
+
+00:25:30.960 --> 00:25:38.280
+que eu quero fazer a transmissão. Qual que é o cartório de RI? Vou pegar qualquer aqui.
+
+00:25:44.960 --> 00:25:52.060
+Salto. Sextas qualquer. Eu salvo ele aqui e depois de selecionado, eu clico nesse botão
+
+00:25:52.060 --> 00:25:57.400
+de comunicar. Vou comunicar aqui, mas não vai acontecer nada porque eu não tenho as credenciais
+
+00:25:57.400 --> 00:26:03.620
+da ONR que fazia transmissão, então nesse momento que eu clico em comunicar, nada mais eu preciso fazer,
+
+00:26:04.520 --> 00:26:11.140
+ele automaticamente faz o envio desse ato para o RI, ele já prenota lá e já retorna também qual
+
+00:26:11.140 --> 00:26:21.520
+que foi o protocolo vinculado a esse ato protocolado no registro de imóveis. Então essa
+
+00:26:21.520 --> 00:26:31.300
+ela é mais complexa para ativar no cartório mesmo e do que o processo de transmissão da
+
+00:26:31.300 --> 00:26:36.580
+escritura para registro. E todo o acompanhamento dos estágios vocês podem fazer por essa
+
+00:26:36.580 --> 00:26:43.220
+tela de envio de escrituras ou pelo nosso dashboard que tinha mostrado anteriormente,
+
+00:26:43.680 --> 00:26:50.400
+só voltá-lo aqui, de envio para registro, onde ele tem toda essa disponibilidade para
+
+00:26:50.400 --> 00:26:57.600
+consultas. Tá bom? Essa é a primeira parte que eu ia apresentar. Eu vou fazer um bate-bola
+
+00:26:58.240 --> 00:27:04.380
+com o meu colega de equipe, Vini. E aí o Vinicius Silva agora vai passar rapidamente
+
+00:27:04.380 --> 00:27:08.660
+para vocês também. As rotinas de inteligência artificial que nós temos, inteligência
+
+00:27:08.660 --> 00:27:13.700
+artificial não, perdão, de WhatsApp que nós temos hoje dentro do Orion TN e a integração
+
+00:27:13.700 --> 00:27:22.760
+e uso com o nosso módulo Cartflow, que é uma ferramenta de interface cartório cliente externo da serventia, tá?
+
+00:27:23.840 --> 00:27:25.460
+Vini, eu passo a bola para você.
+
+00:27:28.120 --> 00:27:34.140
+Fechado, valeu Luanzinho, boa tarde a todos, fazer uma demonstração aqui rápida das duas
+
+00:27:34.700 --> 00:27:41.500
+das duas rotinas, tanto a de WhatsApp quanto a integração do Orion TN com o Cartflow, tá?
+
+00:27:41.500 --> 00:27:47.180
+Então vou compartilhar minha tela aqui, assim que vocês, assim que tiver visível vocês
+
+00:27:47.700 --> 00:27:49.500
+só me sinalizem por gentileza.
+
+00:27:51.620 --> 00:27:52.880
+Tá revolvendo?
+
+00:27:55.040 --> 00:27:55.840
+Fechado.
+
+00:27:56.160 --> 00:28:03.240
+Então só pra fazer aqui uma demonstração rápida, hoje aqui dentro do Orantene nós
+
+00:28:03.240 --> 00:28:10.340
+temos a integração do WhatsApp por duas principais aplicações, que é a API oficial
+
+00:28:10.340 --> 00:28:18.460
+da meta, tá, então a gente tem hoje tanto a configuração para API oficial da meta quanto
+
+00:28:18.460 --> 00:28:25.020
+para o ZAPI, que foi uma integração aí que já estava há algum tempo no sistema e que
+
+00:28:25.020 --> 00:28:34.020
+a gente acabou aprimorando ela recentemente, dispondo, incluindo aí o disparo de mensagens
+
+00:28:34.020 --> 00:28:41.380
+utilizando a integração via ZAPI para algumas rotinas aqui dentro do TN, tá?
+
+00:28:41.380 --> 00:28:47.100
+Então eu vou fazer uma breve demonstração aqui, vale destacar que aqui nesse meu ambiente
+
+00:28:47.100 --> 00:28:54.100
+eu estou com a ZAPI configurada, tá, mas tudo o que eu vou demonstrar aqui funciona
+
+00:28:54.100 --> 00:28:57.960
+também para API oficial da meta, tá?
+
+00:28:58.440 --> 00:29:03.300
+Então a primeira rotina que nós temos é que a possibilidade de disparar mensagens
+
+00:29:03.300 --> 00:29:10.820
+de WhatsApp é a rotina de envio de orçamento, tá, então você confecciona ali o seu orçamento
+
+00:29:10.820 --> 00:29:16.740
+e aí ao final do seu orçamento completo você tem a possibilidade de utilizar aqui
+
+00:29:16.740 --> 00:29:18.780
+o botão de disparo pro WhatsApp.
+
+00:29:19.180 --> 00:29:24.500
+Você pode adicionar um número, tá, ou deixar um número pré-cadastrado ou fazer
+
+00:29:24.500 --> 00:29:29.300
+a adição de um novo aqui, tá, e clicar pra ser enviado, tá.
+
+00:29:30.140 --> 00:29:38.220
+Essa mensagem, deixa eu só desparar aqui, eu estou utilizando aqui uma conta no ZPI de teste,
+
+00:29:39.260 --> 00:29:48.080
+mas já dá para vocês terem uma noção aqui que a documentação, ela vem um modelinho de mensagem que não é esse,
+
+00:29:48.080 --> 00:29:55.440
+esse aqui é só pelo fato de eu estar utilizando o trial e ela vem acompanhada ali do PDF do orçamento, tá?
+
+00:29:55.440 --> 00:30:02.400
+Então todas as rotinas ali que enviam a algum tipo de documento, esse documento vai via PDF
+
+00:30:02.400 --> 00:30:05.420
+disparado ali no template da mensagem, tudo bem?
+
+00:30:06.140 --> 00:30:11.260
+A próxima rotina que nós estamos disponível aqui é lá no nosso protocolo.
+
+00:30:11.400 --> 00:30:16.800
+Então aqui na confecção do protocolo você tem a possibilidade de enviar tanto
+
+00:30:16.800 --> 00:30:19.100
+uma prévia aqui da minuta, tá?
+
+00:30:19.100 --> 00:30:25.040
+Você consegue disparar, cadastrar ali a quantidade de números necessários
+
+00:30:25.040 --> 00:30:28.980
+e fazer o disparo para todos de uma única vez.
+
+00:30:29.520 --> 00:30:33.100
+E aí você envia aqui a prévia da minuta.
+
+00:30:36.720 --> 00:30:38.300
+Deixa eu só puxar aqui.
+
+00:30:40.100 --> 00:30:46.180
+Então vai aqui o documento com aquelas marcas d'água indicando
+
+00:30:46.180 --> 00:30:49.240
+que é uma prévia da minuta, tá?
+
+00:30:50.560 --> 00:30:53.180
+Temos também aqui na parte do protocolo,
+
+00:30:54.980 --> 00:30:57.860
+daquele comprovantezinho de abertura de protocolo,
+
+00:30:57.920 --> 00:31:02.180
+você tem a possibilidade aqui de enviar, de fazer esse envio também.
+
+00:31:11.400 --> 00:31:14.240
+Perfeito, ele foi disparado.
+
+00:31:15.100 --> 00:31:23.240
+uma parte de... aqui de recebo do... de comprovante de recebo de algum serviço de firmas,
+
+00:31:23.320 --> 00:31:25.440
+então eu vou fazer aqui um serviço rapidinho.
+
+00:31:35.940 --> 00:31:40.580
+O que você está fazendo aqui?
+
+00:31:59.020 --> 00:32:07.720
+maravilha, e a gente tem também aqui na nossa rotina de faturamento dos mensalistas, então
+
+00:32:07.720 --> 00:32:14.720
+Após você realizar o faturamento dos seus mensalistas, você tem a possibilidade de selecioná-los
+
+00:32:14.720 --> 00:32:20.680
+e aí o número que tiver cadastrado ali no cadastro de mensalista, por exemplo.
+
+00:32:21.680 --> 00:32:23.720
+Só para fazer demonstração rápida.
+
+00:32:27.480 --> 00:32:32.220
+Você consegue aqui no seu cadastro de mensalista fazer uma determinação aqui
+
+00:32:32.220 --> 00:32:41.860
+se será disparado cobranças ali para os preços mensalistas via WhatsApp, tá?
+
+00:32:42.100 --> 00:32:46.020
+Então você cadastra o telefone aqui, no cadastro aqui do mensalista
+
+00:32:46.020 --> 00:32:49.940
+e marca aqui a opção de receber a cobrança por WhatsApp.
+
+00:32:50.280 --> 00:32:56.120
+Isso permite que você, ao final ali do seu faturamento,
+
+00:32:56.120 --> 00:33:01.360
+você consiga gerar o envio para o WhatsApp.
+
+00:33:01.560 --> 00:33:04.120
+Deixa eu só realizar o faturamento aqui, rapidinho.
+
+00:33:06.280 --> 00:33:06.880
+Perfeito.
+
+00:33:07.160 --> 00:33:10.720
+Aí ele libera o botão ali para você fazer o disparo da...
+
+00:33:11.760 --> 00:33:15.240
+O disparo tanto do boleto quanto do comprovante de serviços ali
+
+00:33:15.240 --> 00:33:17.660
+para os mensalistas através do WhatsApp, tá?
+
+00:33:18.880 --> 00:33:23.400
+Nós temos também a possibilidade de fazer uma...
+
+00:33:23.400 --> 00:33:25.320
+Eu não vou conseguir demonstrar para vocês,
+
+00:33:25.320 --> 00:33:34.560
+mas está, incluso, aqui na nossa rotina de envios por WhatsApp, a possibilidade de fazer
+
+00:33:34.560 --> 00:33:40.500
+o disparo das movimentações financeiras, então à medida que as movimentações financeiras
+
+00:33:40.500 --> 00:33:47.960
+aqui do protocolo, elas forem sendo geradas, elas forem sendo pagas, você consegue emitindo
+
+00:33:47.960 --> 00:33:54.160
+comprovante de recibo ali disparando para os números interessados ali pelo
+
+00:33:54.160 --> 00:33:59.220
+WhatsApp e também para vencimento de procuração. Então, você consegue
+
+00:33:59.220 --> 00:34:05.540
+configurar para naturezas do tipo procuração? Deixa eu entrar no protocolo novo
+
+00:34:05.540 --> 00:34:08.340
+até mais para demonstrar rapidamente.
+
+00:34:12.280 --> 00:34:16.780
+Aqui na validade você consegue determinar a data de validade e aí
+
+00:34:16.780 --> 00:34:22.320
+você consegue fazer a configuração para quando estiver prestes a faltar sete dias
+
+00:34:22.320 --> 00:34:29.520
+para o vencimento dessa procuração, o número interessado receba ali via WhatsApp um alerta
+
+00:34:29.520 --> 00:34:32.300
+de sobrevencimento dessa procuração, tá?
+
+00:34:32.860 --> 00:34:40.420
+Então essas são algumas das rotinas que nós temos disponíveis aí dentro do Warranty
+
+00:34:41.300 --> 00:34:49.800
+integradas ali ao disparo de mensagens WhatsApp, sendo utilizando os API, ou utilizando a API
+
+00:34:49.800 --> 00:34:58.400
+oficial da Menta, tá? Além dessas features de WhatsApp, eu gostaria de demonstrar para vocês
+
+00:34:58.400 --> 00:35:07.280
+também uma integração aprimorada que nós tivemos para o Orem TN junto com o Cartflow,
+
+00:35:07.280 --> 00:35:12.120
+Então o Cartflow ele é uma ferramenta para quem não conhece ainda, ele é uma ferramenta
+
+00:35:12.120 --> 00:35:20.940
+aqui da Ciplã que auxilia os cartórios aí na coleta de documentação, para que os cartórios
+
+00:35:20.940 --> 00:35:25.980
+consigam fazer a coleta de documentação ali de seus clientes e auxilia também ali
+
+00:35:25.980 --> 00:35:30.020
+na gestão dos pedidos que ocorrem na serventia, tá?
+
+00:35:31.220 --> 00:35:40.420
+E hoje nós temos essa plataforma funcionando de maneira apartada, aqui a Warren TN, mas
+
+00:35:40.420 --> 00:35:45.860
+nós temos também a possibilidade de trabalhar com ela integrada ao Warren TN, tá?
+
+00:35:45.860 --> 00:35:50.920
+Então eu vou fazer uma demonstração aqui rápida, apenas para que vocês tenham entendimento,
+
+00:35:51.100 --> 00:35:54.280
+vou fazer simular aqui um ato de compra e venda.
+
+00:36:04.580 --> 00:36:11.140
+Aqui é o passo a passo que a maioria já está acostumada, aí quando integrado eu tenho aqui
+
+00:36:11.140 --> 00:36:19.300
+um botãozinho do Cartflow, tem a possibilidade de criar um pedido aqui, maravilha, com o pedido
+
+00:36:19.300 --> 00:36:27.400
+criado, vale destacar que eu já deixei parametrizado aqui, mas aqui dentro desse pedido de compra
+
+00:36:27.400 --> 00:36:32.420
+eu já tenho organizado aqui as minhas pastinhas com toda a documentação necessária que eu
+
+00:36:32.420 --> 00:36:37.100
+preciso para progredir com esse ato protocolar.
+
+00:36:37.400 --> 00:36:41.960
+E aí aqui eu vou fazer o convite, eu tenho a possibilidade de fazer o convite tanto via
+
+00:36:41.960 --> 00:36:48.120
+o e-mail quanto via o WhatsApp, aproveitando aí da integração já do Ouro1tn, então
+
+00:36:48.120 --> 00:36:51.320
+vou fazer aqui a simulação utilizando o WhatsApp.
+
+00:36:54.600 --> 00:37:01.560
+Vou disparar ali para o meu cliente a solicitação de documentos que eu preciso para poder dar
+
+00:37:01.560 --> 00:37:03.580
+sequência nesse pedido de compra e venda.
+
+00:37:04.140 --> 00:37:11.980
+Eu recebo de imediato aqui uma notificação no meu WhatsApp com os documentos necessários
+
+00:37:11.980 --> 00:37:20.100
+aqui para eu progredir com o meu ato, e aí eu vou fazer só um teste, que isso
+
+00:37:20.360 --> 00:37:26.220
+era uma barreira que nós tínhamos para os usuários aí do Cartflow, que muitas vezes
+
+00:37:26.220 --> 00:37:31.380
+o cliente do Cartor, ele não quer ali aprender uma plataforma nova, ou seja, ele não quer
+
+00:37:31.380 --> 00:37:37.020
+entrar lá no Cartflow para poder fazer o anexo das documentações, enfim, então
+
+00:37:37.020 --> 00:37:42.080
+você utilizando a integração com o WhatsApp, você abre uma janela de oportunidade para
+
+00:37:42.080 --> 00:37:46.480
+que ele continue utilizando a ferramenta que ele já está habituado, que é o WhatsApp,
+
+00:37:46.480 --> 00:37:51.720
+Então, a partir do momento que você manda esse comunicado via Cartflow para o seu cliente
+
+00:37:51.720 --> 00:37:57.720
+ali no WhatsApp, ele tem a possibilidade de fazer o anexo das documentações dele aqui
+
+00:37:57.720 --> 00:38:03.280
+direto pelo WhatsApp mesmo, utilizando a ferramenta que ele já está habituado.
+
+00:38:03.560 --> 00:38:09.180
+E o seu escrevente tem a possibilidade de aquilo dentro dos protocolos ter acesso
+
+00:38:09.180 --> 00:38:13.080
+através de um modalzinho rápido que nós colocamos aqui,
+
+00:38:14.660 --> 00:38:18.780
+de conferir ali os documentos que foram recebidos por WhatsApp.
+
+00:38:19.200 --> 00:38:23.640
+Então, toda aquela documentação que eu coloquei ali por WhatsApp,
+
+00:38:24.000 --> 00:38:27.660
+ela fica disponível aqui para ser visualizada
+
+00:38:28.180 --> 00:38:31.840
+e aprovada ou recusada, se necessário.
+
+00:38:32.060 --> 00:38:35.560
+Então, todos os documentos que eu coloquei aqui, você clicando,
+
+00:38:35.560 --> 00:38:41.680
+tem uma preview, você consegue fazer uma preview ali do documento e aí quando você faz a aprovação
+
+00:38:41.680 --> 00:38:47.800
+do documento, você leva ele ali para dentro do seu protocolo, deixando ele já anexado
+
+00:38:47.800 --> 00:38:52.480
+a aquelas pastinhas que foram parametrizadas para aquela natureza, tá?
+
+00:38:52.780 --> 00:39:01.560
+Então eu fazendo o aceite aqui do meu documento, o seu usuário ele recebe uma notificação
+
+00:39:01.560 --> 00:39:10.620
+ali no WhatsApp de que esse documento foi aprovado, da mesma forma se eu fizer a negativa do documento,
+
+00:39:10.620 --> 00:39:20.280
+colocando ah, documento errado, o usuário também recebe ali uma informação sobre porque
+
+00:39:20.280 --> 00:39:24.040
+que esse documento foi dado a negativa pra ele, tá?
+
+00:39:24.440 --> 00:39:29.200
+A possibilidade também se você sentir falta de algum documento, que precisa cobrar
+
+00:39:29.200 --> 00:39:35.240
+algum documento específico, você consegue, por esse modal mesmo aqui, já conferir ali
+
+00:39:35.240 --> 00:39:43.040
+a listagem de documentos que foram parametrizadas para essa natureza e fazer ali a cobrança
+
+00:39:43.040 --> 00:39:46.200
+de algum documento específico, se for o caso, tá?
+
+00:39:46.760 --> 00:39:52.160
+E aí vale destacar que quando você faz o aceite do documento lá naquele modal, você
+
+00:39:52.160 --> 00:39:58.540
+tem o documento incorporado, que é o seu protocolo, de forma automática, então
+
+00:39:58.540 --> 00:40:06.020
+fez o aceite lá, o documento ele já fica aqui anexado e vinculado a esse protocolo
+
+00:40:06.020 --> 00:40:12.020
+e se você precisar prestar alguma manutenção no documento, você consegue acessá-lo, conferir
+
+00:40:12.020 --> 00:40:19.320
+novamente, se por ventura você fez alguma aprovação errada, você consegue remover
+
+00:40:19.320 --> 00:40:24.140
+a aprovação, sinalizar a pendência a partir daqui, então você consegue fazer
+
+00:40:24.140 --> 00:40:29.220
+uma série de manipulações nos documentos que estão sendo enviados ali
+
+00:40:29.760 --> 00:40:33.480
+pelas partes através dessa nossa rotina
+
+00:40:33.480 --> 00:40:36.860
+de integração entre o Cartflow e o Warranty.
+
+00:40:37.320 --> 00:40:42.080
+Então eu acho que da minha parte da apresentação aqui tanto das rotinas
+
+00:40:42.080 --> 00:40:46.600
+do WhatsApp quanto da rotina de integração do Cartflow com o Warranty
+
+00:40:46.600 --> 00:40:50.960
+é isso até para não estender muito tempo aqui de vocês.
+
+00:40:51.160 --> 00:40:53.460
+Tá bom, Luazinho? Devolvo a palavra para você.
+
+00:40:53.460 --> 00:41:00.420
+Obrigado Vinícius. Até que a gente fechar esse tema CartFlower, a gente sabe que é uma dor muito
+
+00:41:00.420 --> 00:41:06.700
+grande essa gestão documental das serventias entre as partes, ainda mais que a gente tem alguns dados
+
+00:41:06.700 --> 00:41:18.260
+mais complexos, né, como inventários dentre outros. Então essa ferramenta é uma ferramenta pra gerenciar
+
+00:41:18.260 --> 00:41:21.660
+essa parte documental entre as pessoas,
+
+00:41:21.780 --> 00:41:23.020
+partes envolvidas ali.
+
+00:41:23.560 --> 00:41:27.000
+E dentro do Gartful, nós temos um módulo também
+
+00:41:27.000 --> 00:41:33.120
+que é o módulo de CNPJ, que seriam prestadores de serviço,
+
+00:41:33.420 --> 00:41:36.840
+onde, para um CNPJ, por exemplo, um escritório de advocacia,
+
+00:41:36.880 --> 00:41:38.320
+ele consegue ter vários usuários
+
+00:41:38.320 --> 00:41:40.540
+vinculados a uma conta principal,
+
+00:41:42.300 --> 00:41:43.960
+onde o administrativo, por exemplo,
+
+00:41:44.020 --> 00:41:47.240
+ou qualquer outro setor responsável por conferir
+
+00:41:47.240 --> 00:41:56.600
+todos os atos que estão em andamento do cartório, consigam fazer uma gestão 360 dos pedidos,
+
+00:41:57.160 --> 00:42:05.620
+o que está do lado da empresa, o que está do lado do cartório, e fazer essa gestão mais organizada, tá?
+
+00:42:07.320 --> 00:42:12.220
+Para finalizar, aqui a nossa demonstração, aí depois irei para a parte de perguntas e respostas.
+
+00:42:12.220 --> 00:42:18.520
+Vou apresentar pra vocês o que a gente denominou o Orion Connect, tá?
+
+00:42:19.060 --> 00:42:29.560
+O Orion Connect é um sistema da família Orion, cujo seu objetivo é resolver uma dor dentro dos cartórios hoje,
+
+00:42:29.620 --> 00:42:38.420
+que é um fluxo de mensageria entre os colaboradores da serventia e uma gestão de comunicados,
+
+00:42:38.420 --> 00:42:43.640
+informações relevantes e afins dentro do cartório.
+
+00:42:44.660 --> 00:42:46.880
+Então, deixa eu deslogar novamente.
+
+00:42:47.560 --> 00:42:53.380
+Essa aqui é a carinha inicial da ferramenta.
+
+00:42:53.560 --> 00:42:58.860
+Só pegar o usuário sem que eu acabei perdendo de vista.
+
+00:43:04.480 --> 00:43:06.260
+Vamos logando aqui.
+
+00:43:06.260 --> 00:43:17.800
+Então, dentro do nosso Orion Connect, ele cai sempre na tela inicial, quando eu tenho alguma pendência de leitura ou confirmação de leitura, ele me aparece aqui nessa lateral.
+
+00:43:19.860 --> 00:43:34.440
+Aqui ele é dividido por canais, então eu posso criar canais de escrituras, canais de balcão de filmes, canais de coordenadores, gestão e afins, posso definir quem participa de cada um desses canais.
+
+00:43:34.440 --> 00:43:41.140
+Somente moderadores ou o tabelião que podem fazer publicações todas as demais
+
+00:43:41.140 --> 00:43:47.300
+pessoas do cartório classificadas como colaboradores podem apenas visualizar as
+
+00:43:47.300 --> 00:43:53.400
+publicações e ter uma reação de curtida e afim assim como nós temos nas redes
+
+00:43:53.400 --> 00:44:00.060
+sociais e até mesmo fazer comentários dentro das publicações. Por exemplo
+
+00:44:00.060 --> 00:44:04.380
+aqui eu tenho uma publicação do Clérison falando que vai ter uma versão liberada.
+
+00:44:05.360 --> 00:44:09.180
+Então vou comentar, ok, me avise para treinar a equipe.
+
+00:44:14.600 --> 00:44:16.860
+Aí faço a publicação.
+
+00:44:17.300 --> 00:44:21.540
+Então tudo isso fica auditável e rastreado dentro de uma mensagem.
+
+00:44:23.300 --> 00:44:26.220
+Tem a parte também de comunicar os oficiais
+
+00:44:26.220 --> 00:44:30.800
+você definir que é importante essa informação para toda a serventia.
+
+00:44:31.260 --> 00:44:35.560
+Então, como exemplo aqui, teve uma publicação de um novo provimento
+
+00:44:36.140 --> 00:44:40.580
+e você pode pedir para que as pessoas confirmem em leitura
+
+00:44:40.580 --> 00:44:43.580
+e tenham ciência dessa determinação,
+
+00:44:43.880 --> 00:44:48.780
+seja provimentos, determinações internas da serventia, sobre horários,
+
+00:44:49.880 --> 00:44:51.820
+complementos de normas e afins.
+
+00:44:51.820 --> 00:45:02.920
+E o tabelião ou os moderadores conseguem acessar a parte de comunicados oficiais e
+
+00:45:02.920 --> 00:45:06.880
+saber quem que leu esse comunicado, quem confirmou ou não, quem ainda está
+
+00:45:06.880 --> 00:45:12.340
+pendente, o horário que cada um deles fez essa confirmação. E eu posso salvar
+
+00:45:12.340 --> 00:45:17.980
+essas publicações também para que depois eu possa revise elas pela aba de
+
+00:45:17.980 --> 00:45:24.480
+está. Então, aqui é uma visão infinita, né? Ali das informações que o usuário pode fazer,
+
+00:45:25.020 --> 00:45:33.160
+é ter de uso no dia a dia, pode fazer buscas, né? A gente chama de busca parecida com o Google,
+
+00:45:33.360 --> 00:45:40.160
+né? Onde eu coloco um conteúdo aqui, por exemplo, provimento. Aí ele me traz todas as
+
+00:45:40.160 --> 00:45:45.900
+informações relacionadas a provimentos e texto que eu coloquei aqui. E eu tenho a aba de
+
+00:45:45.900 --> 00:45:52.960
+mensagens também, onde eu tenho as mensagens One-on-One, pessoas individuais do cartório,
+
+00:45:53.220 --> 00:45:57.460
+eu posso criar uma nova aqui, que me lista todas as pessoas a ser mentira, ou eu posso
+
+00:45:57.460 --> 00:46:03.300
+criar um grupo, então eu quero criar um grupo, Orion PN, por exemplo, eu vou colocar
+
+00:46:03.300 --> 00:46:09.280
+o Clarison, o Daniel e o Maurílio Camargo, por exemplo, criou esse grupo, todos eles
+
+00:46:09.280 --> 00:46:15.060
+estão vinculados, mensagem inicial, por exemplo.
+
+00:46:15.060 --> 00:46:20.880
+Então, eu posso mandar várias mensagens, tem a possibilidade de eu ver quem fez a leitura
+
+00:46:20.880 --> 00:46:28.260
+ou apagar essa mensagem, responder uma mensagem sobre a outra, tem esse recurso, e eu posso
+
+00:46:28.260 --> 00:46:32.360
+enviar arquivos aqui também, vou enviar, por exemplo, uma nota de compatibilidade
+
+00:46:32.360 --> 00:46:33.340
+do OMTM.
+
+00:46:33.480 --> 00:46:39.540
+Então, ele entra nesse pacote, qualquer pessoa pode fazer o download e depois ter
+
+00:46:39.540 --> 00:46:48.440
+e edições também dentro do sistema, tá? Aqui embaixo traz as conversas recentes, as
+
+00:46:48.440 --> 00:46:56.120
+conversas são em tempo real, então uma pessoa manda outra e já recebe. E tira-se a necessidade
+
+00:46:56.120 --> 00:47:05.080
+de ferramentas paralelas da serventia para a gestão de informações que tem que ser
+
+00:47:05.080 --> 00:47:13.680
+mentira a todos. Também mensagens entre os colaboradores. Essa ferramenta, a parte de mensagens
+
+00:47:13.680 --> 00:47:21.240
+acaba tendo um ponto de atenção, que os moderadores e tabelins não podem acessar as
+
+00:47:21.240 --> 00:47:29.760
+mensagens de cada um dos usuários. Então tem um certo nível de privacidade. Por exemplo, eu
+
+00:47:29.760 --> 00:47:36.600
+eu sou supervisor e eu quero acessar as mensagens que o Vinicius e o Silvan tem ali de diálogo com as
+
+00:47:36.600 --> 00:47:42.680
+pessoas dentro das eventi, então a gente hoje via sistema não tem essa possibilidade a não ser que
+
+00:47:42.680 --> 00:47:50.640
+tenha algum problema em crime ou coisa que aconteceu ali alguma injúria racial ou qualquer outro nesse
+
+00:47:50.640 --> 00:47:57.360
+sentido que precise ser extraído as mensagens para ser juntado a uma petição na justiça aí
+
+00:47:57.360 --> 00:48:03.920
+nós temos a possibilidade de fazer essa extração via banco de dados com a
+
+00:48:03.920 --> 00:48:07.260
+equipe técnica da Ciplã fazendo essa auditoria, tá?
+
+00:48:08.660 --> 00:48:15.460
+Então, essas são as informações, são as principais, na verdade, do Orion TN
+
+00:48:15.460 --> 00:48:21.900
+para a versão 6.0. A gente sempre recomenda que todos acompanhem o nosso
+
+00:48:21.900 --> 00:48:25.760
+change log, que é possível ser acessado aqui pela aba de saiba novidades da
+
+00:48:25.760 --> 00:48:32.860
+versão, a gente está sempre liberando novas versões em produção. Então, por aqui vocês
+
+00:48:32.860 --> 00:48:37.420
+conseguem acompanhar várias outras rotinas, melhorias. Então, recentemente a gente teve
+
+00:48:37.420 --> 00:48:42.640
+bastante evolução e o lançamento de uma rotina de tesouraria, volume caixa, evoluímos
+
+00:48:42.640 --> 00:48:47.700
+e muito a nossa rotina de conciliação bancária. Temos também talentários agora
+
+00:48:47.700 --> 00:48:58.060
+para contor de despesas e por parte da equipe financeira da Serventias, dentre outras novidades
+
+00:48:58.860 --> 00:49:08.160
+para vocês, tá bom? Renato, aqui eu encerro a apresentação, a gente vai passar para as
+
+00:49:08.160 --> 00:49:13.680
+perguntas e respostas. Sim, era isso mesmo que eu ia pedi, Lula, para você focar lá, o pessoal
+
+00:49:13.680 --> 00:49:19.580
+colocou no perguntas e respostas e aí eu vou deixar o e-mail também porque hoje
+
+00:49:19.580 --> 00:49:24.940
+participando a gente tem tanto cliente de outras plataformas que ainda não usam
+
+00:49:24.940 --> 00:49:30.900
+o Oreo como já usuários, então quem se interessou por alguma rotina ou todas
+
+00:49:30.900 --> 00:49:36.920
+pode mandar o e-mail nesse endereço que eu tô colocando aqui no chat e a
+
+00:49:36.920 --> 00:49:41.780
+gente faz contato com vocês, esclarece como vai funcionar a implantação dessa
+
+00:49:41.780 --> 00:49:48.260
+conversão e para quem ainda não tem também pode conversar com a gente aqui no comercial que a
+
+00:49:48.260 --> 00:49:53.260
+gente vai dar todas as informações. Então acho que a gente pode seguir com aquela sequência de
+
+00:49:53.260 --> 00:49:59.060
+perguntas a começá-la pela Erika, pode ser Lua? Combinado. A Erika questionou sobre o preenchimento
+
+00:49:59.060 --> 00:50:06.800
+do protofogo, como coloca os documentos, gira a publicação. Ah tá, não Erika, não precisa tá,
+
+00:50:07.680 --> 00:50:13.160
+a gente pode revisar os modelos da forma como que está a conflitação ser ventia, mas ao fazer o
+
+00:50:13.160 --> 00:50:17.480
+preenchimento das partes no protocolo com inteligência artificial e a devida qualificação
+
+00:50:18.600 --> 00:50:24.680
+de como essa pessoa figurará nesse ato, quando gerar sua minuto ele já trará automaticamente
+
+00:50:25.520 --> 00:50:33.500
+com base nas mesmas de gênero e número a qualificação. Teve uma pessoa de Votorantim
+
+00:50:33.500 --> 00:50:39.040
+que fez o questionamento se na abertura de cartões de assinatura ele recebe via WhatsApp
+
+00:50:39.040 --> 00:50:44.860
+as imagens. Hoje a gente não tem só esse recurso, tá bom? O que nós temos de recurso
+
+00:50:44.860 --> 00:50:49.380
+para a parte de cartões de assinatura é a importação dos documentos para preenchimento
+
+00:50:49.380 --> 00:50:55.120
+com uso de inteligência artificial. Vamos mostrar rapidamente aqui também. Então quando
+
+00:50:55.120 --> 00:51:01.160
+eu venho cadastrar um novo cartão eu posso fazer a inserção dos documentos das pessoas
+
+00:51:01.160 --> 00:51:09.020
+aqui. Então vou colocar uma CNH aqui por exemplo. Eu vou processar. Então depois desse preenchimento
+
+00:51:09.020 --> 00:51:14.100
+com base em todos os documentos que forem inseridos. Deu erro de crédito nessa minha
+
+00:51:14.100 --> 00:51:20.600
+conta. Mas com base em todos os dados dos documentos inseridos, ele faz uma extração
+
+00:51:20.600 --> 00:51:25.800
+posterior para o enchimento de todos os dados pessoais aqui e automaticamente já
+
+00:51:26.440 --> 00:51:33.300
+arquivo esse documento nessa ficha, tá bom? Ele fez questionamento do
+
+00:51:33.300 --> 00:51:38.340
+balcão de firmas também, se a gente faz os envios de receitos via WhatsApp.
+
+00:51:38.600 --> 00:51:43.220
+E sim, a gente também tem esse recurso no nosso caixa de firmas e no caixa de
+
+00:51:43.220 --> 00:51:49.360
+pedidos de certidão, assim como nós temos protocolo. Teve um questionamento
+
+00:51:49.360 --> 00:51:57.380
+perguntou sobre o WhatsApp da movimentação financeira, e depois Marília questionou sobre o fluxo
+
+00:51:57.380 --> 00:52:05.800
+financeiro dos protocolos. Vai ser que depois a gente pode sentar em um momento específico,
+
+00:52:05.940 --> 00:52:11.860
+doutora Marília, e te explicar o todo ali do que a gente tem de controle, isso de ponta a ponta,
+
+00:52:11.980 --> 00:52:17.860
+indo caixa, o nível de depósito prévio, e afinal isso que é uma rotina bem acaba sendo um
+
+00:52:21.940 --> 00:52:26.920
+O primeiro tabelão de notas que questionou sobre o Orion Connect de desativar,
+
+00:52:27.080 --> 00:52:32.440
+sim. Se for, estiver utilizando o Orion TN ou o Orion Protesto, quando você inativar um
+
+00:52:32.440 --> 00:52:38.220
+usuário dentro do sistema, que a gente chama de principal, ele automaticamente replicará para o
+
+00:52:38.220 --> 00:52:45.280
+Orion Connect. Eles estarão todos integrados nas versões futuras, atualmente não, que é um
+
+00:52:45.280 --> 00:52:49.500
+novo, mas nas versões estruturais ele vai ter um chat flutuante dentro do
+
+00:52:49.500 --> 00:52:53.420
+Oreo, para que ele possa ter essa visão das informações e também notificação
+
+00:52:53.420 --> 00:53:06.700
+quando tiver a publicação de publicação de... Esqueci, me fugiu o termo. De textos ali,
+
+00:53:07.560 --> 00:53:09.520
+postagens que são importantes.
+
+00:53:09.520 --> 00:53:19.620
+tá? Sobre os documentos incluídos no protocolo, já vão para o GED, depois
+
+00:53:19.620 --> 00:53:23.700
+exatamente já ficam prontos. Dentro do nosso protocolo, esse que eu posso mostrar
+
+00:53:23.700 --> 00:53:30.420
+rapidamente, nós já temos a nossa aba de documentos apresentados, que ali já
+
+00:53:30.420 --> 00:53:35.640
+faz o controle automático dos classificadores. O nosso Orion GED, hoje
+
+00:53:35.640 --> 00:53:44.640
+dentro do óbito aqui, ele não é utilizado na sua totalidade para essa gestão de
+
+00:53:44.640 --> 00:53:52.080
+classificadores. Hoje, o sistema principal já faz esse uso e classificação automática,
+
+00:53:52.380 --> 00:53:57.920
+se é um passo de arquivamento ou eletrônico. E o nosso GED apenas replica o que tem no protocolo,
+
+00:53:57.920 --> 00:54:00.040
+Ele não duplica as informações.
+
+00:54:00.780 --> 00:54:02.920
+Ele pega do mesmo arquivamento lá
+
+00:54:02.920 --> 00:54:07.700
+e apresenta para o caso seja que queria ser consultado por lá.
+
+00:54:10.760 --> 00:54:14.160
+E por dentro de um usuário ativo, eu posso desativar a função.
+
+00:54:15.380 --> 00:54:18.420
+No caso, se não queria, o primeiro também não questionou
+
+00:54:18.420 --> 00:54:19.960
+se ele pode desativar a função.
+
+00:54:20.160 --> 00:54:22.260
+Eu não quero que o waterconnect seja ativado,
+
+00:54:22.280 --> 00:54:23.540
+por exemplo, o Vinícius.
+
+00:54:23.640 --> 00:54:25.700
+O Vinícius usa o waterntn,
+
+00:54:25.700 --> 00:54:29.600
+Mas ele não irá usar o OramConnect? Seria isso?
+
+00:54:31.260 --> 00:54:33.760
+Ah, tá, tem sim. Tem essa possibilidade sim, tá, Lucas?
+
+00:54:35.100 --> 00:54:41.320
+O Connect é você que define quem da serventia vai ter acesso a essa ferramenta, tá bom?
+
+00:54:44.080 --> 00:54:49.900
+Luan, eu gostaria só de voltar na pergunta da Marília sobre o GED, né? Porque ali,
+
+00:54:49.900 --> 00:54:56.460
+Lembrando, no sistema Control-M para notas, a gente tem uma ferramenta
+
+00:54:57.300 --> 00:55:01.260
+específica para arquivamento dos documentos eletrônicos, que é o GED.
+
+00:55:01.800 --> 00:55:08.980
+No caso do Orion TN, não há necessidade do GED, porque ele fica associado com o
+
+00:55:08.980 --> 00:55:14.860
+próprio protocolo dentro do próprio Orion TN. Então, aqui é só para reforçar
+
+00:55:14.860 --> 00:55:24.840
+esse ponto, é como se o Orion TN já tivesse o GED embutido dentro dele. Então, quando você
+
+00:55:24.840 --> 00:55:32.340
+anexa documentos num protocolo, ele já fica atrelado às imagens ali dentro desse protocolo e
+
+00:55:32.340 --> 00:55:39.060
+ficam disponíveis para consulta a qualquer momento e você pode localizar esse documento
+
+00:55:39.060 --> 00:55:45.800
+vezes, pelo número do protocolo, pelo nome das partes, por livre e folha, enfim, por
+
+00:55:45.800 --> 00:55:51.320
+uma série de campos que são possíveis de fazer pesquisa e os documentos vão estar
+
+00:55:51.320 --> 00:55:58.720
+sempre associados aqui ao número do protocolo, sem necessidade de fazer ou a digitalização
+
+00:55:58.720 --> 00:56:02.320
+por fora do sistema, no GED, ou alguma coisa desse tipo.
+
+00:56:02.860 --> 00:56:05.020
+Apenas para reforçar, viu, Luan?
+
+00:56:06.060 --> 00:56:12.300
+Eu só respondendo uma dúvida das pessoas ali no chat em relação ao registro de imóveis,
+
+00:56:13.860 --> 00:56:19.440
+acabei pecando nessa parte. Os protocolos que vocês vão fazer o envio para o RI,
+
+00:56:19.600 --> 00:56:25.440
+vocês vinculam nos anexos mesmo do próprio protocolo, o arquivo, então vou colocar
+
+00:56:25.440 --> 00:56:31.480
+esse espesa aqui, por exemplo, no sistema. Como eu posso conectar vários documentos,
+
+00:56:31.480 --> 00:56:37.580
+você marca que esse aqui vai ser enviado para registro de imóveis ou aqui dentro dessa
+
+00:56:37.580 --> 00:56:42.340
+tela mesmo de envio para registro, tem a opção de anexos onde você pode inserir por aqui
+
+00:56:42.340 --> 00:56:47.920
+também os anexos que serão transmitidos como base, que seria o trazado e os demais
+
+00:56:50.120 --> 00:56:54.720
+PDFs. Você pode inserir os todos aqui e quando você fizer a transmissão pelo
+
+00:56:54.720 --> 00:56:59.800
+botão de comunicação ele faz o envio das informações do protocolo juntamente
+
+00:56:59.800 --> 00:57:05.300
+gente com esses anexos inseridos no sistema, tá bom? Peço desculpas, eu acabei passando
+
+00:57:06.420 --> 00:57:12.260
+batido nessa parte. Vamos ver se ainda a gente tem mais alguma
+
+00:57:12.260 --> 00:57:17.980
+dúvida, né, Lula? Que o pessoal ainda está escrevendo aqui. Acho que lá não tem outras
+
+00:57:17.980 --> 00:57:22.280
+respostas, ó. Renato, eu só queria complementar o Cartofogo,
+
+00:57:22.380 --> 00:57:27.880
+faltar ele a todos. Voltando ali no Cartofogo, ele é um produto que faz a captação.
+
+00:57:28.620 --> 00:57:34.420
+O escrevente gera um pedido e compartilha, ou o próprio cliente do cartório, que está
+
+00:57:34.420 --> 00:57:39.020
+usando o serviço, pode também fazer o pedido via site, só para lembrar esse ponto do CartFlower
+
+00:57:39.020 --> 00:57:42.420
+para ele ter a ampla captação de pedidos.
+
+00:57:43.980 --> 00:57:49.900
+Esse ponto que o Diego ressaltou eu acho que ele é relevante, porque muitos cartórios
+
+00:57:49.900 --> 00:57:56.740
+têm contatos com corretores de imóveis na cidade, é comum ter aquele corretor que
+
+00:57:56.740 --> 00:58:02.380
+tem a preferência pelo seu tabelionato e que ele leva vários serviços lá para
+
+00:58:02.380 --> 00:58:10.160
+dentro do cartório, então o Cartflow pode ser uma ferramenta de gestão até
+
+00:58:10.160 --> 00:58:17.740
+para esse corretor para ele poder enviar para o cartório, como foi apresentado
+
+00:58:17.740 --> 00:58:22.860
+ali pelo Vinícius, tem um lugar ali que você tem os parceiros, né Vinícius, que
+
+00:58:22.860 --> 00:58:28.120
+você usou o termo ali que seria um poderia ser pejora escritório de
+
+00:58:28.120 --> 00:58:33.360
+advocacia ou coisa do tipo poderia ser um corretor de imóveis também que
+
+00:58:33.360 --> 00:58:38.800
+pode encaminhar a documentação e provocar o cartório para abrir um
+
+00:58:38.800 --> 00:58:43.200
+protocolo sem nem ir até o cartório ele pode entrar no site do cartório
+
+00:58:43.200 --> 00:58:48.880
+por exemplo entrar num ícone lá onde ele vai acessar o cart flow ele já
+
+00:58:48.880 --> 00:58:55.420
+tem o seu login e senha, e ele já submete ali para o cartório uma solicitação de uma
+
+00:58:55.420 --> 00:58:59.900
+escritura, por exemplo, de venda e compra, e já coloca ali os documentos que ele tiver.
+
+00:58:59.980 --> 00:59:07.320
+Isso já vai aparecer automaticamente no Orion TN para ser convertido em um protocolo e
+
+00:59:07.320 --> 00:59:14.840
+já com esses documentos anexados, então é uma funcionalidade bem interessante de
+
+00:59:14.840 --> 00:59:21.000
+ou dupla mesmo. Tanto o cartório pode provocar as partes para solicitar documentos, como as
+
+00:59:21.000 --> 00:59:25.740
+partes podem entrar em contato com o cartório também através do próprio site.
+
+00:59:27.120 --> 00:59:29.440
+Isso aí. Obrigado, Marcos, pelo acompanhamento.
+
+00:59:31.700 --> 00:59:36.680
+Bom, pessoal, num momento não surgiram novas perguntas. A gente sabe que esse espaço
+
+00:59:36.680 --> 00:59:41.920
+acaba sendo um pouco curto para todo mundo poder se manifestar, então quem quiser pode
+
+00:59:41.920 --> 00:59:46.800
+nos enviar mensagens e depois a gente vai disponibilizar a gravação, como eu
+
+00:59:46.800 --> 00:59:50.880
+comentei aqui no começo, para quem entrou um pouquinho atrasado aqui.
+
+00:59:51.200 --> 00:59:56.660
+Queria agradecer o Luan, o Vinícius, o Marcos, o Diego e principalmente vocês
+
+00:59:56.660 --> 01:00:00.600
+por terem dedicado um espacinho do horário de trabalho para poder
+
+01:00:00.600 --> 01:00:04.220
+participar. Acho que podemos encerrar, certo, meninos?
+
+01:00:05.600 --> 01:00:10.960
+Fechado. Obrigado, pessoal. Até mais. Muito obrigado a todos, um abraço.
+
+01:00:11.280 --> 01:00:12.180
+Tchau, pessoal. Boa tarde.
+
+01:00:12.360 --> 01:00:13.140
+Excelente tarde.
+
+01:00:15.720 --> 01:00:17.180
+Excelente tarde.
+

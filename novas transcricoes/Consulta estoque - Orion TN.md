@@ -1,0 +1,13 @@
+Olá! Neste vídeo, irei demonstrar como realizar consultas do **Estoque** no sistema **ORION TN**.
+
+Após realizarmos o login no sistema, iremos acessar o módulo **ORION Stock**. Possuímos dois caminhos para as consultas: um para as consultas de produtos distribuídos e uma outra consulta mais completa.
+
+Primeiro, irei mostrar a consulta dos produtos que já foram distribuídos. Para isso, iremos acessar o menu Administração, submenu Distribuição. Seremos, então, direcionados para a tela de Distribuição. Selecionamos a aba Consulta. Escolhemos a categoria do produto em relação ao qual vamos fazer a consulta (por exemplo, **Selos**), o produto (reconhecimento por autenticidade), a data da distribuição, o portador e a série do produto. Após preenchermos, clicamos em "Filtrar". O sistema, então, irá apresentar o resultado da nossa consulta, nos dando a possibilidade de estornar esse intervalo do produto caso ele não tenha sido utilizado ou de visualizar os andamentos, que seriam os logs deste produto.
+
+Irei demonstrar agora, então, a outra possibilidade de consulta que o sistema possui. Para isso, vamos ao menu Administração, submenu Consultas e **Estoque**. Seremos direcionados, então, para esta tela, onde possuímos duas formas de consulta: resumida ou detalhada.
+
+Primeiro, irei demonstrar a consulta resumida. Seleciono a categoria e, depois, o produto. Podemos selecionar um mês de referência e um status, caso necessário; mas, para este exemplo, vou selecionar apenas a série e a sequência inicial e final. Após preencher, clico no botão "Filtrar". O sistema, então, nos trará o resultado da nossa pesquisa. Como realizei a consulta resumida, ele nos trará os intervalos do produto sobre o qual realizei a consulta e o seu status — como, por exemplo: sequência inicial e final de 1 a 15, consumido; a sequência de 51 a 100, em **Estoque**; e, de 16 a 50, 35 **Selos** distribuídos aguardando a utilização.
+
+Podemos também realizar uma consulta na opção Detalhada. Preenchemos os campos sobre os quais desejamos realizar a consulta e clicamos em "Filtrar". Desta forma, o sistema nos apresentará o resultado de uma maneira diferente, trazendo, assim, os produtos separadamente e nos dando mais opções — por exemplo: estornar um produto, inutilizar um produto que já foi utilizado ou, então, ver um log dos andamentos desse produto. Vale ressaltar que, para reutilizar um produto, é necessário primeiro inutilizá-lo na tela de serviço. Esta rotina será apresentada nos vídeos referentes a **Papel de Segurança** ou **Selos** de **Firmas**.
+
+Neste vídeo, então, demonstrei para vocês como realizar as consultas do módulo **ORION Stock** do sistema **ORION TN**. Obrigado e até a próxima!

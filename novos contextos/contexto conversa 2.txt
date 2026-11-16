@@ -1,0 +1,151 @@
+# 🧠 CONTEXTO TÉCNICO DE ENGENHARIA: ASSISTENTE VIRTUAL & BASE DE CONHECIMENTO (ORION TN)
+
+Este documento sintetiza todo o histórico técnico de desenvolvimento, a arquitetura da base de dados, a taxonomia dos metadados YAML, a integração com Bunny.net Stream e as regras operacionais do assistente para subsidiar a revisão e reformulação de sua estrutura, prompts e respostas.
+
+---
+
+## 1. ARQUITETURA GERAL DO SISTEMA
+
+- **Motor de IA:** OpenAI (Assistants API / Responses API).
+- **Mecanismo de Recuperação:** Vector Store / File Search com RAG baseado no arquivo estruturado `OrionTN pos.md`.
+- **Frontend / Chat:** Interface web que consome as respostas do assistente em Markdown e intercepta dinamicamente URLs de embed da Bunny.net Stream para transformá-las em um player nativo (`<iframe>`) dentro do próprio balão de mensagem.
+
+---
+
+## 2. ESTRUTURAÇÃO DA BASE DE CONHECIMENTO (`OrionTN pos.md`)
+
+A base de conhecimento foi completamente consolidada e enriquecida em um único arquivo Markdown contendo exatamente **366 rotinas**. Cada rotina é um bloco autônomo delimitado por Frontmatter YAML padronizado:
+
+### 2.1. Schema do YAML Frontmatter por Rotina
+
+```yaml
+---
+id: [PREFIXO]-[ID] # Identificador único (ex: R-23.0, V-7.0.1, M-14.0, D-1.19)
+titulo: "[Título Oficial da Rotina]"
+tags:
+  - [Tag 1]
+  - [Tag 2]
+objetivo: "[Objetivo prático da rotina]"
+sinonimos:
+  - [Sinônimo 1]
+  - [Sinônimo 2]
+perguntas_usuario:
+  - "[Pergunta comum 1]"
+  - "[Pergunta comum 2]"
+video:
+  tem_video: true # boolean: true se houver tutorial real gravado; false caso contrário
+  # Caso tem_video: true (Vídeo Único):
+  bunny_library_id: "467408"
+  bunny_video_id: "GUID_DO_VIDEO"
+  video_title: "Nome do Vídeo na Bunny - Orion TN"
+  video_url: "https://iframe.mediadelivery.net/embed/467408/GUID_DO_VIDEO?t=0"
+  video_timestamp: "00:00"
+  video_start_seconds: 0
+  # Caso tem_video: true (Vídeo Multipartes):
+  partes:
+    - parte: 1
+      video_title: "Nome do Vídeo pt 1"
+      bunny_library_id: "467408"
+      bunny_video_id: "GUID_PARTE_1"
+      video_url: "https://iframe.mediadelivery.net/embed/467408/GUID_PARTE_1?t=0"
+    - parte: 2
+      video_title: "Nome do Vídeo pt 2"
+      bunny_library_id: "467408"
+      bunny_video_id: "GUID_PARTE_2"
+      video_url: "https://iframe.mediadelivery.net/embed/467408/GUID_PARTE_2?t=0"
+  # Caso tem_video: false:
+  # video:
+  #   tem_video: false
+---
+
+#### Descrição:
+[Contexto operacional do procedimento]
+
+#### Passo a passo:
+1. [Ação no menu]
+2. [Ação no botão/campo]
+3. [Ação de conclusão/salvamento]
+
+* **Observação:** [Regras técnicas adicionais]
+---
+```
+
+---
+
+## 3. AUDITORIA DOS VÍDEOS (BUNNY.NET STREAM) E MÉTRICAS
+
+A biblioteca de vídeos na Bunny.net está sob a **Library ID `467408`** com 16 arquivos de vídeo catalogados.
+
+### 3.1. Critério Estrito de Vinculação ("Tutorial Real")
+Um vídeo **SÓ PODE** estar marcado como `tem_video: true` se o vídeo demonstrar, de forma prática e em tela, a execução dos cliques e fluxos daquela rotina específica. 
+- **Falsos Positivos Expurgados:** Menções conceituais, cadastros auxiliares de retaguarda, rotinas gerais de protocolo no Notas e parametrizações de TI que não apareciam na tela do vídeo foram purgadas e forçadas a `tem_video: false`.
+
+### 3.2. Métricas Consolidadas das 366 Rotinas por Seção
+- **Total de Rotinas na Base:** 366 (100%)
+- **Rotinas com Vídeo Tutorial Autêntico (`tem_video: true`):** 148 (40,4%)
+- **Rotinas sem Vídeo Gravado (`tem_video: false`):** 218 (59,6%)
+
+**Distribuição por Seções do Arquivo:**
+1. **Seção R-* (37 rotinas):** 1 com vídeo (`R-23.0`); 36 sem vídeo (`tem_video: false`).
+2. **Seção V-* (109 rotinas):** 41 com vídeo (Editor `V-7.x`, Cartão `V-CCA.x`, Sinal Público `V-1.0`, Estoque `V-2.0` e `V-3.0`); 68 sem vídeo.
+3. **Seção M-* (100 rotinas):** 34 com vídeo (Mensalistas, Cartão, Balcão de Firmas, Termo e Caixa); 66 sem vídeo.
+4. **Seção D-* (120 rotinas):** 64 com vídeo (Caixa `D-1.x`, Estoque `D-2.x`, Editor `D-3.27`/`D-3.38-42`, Selos `D-3.53-54/73/76`); 56 sem vídeo.
+
+---
+
+## 4. DINÂMICA DE EXECUÇÃO DO ASSISTENTE (PROMPT & CONVERSAÇÃO)
+
+O assistente foi desenhado sob um **Fluxo Antidelírio em 2 Etapas**:
+
+### Etapa 1: Triagem e Desambiguação
+- **Objetivo:** O usuário faz uma pergunta operacional genérica. O assistente localiza as rotinas correspondentes via RAG e devolve uma lista numerada apenas com `ID` e `Título`.
+- **Regra Rígida de Parada:** É expressamente proibido enviar ou adiantar o passo a passo na Etapa 1.
+
+### Etapa 2: Entrega da Rotina e Anexação de Mídia
+- **Objetivo:** O usuário envia o número da rotina selecionada.
+- **Processamento:**
+  1. Extração do corpo textual completo (Passo a passo, botões em **negrito**, telas).
+  2. Supressão de metadados internos de busca (`tags`, `sinonimos`, `perguntas_usuario`).
+  3. Leitura e extração do bloco `video:`:
+     - Se `tem_video: true`: Adiciona no rodapé o link Markdown `[video_title](video_url)`.
+     - Se `tem_video: false`: Insere aviso padronizado de que a rotina está completa por texto e que novos vídeos estão em produção.
+
+---
+
+## 5. INTEGRAÇÃO NO FRONTEND (AUTO-EMBED DO PLAYER)
+
+No cliente do chat (React/Next.js/Vue/Vanilla), a renderização de Markdown deve conter um interceptor de links para auto-embed da Bunny.net:
+- **Padrão de URL:** `https://iframe.mediadelivery.net/embed/467408/{VIDEO_ID}?t=0`
+- **Comportamento do Interceptor:** Ao encontrar um link com esse padrão, não renderizar a tag `<a>`, mas sim um container responsivo 16:9 contendo:
+  ```html
+  <div class="video-responsive-wrapper">
+    <iframe src="{URL}" loading="lazy" allowfullscreen ...></iframe>
+  </div>
+  ```
+
+---
+
+## 6. COMPORTAMENTOS ANÔMALOS E LIÇÕES TÉCNICAS OBSERVADAS
+
+Durante os testes reais, foram identificados desvios comportamentais do modelo que exigem blindagem:
+
+1. **Ansiedade do Modelo na Etapa 1:**
+   - *Problema:* O assistente listava as opções e, na mesma mensagem, dizia *"Enquanto você decide, já deixo o passo a passo da opção 1"*, quebrando o fluxo em 2 etapas.
+   - *Causa:* Ausência de instrução negativa forte (Hard Stop constraint).
+
+2. **Alucinação por "Meta de Opções" (Fatiamento de IDs):**
+   - *Problema:* Quando a instrução exigia *"retorne de 3 a 4 opções"*, mas a pergunta era ultra-específica e só existia 1 rotina real na base (ex: Sinal Público `V-1.0`), o modelo inventava opções fictícias repetindo o mesmo ID (`V-1.0 - Parte 1`, `V-1.0 - Parte 2`, etc.).
+   - *Solução:* Flexibilizar para 1 a 3 opções e aplicar a restrição: **Cada opção listada DEVE ter um ID diferente**.
+
+3. **Supressão Indevida do Bloco de Vídeo:**
+   - *Problema:* A instrução dizia *"não mostre metadados do YAML"*. O modelo interpretou o bloco `video:` como metadado proibido e ignorou a URL do vídeo na Etapa 2.
+   - *Solução:* Especificar explicitamente que `tags`, `sinonimos` e `perguntas_usuario` são proibidos, mas o bloco `video:` **deve ser obrigatoriamente lido e convertido em link Markdown**.
+
+---
+
+## 7. OBJETIVO PARA A NOVA SESSÃO
+
+Utilizar esta base técnica consolidada para:
+1. Revisar e reestruturar o System Prompt do assistente.
+2. Refinar a sintaxe e os gatilhos das respostas para garantir 100% de precisão de RAG e renderização dos players.
+3. Avaliar melhorias na formatação do conhecimento ou no fluxo de diálogo do assistente.

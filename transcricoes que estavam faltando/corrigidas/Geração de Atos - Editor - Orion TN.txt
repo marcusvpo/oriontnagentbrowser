@@ -1,0 +1,449 @@
+00:00:00.000 --> 00:00:07.100
+Nesse vídeo irei demonstrar como realizar a geração de uma escritura utilizando o editor no sistema **ORION TN**.
+
+00:00:07.940 --> 00:00:10.780
+Primeiro, selecionamos a espécie.
+
+00:00:11.480 --> 00:00:15.540
+Neste caso, irei selecionar a natureza de compra e venda.
+
+00:00:17.620 --> 00:00:19.880
+Seleciono o solicitante.
+
+00:00:26.560 --> 00:00:29.220
+E salvo para a geração do protocolo.
+
+00:00:30.700 --> 00:00:36.000
+Para a geração final do nosso ato, que seria o **Traslado**, precisamos seguir alguns passos.
+
+00:00:37.300 --> 00:00:41.140
+Primeiro, realizamos a criação da qualificação das partes.
+
+00:00:41.380 --> 00:00:46.240
+Nesse caso, da compra e venda irei inserir um **Outorgante** e um **Outorgado**.
+
+00:00:48.480 --> 00:00:56.380
+Faço o preenchimento das informações referentes ao **Outorgante**, ou seleciono o **Cartão de Assinatura**.
+
+00:00:56.880 --> 00:00:58.880
+Mesma coisa para o **Outorgado**.
+
+00:01:03.080 --> 00:01:10.120
+Após realizarmos o cadastro das partes, agora precisamos realizar a geração da qualificação.
+
+00:01:11.020 --> 00:01:18.860
+Clicamos no botão Qualificação, e o sistema trará um modelo padrão pré-qualificado nas configurações,
+
+00:01:19.360 --> 00:01:23.760
+ou então a última qualificação utilizada para esta parte.
+
+00:01:23.960 --> 00:01:29.860
+Caso eu queira realizar a troca deste modelo, o sistema nos lista, no canto direito,
+
+00:01:29.860 --> 00:01:33.120
+os modelos cadastrados e liberados para os usuários.
+
+00:01:33.600 --> 00:01:38.300
+Neste caso, eu quero trocar o Bruno para casado.
+
+00:01:38.300 --> 00:01:40.360
+Seleciono, então, o modelo.
+
+00:01:41.400 --> 00:01:48.680
+Ele nos dará um aviso de atenção informando que podemos incluir esta qualificação junto à outra,
+
+00:01:48.680 --> 00:01:50.880
+ou sobrescrever a mesma.
+
+00:01:50.900 --> 00:02:00.140
+Caso eu queira incluir, o sistema nos trará as informações onde o ponteiro do mouse estava selecionado.
+
+00:02:00.140 --> 00:02:08.820
+Caso eu queira sobrescrever, ele irá limpar as informações anteriores e trazer só a nova informação.
+
+00:02:08.820 --> 00:02:15.920
+Neste caso, o sistema trouxe alguns dados com a fonte em vermelho, o que significa que o modelo
+
+00:02:15.940 --> 00:02:19.980
+Neste caso, o sistema trouxe alguns dados com a fonte em vermelho,
+
+00:02:19.980 --> 00:02:24.720
+o que significa que estes campos não foram preenchidos na qualificação da parte.
+
+00:02:24.720 --> 00:02:31.520
+Neste caso, a profissão do **Cônjuge**, a UF do RG do **Cônjuge** e o regime de bens.
+
+00:02:31.520 --> 00:02:37.560
+Irei salvar e realizar o preenchimento das informações faltantes.
+
+00:02:45.920 --> 00:02:51.320
+Salvo as alterações.
+
+00:02:51.320 --> 00:02:54.320
+Clico novamente em Qualificação.
+
+00:02:54.320 --> 00:03:00.320
+Vou realizar a mescla novamente.
+
+00:03:00.320 --> 00:03:03.320
+Então, ele está sendo fechado.
+
+00:03:03.320 --> 00:03:06.320
+Vou fazer a mescla novamente.
+
+00:03:06.420 --> 00:03:11.420
+Clico novamente em Qualificação.
+
+00:03:11.420 --> 00:03:15.420
+Vou realizar a mescla novamente.
+
+00:03:15.420 --> 00:03:24.420
+Então, ele trará as informações que estavam faltantes no cadastro da qualificação.
+
+00:03:24.420 --> 00:03:34.420
+Realizamos então o mesmo processo para as qualificações faltantes.
+
+00:03:34.520 --> 00:03:40.520
+É importante ressaltar que, a depender das configurações realizadas no cadastro da parte,
+
+00:03:40.520 --> 00:03:48.520
+do imóvel ou até mesmo na **Minuta**, os textos mesclados pelo sistema podem sofrer alterações,
+
+00:03:48.520 --> 00:03:54.520
+como por exemplo no regime de bens, se o **Cônjuge** é um transmitente, anuente ou nenhum,
+
+00:03:54.520 --> 00:04:02.520
+isto será mostrado melhor no vídeo onde demonstraremos manutenções e criações de modelos do editor.
+
+00:04:02.620 --> 00:04:09.620
+Seguindo então com a geração do nosso ato, após qualificarmos as partes, iremos fazer o mesmo para o imóvel.
+
+00:04:11.320 --> 00:04:16.120
+Para este exemplo, irei selecionar um imóvel já cadastrado.
+
+00:04:16.120 --> 00:04:23.320
+O campo Descrição é um campo aberto, onde podemos realizar o preenchimento dos dados do imóvel
+
+00:04:23.320 --> 00:04:28.220
+e temos uma variável para trazer todas as informações diretamente ao modelo.
+
+00:04:28.320 --> 00:04:35.120
+Vou salvar então o cadastro do imóvel, clico no ícone referente ao editor e ele
+
+00:04:35.120 --> 00:04:41.920
+ilustrará a qualificação do imóvel, sendo possível também ao canto superior direito
+
+00:04:41.920 --> 00:04:48.220
+clicarmos no ícone da lupa e trocarmos os modelos de cadastro do imóvel disponíveis no sistema.
+
+00:04:48.820 --> 00:04:56.320
+Iremos então salvar a qualificação do imóvel e agora já podemos realizar a geração da **Minuta**.
+
+00:04:56.520 --> 00:05:04.520
+Para isso, no card de editor de texto, selecionamos o modelo que desejamos e clicamos no botão Adicionar.
+
+00:05:05.120 --> 00:05:09.520
+O sistema irá realizar a mescla da **Minuta** e ilustrará o modelo.
+
+00:05:09.520 --> 00:05:17.220
+Aqui teremos algumas opções como excluir, alterar, visualizar, enviar por e-mail, assinar digitalmente,
+
+00:05:17.520 --> 00:05:25.220
+status de impressão, fazer um download da prévia, enviar por WhatsApp ou realizar o preenchimento do protocolo
+
+00:05:25.220 --> 00:05:28.720
+utilizando **IA**, mas este será o foco de um outro vídeo.
+
+00:05:29.520 --> 00:05:34.220
+Vamos realizar agora os ajustes finais antes da geração do livro e do **Traslado**.
+
+00:05:34.620 --> 00:05:37.320
+Para isso, clicamos no botão Editar.
+
+00:05:39.420 --> 00:05:42.620
+Aqui então é apresentado o corpo da nossa **Minuta**.
+
+00:05:43.220 --> 00:05:49.220
+Como informei anteriormente, o sistema tem as opções de validação de gênero e número,
+
+00:05:49.420 --> 00:05:51.920
+realizando assim as devidas flexões.
+
+00:05:52.420 --> 00:05:59.220
+Por exemplo, neste caso foi apresentado o **Outorgante** vendedor Bruno Fernandes,
+
+00:05:59.720 --> 00:06:07.620
+pois na qualificação de partes, o **Cônjuge** do Bruno Fernandes está marcado como Nenhum.
+
+00:06:08.120 --> 00:06:10.920
+Porém, se o marcarmos como Transmitente,
+
+00:06:13.020 --> 00:06:14.120
+salvarmos,
+
+00:06:15.220 --> 00:06:17.320
+gerarmos novamente a **Minuta**,
+
+00:06:22.420 --> 00:06:28.420
+podemos ver então que o sistema já fez o ajuste e alterou para **Outorgantes** vendedores
+
+00:06:28.620 --> 00:06:32.120
+o Bruno Fernandes e sua **Cônjuge**, Paula.
+
+00:06:35.420 --> 00:06:41.920
+Mesmo caso acontece na parte do **Outorgado**, **Outorgada** compradora Roberta Magalhães,
+
+00:06:42.420 --> 00:06:47.920
+e esta funcionalidade se aplica para todos os modelos de **Minutas** do editor do **ORION TN**.
+
+00:06:48.420 --> 00:06:53.420
+Aqui na parte de edição, ainda podemos aproveitar para realizar ajustes
+
+00:06:53.420 --> 00:06:56.920
+ou visualizar alguns campos que não foram preenchidos no protocolo,
+
+00:06:57.420 --> 00:06:59.920
+como por exemplo o cargo escrevente assinante.
+
+00:07:00.920 --> 00:07:07.920
+Aqui também, o sistema não trouxe o valor total do **ITBI**, pois não foi preenchido na parte das custas.
+
+00:07:07.920 --> 00:07:12.920
+Podemos realizar o preenchimento manual por aqui, porém não será atualizado no protocolo.
+
+00:07:13.920 --> 00:07:19.420
+Sempre recomendamos que realizem o preenchimento no protocolo para que seja preenchido também na **Minuta**.
+
+00:07:20.420 --> 00:07:23.920
+Irei realizar então o preenchimento dos campos faltantes.
+
+00:07:43.420 --> 00:07:45.420
+E gerar a **Minuta** novamente.
+
+00:07:51.420 --> 00:07:54.920
+Podendo assim realizar os ajustes finais na nossa **Minuta**.
+
+00:07:54.920 --> 00:07:58.420
+O nosso editor utiliza um componente do LibreOffice Online.
+
+00:07:58.920 --> 00:08:03.420
+Sendo assim, nesta tela na criação de modelos ou **Minutas**,
+
+00:08:03.920 --> 00:08:08.420
+ele trará o menu do LibreOffice,
+
+00:08:08.420 --> 00:08:13.920
+Na criação de modelos ou **Minutas**, ele trará o menu do LibreOffice,
+
+00:08:14.420 --> 00:08:22.420
+onde podemos alterar fonte, tamanho da fonte, cor, utilizar marca-texto, alinhar o texto
+
+00:08:22.920 --> 00:08:26.420
+e todas as outras funcionalidades disponíveis pelo LibreOffice.
+
+00:08:26.920 --> 00:08:29.920
+Aqui ainda podemos também incluir cláusulas,
+
+00:08:30.420 --> 00:08:35.920
+que ficam localizadas no botão no canto superior direito da tela neste ícone de lupa.
+
+00:08:36.420 --> 00:08:40.920
+Na parte Local de Busca, selecionamos Cláusulas,
+
+00:08:41.420 --> 00:08:44.420
+e o sistema irá nos listar todas as cláusulas cadastradas.
+
+00:08:44.920 --> 00:08:49.920
+Caso eu queira inserir uma cláusula, posso clicar em cima do nome dela,
+
+00:08:50.420 --> 00:08:53.420
+ou só visualizar, clico no ícone com o olho.
+
+00:08:53.920 --> 00:08:59.920
+Neste caso, o sistema nos mostra antes de inserir qual é a cláusula que selecionamos.
+
+00:09:01.420 --> 00:09:03.920
+Caso eu queira inseri-la direto na **Minuta**,
+
+00:09:04.920 --> 00:09:11.920
+seleciono o local de inserção e clico no nome da cláusula.
+
+00:09:13.920 --> 00:09:15.920
+Assim, o sistema irá realizar a inserção.
+
+00:09:16.420 --> 00:09:20.920
+Notem que a cláusula foi gerada com um tipo de fonte diferente da nossa **Minuta**.
+
+00:09:21.420 --> 00:09:26.420
+Isso se dá por conta de que a cláusula foi criada com esta fonte apresentada.
+
+00:09:26.920 --> 00:09:31.420
+Para corrigirmos isso, podemos alterar no modelo padrão dessa cláusula,
+
+00:09:31.920 --> 00:09:34.920
+também podemos ajustar manualmente,
+
+00:09:35.920 --> 00:09:38.920
+ou então clicarmos no botão Formatar documento,
+
+00:09:39.420 --> 00:09:43.420
+que realizará a formatação padrão parametrizada no sistema.
+
+00:09:48.920 --> 00:09:52.920
+Ainda na parte inferior da tela, temos o botão de Transcrição de valores.
+
+00:09:53.920 --> 00:10:00.920
+Ao clicar nele, é exibida a tela com a função de converter valores numéricos em texto.
+
+00:10:01.420 --> 00:10:03.920
+Por exemplo, área em metro quadrado,
+
+00:10:05.420 --> 00:10:08.920
+eu digito o valor 10 e ele me traz 10 metros quadrados.
+
+00:10:09.420 --> 00:10:12.920
+Podemos ainda fechar esta tela, limpar o valor,
+
+00:10:14.920 --> 00:10:18.920
+ou inserir o texto com o Enter ou clicando no botão.
+
+00:10:21.920 --> 00:10:26.920
+Caso a nossa **Minuta** esteja finalizada, já podemos partir para o livro e o **Traslado**.
+
+00:10:28.420 --> 00:10:29.920
+Irei salvar a **Minuta**,
+
+00:10:31.920 --> 00:10:32.920
+fechá-la,
+
+00:10:35.920 --> 00:10:40.920
+e aqui no card de editor, selecionamos a partir de qual documento será gerado o livro
+
+00:10:42.920 --> 00:10:48.920
+e podemos gerar a prévia do livro, caso seja necessário o envio a algum cliente ou advogado
+
+00:10:48.920 --> 00:10:51.420
+para ler a **Minuta** antes da geração final,
+
+00:10:52.420 --> 00:10:53.920
+ou gerar o livro.
+
+00:10:54.920 --> 00:10:56.920
+Ao gerarmos a prévia do livro,
+
+00:10:57.920 --> 00:11:01.920
+o sistema trará o cabeçalho e o encerramento do livro,
+
+00:11:02.920 --> 00:11:04.920
+porém sem as datas de **Lavratura**
+
+00:11:05.920 --> 00:11:12.920
+e o número do recibo ou algum valor que ainda não foi lançado devido ao ato ainda não ter sido **Lavrado**.
+
+00:11:13.420 --> 00:11:16.420
+Irei então realizar a geração do recibo.
+
+00:11:18.920 --> 00:11:20.920
+Para isso, vou inserir o número do livro,
+
+00:11:20.920 --> 00:11:23.920
+o sistema automaticamente irá me sugerir a folha,
+
+00:11:25.920 --> 00:11:27.920
+faço a geração do recibo,
+
+00:11:30.920 --> 00:11:31.920
+e o livro.
+
+00:11:32.920 --> 00:11:35.920
+O livro vai ser lançado em uma tela de tela de tela,
+
+00:11:36.920 --> 00:11:39.920
+e o livro vai ser lançado em uma tela de tela de tela.
+
+00:11:39.920 --> 00:11:41.920
+Agora posso gerar o livro.
+
+00:11:43.920 --> 00:11:46.920
+Agora com todas as informações já preenchidas,
+
+00:11:46.920 --> 00:11:49.920
+o sistema nos dará o livro pronto para impressão.
+
+00:11:50.920 --> 00:11:56.920
+Notem que o sistema tem a opção de geração do livro em margem espelho.
+
+00:11:57.920 --> 00:11:59.920
+O livro está em margem espelho,
+
+00:12:00.920 --> 00:12:02.920
+e o livro está em margem espelho.
+
+00:12:03.920 --> 00:12:08.920
+Notem que o sistema tem a opção de geração do livro em margem espelho,
+
+00:12:09.920 --> 00:12:15.920
+pois devido às folhas do livro e **Traslado** serem **Papéis de Segurança** com margens diferenciadas,
+
+00:12:16.920 --> 00:12:21.920
+dependendo do lado da página, é necessário que a impressão seja realizada com essas margens de espelho.
+
+00:12:22.920 --> 00:12:25.920
+Ainda no livro, antes de realizarmos a impressão definitiva,
+
+00:12:26.920 --> 00:12:28.920
+podemos realizar a consulta na **Central de Indisponibilidade** (**CNIB**).
+
+00:12:29.920 --> 00:12:32.920
+Para realizá-la, clicamos no botão Central de Indisponibilidade.
+
+00:12:33.920 --> 00:12:38.920
+O sistema, então, irá realizar a consulta. Após finalizar a consulta,
+
+00:12:40.920 --> 00:12:43.920
+devemos vir no ícone da lupa no canto superior direito,
+
+00:12:45.920 --> 00:12:49.920
+selecionar Consulta **CNIB**, e ele nos trará o modelo cadastrado.
+
+00:12:50.920 --> 00:12:53.920
+Seleciono onde serão inseridas as informações,
+
+00:12:53.920 --> 00:12:54.920
+e clico no nome do modelo.
+
+00:12:55.920 --> 00:12:58.920
+Pronto, agora já podemos realizar a impressão do ato.
+
+00:12:59.920 --> 00:13:03.920
+Aqui ainda possuímos duas opções, que seriam a impressão prévia,
+
+00:13:05.920 --> 00:13:08.920
+onde será gerada uma **Minuta** com uma marca d'água,
+
+00:13:11.920 --> 00:13:13.920
+ou então a impressão definitiva.
+
+00:13:24.920 --> 00:13:27.920
+Após realizarmos a impressão definitiva do ato,
+
+00:13:29.920 --> 00:13:34.920
+o sistema automaticamente irá realizar a contagem das folhas e inserir a folha final.
+
+00:13:36.920 --> 00:13:39.920
+E também já podemos realizar a geração do **Traslado**.
+
+00:13:40.920 --> 00:13:43.920
+Para gerarmos o **Traslado**, usaremos a mesma rotina do livro.
+
+00:13:44.920 --> 00:13:47.920
+Selecionamos a **Minuta** para geração e clicamos no botão **Traslado**.
+
+00:13:47.920 --> 00:13:51.920
+Aqui também podemos realizar a impressão prévia e a impressão definitiva,
+
+00:13:52.920 --> 00:13:54.920
+assim encerrando o nosso ato.
+
+00:13:55.920 --> 00:14:00.920
+Esta então é a rotina para realizarmos a geração de atos utilizando o editor no **ORION TN**.

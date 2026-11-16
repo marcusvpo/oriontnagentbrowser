@@ -1,0 +1,63 @@
+---
+id: V-2.3.1
+titulo: 'Edição de Custas do Registro de Imóveis e Adição de Múltiplos Atos no Orçamento Completo'
+modulo: config
+secao: V
+auditoria_ui:
+  data_execucao: '2026-11-15'
+  status: atualizacao_editorial
+  carga: mutation
+  worker_id: 'worker-1'
+  versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+  prints_geradas: 1
+  dry_run_mutations: true
+  sessao_usuario: '4tabeliao.scs'
+  sessao_perfil_pleno: true
+  exploracao_investigativa:
+    - passo: 1
+      alvos_ausentes: ['Registro de Imóveis']
+      alvos_revelados: []
+      resultado: gatilhos_esgotados
+      gatilhos_na_tela: 0
+      seletores_sem_afinidade_descartados: 0
+      estado_restaurado: true
+---
+
+> [!CAUTION]
+> **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
+> A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
+>
+> **Motivo Técnico:** No passo 1, o manual cita "Registro de Imóveis", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Dashboard > Envio para Registro; Relatórios > Transferência de imóveis; Administração > Envio de escrituras para Registro (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+#### Descrição:
+Procedimento para gerenciar e recalcular os valores do Registro de Imóveis (via tabela auxiliar ou liberação para digitação manual externa) e adicionar múltiplas linhas de atos notariais (como compra e venda cumulada com reserva de usufruto) dentro do mesmo Orçamento Completo no **ORION TN**.
+
+#### Roteiro Técnico para Execução Manual:
+1. Abrir a tela do passo 1 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
+
+* **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
+
+#### Passo a passo (texto original preservado):
+1. Para alterar o valor do **Registro de Imóveis** calculado pela tabela auxiliar:
+   [aqui vai a print "passo-01.png"]
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Registro de Imóveis, Cifrão ($), Tabela do Registro de Imóveis, Concluir] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
+   * Observe que o campo na tela principal permanece bloqueado para edição direta.
+   * Clique novamente no ícone de **Cifrão ($)** ao lado do campo para reabrir a janela da **Tabela do Registro de Imóveis**.
+   * Realize as modificações necessárias: altere valores, quantidades ou remova atos desnecessários.
+   * Clique em **Concluir** para recalcular e atualizar automaticamente o total na tela principal.
+2. Para desativar a tabela auxiliar e digitar o valor do **Registro de Imóveis** manualmente (cálculo externo):
+   * Clique no ícone de **Cifrão ($)**.
+   * Exclua todos os atos listados na janela auxiliar e clique em **Concluir**.
+   * Com a tabela limpa, o campo **Registro de Imóveis** na tela principal será liberado, permitindo a digitação manual de qualquer montante calculado por fora.
+3. Para incluir múltiplos atos notariais no mesmo orçamento (ex.: escritura de compra e venda + usufruto):
+   * Posicione o cursor no último campo da primeira linha de ato e pressione a tecla **Tab**, ou clique no botão **+** (Mais) localizado na seção de atos notariais para abrir uma nova linha.
+   * Selecione a **Natureza** do segundo ato (ex.: "Escritura com valor declarado").
+   * Configure o **Tipo de Cálculo** para a fração desejada (ex.: selecionar "1/4 de custas" para a cobrança da reserva de usufruto).
+   * Preencha a base de cálculo correspondente. O sistema calculará a segunda linha e a somará ao total dos atos notariais.
+4. Para remover qualquer linha de cálculo notarial adicionada indevidamente, clique no botão **X** correspondente àquela linha.
+
+* **Observação: O bloqueio do campo de Registro de Imóveis na tela principal é uma proteção do sistema para evitar divergências entre o total exibido e os itens discriminados na tabela do cifrão ($).**
+* **Observação: A adição de múltiplos atos é ideal para formalizar negócios jurídicos complexos que envolvam atos acessórios simultâneos na mesma escritura pública.**
+* **Dica / Caso Real do 0800: Evite o uso de aspas duplas, apóstrofos e quebras de linha manuais em campos de observações para comunicações com SISCOAF e CENSEC, prevenindo rejeições de schema XML.**

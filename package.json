@@ -1,0 +1,14 @@
+{
+  "name": "orion-tn-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-all.js",
+    "dev:frontend": "npm --prefix \"Orion Audit Console\" run dev",
+    "dev:mock": "npm --prefix \"Orion Audit Console\" run dev:mock",
+    "server": "npm --prefix auditoria run server",
+    "audit": "npm --prefix auditoria run audit",
+    "test": "npm --prefix \"Orion Audit Console\" test"
+  }
+}

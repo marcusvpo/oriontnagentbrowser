@@ -1,0 +1,250 @@
+# GUIA DO DESENVOLVEDOR & GUARDIÃO DA MEMÓRIA: CLAUDE CODE (ORION TN)
+
+> **Status Vigente:** BASE V3.2.0 + PIPELINE DE AUDITORIA V2.3 (DOM Real Live + Streaming STDIN + Zero Coordenadas Estáticas + Zona Semântica e União Geométrica + Rota de Menu com Auto-Cura + Multi-Demarcação + RBAC Gate + Evidência Estrita + Taxonomia `[ATT]`/`[DDD]`/`[XRX]` com Auto-Seed e Alvos Implícitos — ADR-021)  
+> **Papel do Claude Code:** Arquiteto de Software Co-Executor & Guardião da Memória Técnica Integrada  
+> **Parceiro no Workspace:** Google Antigravity 2.0  
+> **Repositório:** Local Windows 10/11 (`d:\marcu\Videos\OrionTN\OrionTN`), **SEM CONTROLE GIT**  
+> **Camada Canônica de Memória:** `.agents/memory/` (`decisions/` ADR-001 a ADR-021; `standards/`)
+
+---
+
+## 1. Identidade do Projeto, Escopo e Stack Técnica
+
+Este repositório gerencia a **Base de Conhecimento Mestre**, a **Base Vetorial RAG para OpenAI Responses API** e o **Pipeline de Auditoria Visual Automatizada** do **Orion TN** (software notarial e registral desenvolvido pela **Siplan**).
+
+### Stack Tecnológica:
+* **Ambiente de Execução:** Node.js (v22+, ESM nativo), TypeScript (`auditoria/tsconfig.json`), Windows PowerShell.
+* **Automação de Navegador:** `vercel-labs/agent-browser` (CLI Rust baseada em Playwright/CDP daemon) com persistência de sessão e injeção de scripts via `stdin`.
+* **Composição Gráfica:** `Sharp` (libvips) para renderização vetorial SVG de caixas de destaque, badges, zoom callouts 2.5x e exportação dual (`.png` + `.webp`).
+* **Aplicação-Alvo (Homologação):** Orion TN 6.0 (Angular SPA com rotas hash `#/`, WildFly 22 SSO, PostgreSQL). Viewport travado obrigatoriamente em **1440x900 @ DPR 1.0**.
+* **Base de Produção RAG:** 471 rotinas atômicas estruturadas em `kb/` com chunking estático calibrado em 1.800 tokens e zero overlap (ADR-005).
+
+---
+
+## 2. Mapa da Arquitetura e Pipeline de Auditoria V2.3
+
+O pipeline de auditoria visual (`auditoria/src/`) opera de forma 100% autônoma, concorrente e determinística:
+
+```
+[Descoberta / Manifesto Declarativo]
+                 │
+                 ▼
+       [BrowserWorkerPool] ── (Mutex de Auth: session-homolog.json)
+                 │
+     ┌───────────┴───────────┐
+     ▼                       ▼
+ [Lane READ_ONLY]    [Lane MUTATION]
+(4-6 workers paralelos) (Semáforo = 1 para evitar locks no WildFly)
+     │                       │
+     └───────────┬───────────┘
+                 ▼
+       [Navegação Hash SPA] (ex: #/configuracao/parametrizacao)
+                 │
+                 ▼
+       [Sincronização de Abas] (Clique real na aba + espera do contêiner ativo)
+                 │
+                 ▼
+   [Filtro de Zona Semântica] (inferStepZone: content | content-preferred | any — ADR-015)
+                 │
+                 ▼
+   [Introspecção via STDIN] (agent-browser eval --stdin -> getBoundingClientRect())
+   (zona content: exclui aside/nav/.sidebar/abas e mede só no contêiner de conteúdo;
+    groupTargets: união exata minX/minY/maxX/maxY dos DOMRects)
+                 │
+     ┌───────────┴───────────┐
+     ▼                       ▼
+[Camada 1: DOM Direto]  [Camada 2: SmartLocator Auto-Cura]
+ (2ms / 0 tokens)        (Snapshot A11y + Dicionário de Sinônimos Siplan)
+     │                       │
+     └───────────┬───────────┘
+                 ▼
+     [dom-geometry.ts: Solver Multi-Quadrante Anti-Oclusão]
+     (Calcula quadrante: top/bottom/right/left com IoU = 0 px²)
+                 │
+                 ▼
+     [annotator.ts: Composição Sharp]
+     (Moldura Carmesim Siplan #ad0505 + Badge de Ação + Zoom Callout se <=44px)
+                 │
+                 ▼
+[Exportação Dual: passo-NN.png + passo-NN.webp + Relatório *-revisado.md]
+                 │
+                 ▼
+[verify-all-phase2-boxes.ts: Auditoria Matemática dos 8 Invariantes]
+```
+
+### Mapeamento dos Módulos Principais (`auditoria/src/`):
+* [`browser.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/browser.ts): Cliente wrapper do `agent-browser`. **Crítico:** executa comandos `eval` via pipe `stdin` (`agent-browser eval --stdin`), eliminando o limite de linha de comando (`cmd.exe`) no Windows (ADR-014).
+* [`dom-geometry.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/dom-geometry.ts): Extração de geometria via `getBoundingClientRect()`, clamping matemático `[2, width-2] x [2, height-2]`, independência de DPR e solver multi-quadrante anti-oclusão. Hospeda o **Filtro de Zona Semântica** (`NAV_ZONE_SELECTOR`, resolução ao vivo do contêiner de conteúdo) e a **União Geométrica de Múltiplos Alvos** (`groupTargets`, `unionBoundingBoxes`) — ADR-015.
+* [`smart-locator.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/smart-locator.ts): Camada de auto-cura baseada na Árvore de Acessibilidade (`snapshot -i`), sinônimos do Orion TN e coeficiente Sørensen–Dice (ADR-013). Decide a política de zona de cada passo via `inferStepZone()` e valida todo candidato curado contra o DOM dentro dessa zona (ADR-015).
+* [`menu-path.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/menu-path.ts): Camada 0 do SmartLocator. Extrai caminhos de menu `A > B > C` do passo, lê e carimba a árvore de navegação real, percorre os segmentos com clique/hover reais e cura rotas divergentes pela folha (ADR-016).
+* [`rbac.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/rbac.ts): RBAC Gate (ADR-017). Extrai o perfil exigido pelo manual, lê a identidade real da sessão e bloqueia a rotina antes do passo 1 quando o privilégio não é comprovado; detecta alvos que a aplicação marca como bloqueados/ocultos para o perfil.
+* [`evidence.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/evidence.ts) e [`report.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/report.ts): Trava de Evidência e gerador único do `-revisado.md` (ADR-017). O texto parte sempre do manual original e só recebe substituições pontuais com elemento real medido.
+* [`executor.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/executor.ts): Executor guiado pelo markdown do KB (`cli.ts --routine` e Worker Pool das fases 3+). Aciona o mesmo nó medido (ADR-015), grava screenshot limpo em passos sem alvo e não aciona listas de opções nem controles desabilitados (ADR-016).
+* [`annotator.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/annotator.ts): Motor de anotação com Sharp. Molduras Carmesim Siplan (`#ad0505`), badges em Oswald Bold, ícones de ação e callout 2.5x Lanczos3.
+* [`worker-pool.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/worker-pool.ts): Gerenciador de workers concorrentes (`--session worker-${id}`), com mutex para login (`session-worker-${id}.json`) e particionamento dual-lane (`READ_ONLY` vs. `MUTATION`).
+* [`run-phase2-master.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/run-phase2-master.ts): Orquestrador declarativo da Fase 2. **Sem coordenadas estáticas**, com salto hash, transição real de abas e gravação de telemetria em `auditoria/cache/phase2-live-telemetry.json`. Cada passo do manifesto aceita `zone` e `groupTargets` (ADR-015).
+* [`icon-action-resolver.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/icon-action-resolver.ts), [`help-tooltips.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/help-tooltips.ts) e [`screen-snapshot.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/screen-snapshot.ts): Ações icônicas de grade, ajuda contextual "i" e confronto semântico da Descrição com a tela (ADR-020).
+* [`review-taxonomy.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/review-taxonomy.ts), [`review-classifier.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/review-classifier.ts), [`kb-dependency-graph.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/kb-dependency-graph.ts), [`empty-state.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/empty-state.ts), [`auto-seed.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/auto-seed.ts) e [`implicit-targets.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/implicit-targets.ts): taxonomia `[ATT]`/`[DDD]`/`[XRX]`, árvore de decisão, grafo do KB, detector de estado vazio, auto-seed mock e alvos implícitos (ADR-021).
+* [`modal-scope.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/modal-scope.ts): seletor único de modal ativo (Bootstrap `.modal.in` e modal leve `orion-lightweight-modal`), `closeActiveModals` e, em `dom-geometry.ts`, a checagem `elementFromPoint` que rejeita alvo por trás de modal. Passo de vários alvos só clica o nó cujo texto é um dos alvos citados.
+* [`verify-all-phase2-boxes.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/verify-all-phase2-boxes.ts): Script de homologação estrita que valida matematicamente os 8 invariantes em 100% das prints (os 5 geométricos/estruturais + Zona Semântica + União Geométrica + Multi-Demarcação), lendo a telemetria do manifesto e a do executor do KB (`cache/kb-telemetry/`).
+* [`types.ts`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/src/types.ts): Contratos TypeScript para geometria, anotação, relatórios e telemetria.
+
+---
+
+## 3. Mandamentos Inegociáveis (Golden Rules do Projeto)
+
+O Claude Code **DEVE SEGUIR RIGOROSAMENTE** estas regras em qualquer intervenção:
+
+1. **PROIBIÇÃO TOTAL DE COMANDOS GIT (ADR-010):**
+   - Este repositório é 100% local e **não possui controle de versão `.git`**.
+   - É expressamente vedado rodar `git status`, `git diff`, `git add`, `git commit` ou qualquer comando git.
+2. **ZERO COORDENADAS ESTÁTICAS E ANTI-MOCK (ADR-010, ADR-012, ADR-014):**
+   - É terminantemente proibido inserir qualquer objeto com coordenadas literais manuais (`{ x: ..., y: ..., width: ..., height: ... }`), tabelas fixas como `NAVBAR` ou imagens de fundo `baseImage`.
+   - **Toda geometria provém exclusivamente de medição ao vivo no Chromium via `getBoundingClientRect()`**.
+3. **STREAMING STDIN NO WINDOWS (ADR-014):**
+   - Toda execução de script JavaScript no `agent-browser` deve ser passada via pipe em `stdin` (`agent-browser eval --stdin`). Nunca concatene código longo em strings de linha de comando.
+4. **SINCRONIZAÇÃO DINÂMICA DE ABAS SPA (ADR-014):**
+   - Ao instruir transição de abas (ex.: abas de `Configurações` ou de `Protocolo`), o executor deve clicar de fato na aba no navegador e aguardar o contêiner interno específico estar visível no DOM antes de medir e capturar o passo seguinte.
+5. **ZERO AUTO-OCLUSÃO (ADR-011, ADR-012):**
+   - O badge numérico e a caixa de rótulo nunca podem sobrepor ou ocluir o texto do próprio botão, campo ou menu demarcado ($\text{Interseção}(\text{Anotação}, \text{Elemento}) = 0\text{ px}^2$).
+6. **TRAVA DE DPR 1.0 E VIEWPORT 1440x900 (ADR-009):**
+   - Resolução fixa em 1440x900 com `--device-scale-factor 1`, garantindo paridade 1:1 absoluta entre coordenadas CSS do DOM e pixels reais do screenshot.
+7. **CANVAS PURO E SEM TARJAS LGPD (ADR-007, ADR-010):**
+   - O screenshot deve conter o canvas puro da aplicação (sem barra externa simulada de navegador). Não adicionar tarjas de censura/blur, pois o banco de homologação é 100% fictício.
+8. **PARTICIONAMENTO DUAL-LANE NO WORKER POOL (ADR-013):**
+   - Rotinas de consulta (`read_only`) rodam com concorrência paralela (4 a 6 workers). Rotinas de cadastro/gravação (`mutation`) passam pelo semáforo restrito para evitar deadlocks no WildFly/PostgreSQL.
+9. **SINALIZAÇÃO DE REVISÃO HUMANA (ADR-010, ADR-021):**
+   - Rotinas que dependem de hardware externo (scanners TWAIN, biometria física, impressoras térmicas ou Docker) ou cujas telas estejam inoperantes no ambiente recebem a tag **`[DDD]`** (`tipo_bloqueio: 'Dependência de Ambiente/Hardware'`), e as demais causas de revisão humana, `[ATT]` ou `[XRX]` (regra 16). O prefixo `[!!!]` foi aposentado pela ADR-021. Nunca forjar demarcações fantasmas em telas que não abriram.
+10. **FILTRO DE ZONA SEMÂNTICA E UNIÃO GEOMÉTRICA DE MÚLTIPLOS ALVOS (ADR-015):**
+    - Passos de parametrização/formulário (*"Defina"*, *"Preencha"*, *"Configure"*, *"Informe"*, *"Marque"*... ou ação `fill`/`search`) rodam em zona `content`: `aside`, `nav`, `.sidebar`, `.nav-stacked`, `[role="tablist"]` e qualquer invólucro que contenha a navegação lateral ficam **fora da busca**, e o escopo é o contêiner principal de conteúdo resolvido ao vivo. Se nada for encontrado ali, o passo **não** recai sobre o menu: vai para auto-cura na mesma zona ou bloqueio `[ATT]`/`[DDD]`/`[XRX]`.
+    - Passos que citam menu/aba/barra/painel lateral são navegação (`any`). Verbos ambíguos (*"Selecione"*, *"Escolha"*) usam `content-preferred` (conteúdo primeiro, busca irrestrita só depois).
+    - **A ação segue a medição:** o clique/preenchimento do `executor.ts` recai sobre o mesmo nó validado na zona, por meio do carimbo `actionTarget` gravado na medição. É vedado refazer a busca por nome para acionar um passo medido em zona `content`; sem carimbo válido, a ação é omitida.
+    - Quando o passo referencia vários parâmetros do mesmo bloco, declare `groupTargets`: cada nó é medido ao vivo, expandido ao seu bloco de campo (rótulo + controle) e a moldura é a união exata `minX/minY/maxX/maxY` dos `DOMRect`s. Nunca use um contêiner genérico (`form .col-md-24`) como alvo de um passo de parâmetros.
+11. **ROTA DE MENU, PASSOS SEM ALVO E CARGA `MUTATION` NO EXECUTOR DO KB (ADR-016):**
+    - Caminho de menu (`A > B > C`) é percorrido segmento a segmento na árvore de navegação real, nunca buscado como texto único. Rota divergente é curada pela folha, a rotina fica `validado_com_ajustes` e a divergência vai para o `-revisado.md`. Folha inexistente ou folhas homônimas empatadas **bloqueiam** com `[ATT]`/`[DDD]`/`[XRX]`: não se adivinha a tela.
+    - Passo sem alvo em negrito recebe **screenshot limpo** (sem moldura, badge ou rótulo), após verificar que a tela carregou sem erros. Só a falha de carregamento bloqueia.
+    - Passo que apenas lista opções nos sub-itens é buscado em zona `content`, sem Auto-Cura, e **nenhuma opção é acionada**. Controle desabilitado também não é acionado.
+    - Passo de múltiplos alvos com algum rótulo curado pelo SmartLocator nunca passa como `ok` silencioso: a divergência é registrada no `-revisado.md`. Rótulo **não localizado** bloqueia a rotina com `[ATT]`/`[DDD]`/`[XRX]` (regra 12, que substitui o `validado_com_ajustes` anterior).
+    - Rotina com alvo ou ação de **Salvar**, **Gravar**, **Confirmar**, **Concluir**, **Excluir** ou **Inativar** é `mutation` e nunca roda na fila paralela `read_only`. Exceção: palavras-chave que aparecem só em passos de lista de opções (nunca acionados) não contam.
+12. **CASCATA, MULTI-DEMARCAÇÃO, RBAC GATE E EVIDÊNCIA ESTRITA (ADR-017):**
+    - **Cascata com ponteiro real:** submenu em cascata é aberto com `mouse move` por dentro da geometria `li ∪ ul`, com o ponteiro estacionado na folha e a cadeia conferida antes e depois da captura.
+    - **Uma print, várias caixas:** caminho de menu e passo com vários alvos em negrito visíveis na mesma tela geram **uma** print com caixas numeradas em sequência (1, 2, 3...). Nenhuma anotação cobre o núcleo de nenhum alvo nem outra anotação (0 px²). Alvo que só aparece após a ação do passo vai para `passo-NN-b.png`, continuando a numeração.
+    - **RBAC Gate:** rotina que exige perfil (ex.: Administrador, Tabelião Titular) que a sessão não comprova é bloqueada **antes do passo 1** com `[ATT]`/`[DDD]`/`[XRX]` e `tipo_bloqueio: 'Insuficiência de Privilégio na Conta de Homologação'`. Elemento marcado pela aplicação como bloqueado/oculto para o perfil é bloqueio por privilégio, nunca "inexistente", e nunca é curado para outro.
+    - **Evidência estrita:** o texto do manual só muda por substituição pontual de um negrito, com elemento real medido ao vivo e demarcado na print. Alvo citado e não comprovado na tela: texto original intacto e rotina `[ATT]`/`[DDD]`/`[XRX]`. Rotina `[ATT]`/`[DDD]`/`[XRX]` sai com o texto 100% original.
+    - **Vedado texto escrito à mão:** nenhum manifesto, tabela ou código pode fornecer texto de passo "revisado". `revisadoPassos`/`revisadoDesc` do manifesto da Fase 2 estão `@deprecated` e não são emitidos.
+13. **CONTA DE HOMOLOGAÇÃO PLENA, EXPLORAÇÃO INVESTIGATIVA PRÉ-BLOQUEIO & ÁRVORE CANÔNICA (ORION TN 6.0):**
+    - **Acesso 100% Pleno (`4tabeliao.scs`):** Validado com Produtos que `4tabeliao.scs` (cargo `TABELIAO`, perfil **`Perfil de acesso - Gerência webFirmas`**) possui **100% das permissões `[x]`** em todo o Orion TN 6.0 (cf. `auditoria/reports/permiss_es_oriontn_4tabeliao_scs.md`), incluindo `Configuraçoes > Perfis e permissões de acesso`, `Usuários` e `Parametrizações`.
+    - **Defasagem de Manual vs. Privilégio:** Nunca classificar a ausência de botões administrativos (como *Redefinir Senha Manualmente* ou *Resetar 2FA* em `C-ACESSO-03`) como *"Insuficiência de Privilégio na Conta de Homologação"*. Sob esse perfil pleno (e sem marcação `.ngx-orion-hide`/`.functionality.disabled`), trata-se de **defasagem real do manual** (no Orion TN 6.0, senha e 2FA ficam no menu superior direito `"Olá, [username]"`).
+    - **Exploração Investigativa Antes do Bloqueio:** a tag de revisão (`[ATT]`/`[DDD]`/`[XRX]`) é o **último recurso**, nunca a primeira reação. Antes de bloquear um campo/botão ausente, o auditor deve investigar gatilhos reveladores seguros na tela atual (`nav-tabs`, accordions recolhidos, botões *Alterar/Editar/Adicionar/Avançado* ou checkboxes condicionais). Se a micro-ação revelar o elemento: fotografar (`passo-NN-b`), marcar `validado_com_ajustes` e documentar o sub-passo real. Só bloquear com `[ATT]`/`[DDD]`/`[XRX]` após esgotar as possibilidades da tela.
+    - **Execução ADR-019 (RBAC, Exploração e Trava de Mutação):** o RBAC Gate reconhece `Gerência webFirmas`/`TABELIAO` como perfil pleno (`ORION_SESSION_GRANTED_ROLES` acrescenta entradas) e só bloqueia antes do passo 1 sessão **comprovadamente restrita**; identidade ilegível é inconclusiva e não bloqueia. Bloqueio por privilégio exige marca real no DOM (`.functionality.disabled`, `.functionality.ngx-orion-hide` ou `title` *"bloqueada para o seu perfil"*) com **igualdade exata** de texto; `.ngx-orion-hide` sozinha é a ocultação genérica da aplicação e não prova privilégio. A Exploração Investigativa (`reveal-explorer.ts`) testa abas, painéis recolhidos, botões de abertura e seletores com afinidade, nunca aciona gravação/exclusão, restaura e confere o estado, e registra o sub-passo em `passo-NN-b`; esgotada, o bloqueio é `Defasagem Editorial do Manual` (sessão plena) ou causa em aberto. `--dry-run-mutations` demarca e fotografa **Salvar/Gravar/Confirmar/Concluir/Excluir/Inativar** sem clicar (`mutation-guard.ts`).
+    - **Árvore Canônica de Módulos:** Usar `auditoria/reports/permiss_es_oriontn_4tabeliao_scs.md` (consolidado em `.agents/memory/standards/glossario_siplan.md`) como referência oficial de módulos, caminhos e grafias reais da UI (ex.: `"Configuraçoes"`).
+14. **AÇÕES ICÔNICAS DE GRADE, AJUDA CONTEXTUAL "i" E CONFRONTO SEMÂNTICO DE TELA (ADR-020):**
+    - **Botões de ícone em grade:** olho/lápis/X sem texto são resolvidos na **1ª linha de dados** (`icon-action-resolver.ts`, Camada 1.5 do SmartLocator) por `title`/`data-original-title`/`aria-label`/texto e, por último, pela classe do ícone. Dicionário: **Visualizar ↔ Consultar**, **Editar ↔ Alterar**, **Remover ↔ Excluir**. Uma print, várias caixas `(1) Consultar (2) Alterar (3) Excluir`; o rótulo real vem da tela e o texto do manual **não** é reescrito (divergência de rótulo no `-revisado.md`).
+    - **Nunca clicar em ação de linha em lista de opções (ADR-016):** `actionTarget` só existe quando o passo cita UMA ação; **Excluir** segue a Trava de Mutação (`--dry-run-mutations`).
+    - **Ajuda contextual:** ícones `i` (popover/tooltip) são lidos por `hover` não destrutivo (`help-tooltips.ts`), texto literal do DOM, registrados como `> [!TIP]` no passo.
+    - **Confronto semântico:** `screen-snapshot.ts` compara Descrição/passos com o snapshot ao vivo (unidade `mm`×`cm`, exemplos de registros, conceito) e só emite `> [!NOTE] **Divergência Conceitual/Editorial (Evidência de Tela)**` com **duas evidências** (manual + DOM). A Descrição original é preservada; rotina `[ATT]`/`[DDD]`/`[XRX]` sai sem notas.
+15. **DIRETRIZES DE RESPOSTA DO ASSISTENTE:**
+    - Nunca vazar códigos internos de rotina (`R-1.3`, `V-7.2.1`) ao usuário final.
+    - Proibido tom de URA ou robótico; adotar persona de escrevente sênior especialista.
+    - Menus, botões e telas sempre estritamente em **negrito**.
+16. **TAXONOMIA DE REVISÃO HUMANA `[ATT]`/`[DDD]`/`[XRX]`, GRADE VAZIA, AUTO-SEED MOCK E ALVOS IMPLÍCITOS (ADR-021):**
+    - **`[!!!]` está aposentado.** Não existe mais pasta, arquivo, status ou código com esse prefixo. Rotina que exige revisão humana recebe exatamente uma tag, no nome da pasta e do arquivo (`[ATT] M-xx-slug/[ATT] M-xx-slug-revisado.md`) e no `auditoria_ui.status`: **`[ATT]` `atualizacao_editorial`** (manual desatualizado: tela/caminho/botão/campo inexistente, com rotas e `reveal-explorer.ts` esgotados), **`[DDD]` `dependencia_dados_banco`** (faltam registros no banco de homologação ou o ambiente/hardware não permite validar; exige Produtos) e **`[XRX]` `dependencia_cruzada_rotina`** (depende de outra rotina que cria o registro/estado; o relatório lista os pré-requisitos).
+    - **Árvore de decisão única (`review-classifier.ts`, `classifyBlock()`):** falha técnica → sem tag (rotina fica `nao_auditada`, falha em `kb-batch-summary.json`); RBAC → `[ATT]`; tela inoperante/hardware/ambiente → `[DDD]`; grade vazia → `[XRX]` se o grafo do KB achar rotina provedora, senão `[DDD]`; caminho de menu ausente → `[ATT]`; objeto criado fora da tela (protocolo, orçamento, ato...) com provedor → `[XRX]`; alvo ausente com exploração esgotada → `[ATT]`. **`[DDD]` é o último recurso:** só depois de descartar Adicionar/seed e provedor `[XRX]`.
+    - **Estado vazio (`empty-state.ts`):** grade com cabeçalhos e 0 linhas, toast/alerta transitório (`MutationObserver` instalado antes de cada passo; texto literal, sem o "×" de fechar) e controles inativos por falta de dado são lidos ao vivo via STDIN e gravados como evidência no `-revisado.md`.
+    - **Auto-seed (`auto-seed.ts`):** grade vazia **e** botão Adicionar/Novo/Cadastrar ativo na mesma tela **e** rotina que consulta/altera linhas → o agente cria **um** registro mock de pré-requisito (campos válidos por tipo, texto `AUDIT-MOCK`), clica Salvar/Gravar/Concluir **mesmo com `--dry-run-mutations`** e volta à grade. Grade já populada: nada é gravado. Nunca aciona Excluir/Inativar; serializado entre workers; `--no-auto-seed` desliga. Rotina semeada sai `validado_com_ajustes` com `registros_mock_criados` no frontmatter.
+    - **Alvos implícitos (`implicit-targets.ts`):** passo sem negrito com verbo de ação (*localize, pesquise, filtre, informe, preencha...*) + substantivo de controle (*município, estado, cidade, data, descrição...*) é casado com rótulos/placeholders **reais** dos campos na zona `content` (estado↔UF, município↔Cidade, período/data inicial↔final, CPF/documento — ADR-022; testes offline em `auditoria/src/__tests__/`, `npm --prefix auditoria test`; hook `PostToolUse` roda `tsc --noEmit` em edições de `auditoria/src/*.ts`) e demarcado em multi-demarcação; sem casamento, print limpa. O texto do manual **não** é reescrito e nenhuma ação é executada (Evidência Estrita).
+    - **Grafo do KB (`kb-dependency-graph.ts`):** heurístico (o KB não tem campo de pré-requisito): provedor = rotina de título de criação; consumidor liga por tokens da entidade (mesmo módulo primeiro). Cache em `auditoria/cache/kb-dependency-graph.json`.
+    - **Supabase:** `supabase/migrations/003_review_taxonomy.sql` troca o CHECK de `status_auditoria` e migra linhas legadas; `sync-supabase.ts` mapeia o legado `requer_revisao_humana` pela tag da pasta. O Console (Orion Audit Console) exibe as 3 tags em badges, filtros, KPIs e gráfico.
+
+---
+
+## 4. Ponteiros Diretos para a Memória Viva (`.agents/memory/`)
+
+O Claude Code não precisa adivinhar regras ou duplicar conhecimento. Antes de tocar em qualquer módulo, consulte os arquivos específicos:
+
+### 4.1. Decisões Arquiteturais (`.agents/memory/decisions/`):
+* [`ADR-001`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-001-schema-v3-e-piramide-invertida.md): Schema canônico de rotinas e técnica de pirâmide invertida.
+* [`ADR-003`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-003-padronizacao-bunny-video-id.md): Padronização obrigatória de vídeos Bunny.net (`bunny_video_id`).
+* [`ADR-005`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-005-migracao-arquitetura-granular-rag-v3-2.md): Arquitetura Dual-Layer RAG e chunking estático de 1.800 tokens.
+* [`ADR-007`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-007-auditoria-visual-rotinas-agent-browser.md): Pipeline de auditoria visual com agent-browser e Sharp.
+* [`ADR-008`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-008-subagents-fast-dom-auditoria.md): Execução via subagents e introspecção Blink em 2ms.
+* [`ADR-009`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-009-otimizacoes-avancadas-pipeline-auditoria.md): Trava de DPR 1.0, navegação hash SPA e reuso de sessão.
+* [`ADR-010`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-010-anti-mock-e-sinalizacao-revisao-humana.md): Anti-Mock mandatório, telas reais ao vivo e prefixo `[!!!]` (aposentado pela ADR-021 em favor de `[ATT]`/`[DDD]`/`[XRX]`).
+* [`ADR-011`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-011-motor-grafico-sharp-calibragem-e-auto-snapping.md): Motor Sharp, clamping matemático e zoom callout.
+* [`ADR-012`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-012-geometria-deterministica-dom-e-remocao-heuristicas-rgb.md): Fonte única no DOM real e solver anti-oclusão.
+* [`ADR-013`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-013-worker-pool-paralelo-e-smart-locator-auto-cura.md): Worker Pool paralelo, isolamento de sessão e auto-cura A11y.
+* [`ADR-014`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-014-remocao-total-coordenadas-estaticas-e-sync-abas-dom.md): Eliminação total de coordenadas estáticas, sync dinâmico de abas e streaming STDIN no Windows.
+* [`ADR-015`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-015-filtro-de-zona-semantica-e-uniao-geometrica-de-multiplos-alvos.md): Filtro de Zona Semântica (anti-sidebar) e União Geométrica de Múltiplos Alvos (Group Bounding Box).
+* [`ADR-016`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-016-rota-de-menu-encadeada-passos-sem-alvo-e-classificacao-mutation.md): Navegação encadeada por segmentos com Auto-Cura de Rota, screenshot limpo em passos sem alvo e classificação `mutation` por comando de gravação.
+
+* [`ADR-017`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-017-cascata-com-hover-persistente-multi-demarcacao-rbac-gate-e-evidencia-estrita.md): Cascata com hover persistente por ponteiro real, multi-demarcação numerada, RBAC Gate e Regra da Evidência Estrita.
+* [`ADR-020`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-020-acoes-iconicas-de-grade-ajuda-contextual-e-confronto-semantico-de-tela.md): Resolvedor de botões icônicos em grades, coleta de tooltips "i" e Confronto Semântico com evidência dupla.
+* [`ADR-021`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-021-taxonomia-att-ddd-xrx-grade-vazia-auto-seed-e-alvos-implicitos.md): Taxonomia `[ATT]`/`[DDD]`/`[XRX]` (aposenta `[!!!]`), detector de estado vazio, auto-seed mock, alvos implícitos e grafo de dependências do KB.
+* [`ADR-019`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-019-exploracao-investigativa-trava-de-mutacao-rbac-por-evidencia-e-sub-capturas.md): RBAC por evidência de DOM, Exploração Investigativa pré-bloqueio, Trava Segura de Mutação (`--dry-run-mutations`), sub-capturas `passo-NN-b` e 8 invariantes em módulo único.
+
+### 4.2. Padrões e Especificações (`.agents/memory/standards/`):
+* [`design_system_siplan.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/design_system_siplan.md): Paleta Siplan (Carmesim `#ad0505`, Bordô `#5a0000`), tipografia Oswald/Lato e seletores CSS.
+* [`auditoria_agent_browser.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/auditoria_agent_browser.md): Especificação técnica do Pipeline V2.3.
+* [`glossario_siplan.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/glossario_siplan.md): Dicionário de produtos (Orion TN, Caixa, Estoque, Connect, Cartflow, ONR/SAEC), perfil pleno `4tabeliao.scs` e árvore canônica de módulos/telas do Orion TN 6.0.
+* [`permiss_es_oriontn_4tabeliao_scs.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/reports/permiss_es_oriontn_4tabeliao_scs.md): Árvore oficial completa de permissões (`[x]` em 100% das funcionalidades) da conta de homologação `4tabeliao.scs`.
+* [`schema_rotinas_v3.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/schema_rotinas_v3.md): Schema canônico YAML para rotinas com e sem vídeo.
+
+---
+
+## 5. Protocolo de Sincronização Bidirecional (Living Memory Sync)
+
+> [!IMPORTANT]
+> **OBRIGAÇÃO DO CLAUDE CODE EM TODA INTERVENÇÃO:**  
+> O Claude Code e o Antigravity atuam como uma única mente sobre a mesma base de conhecimento. Sempre que você (Claude Code) implementar uma nova decisão arquitetural, alterar regras de pipeline ou criar novos componentes:
+>
+> 1. **Gere uma nova ADR sequencial** em `.agents/memory/decisions/ADR-XXX-[assunto].md`.
+> 2. **Atualize as especificações técnicas** em `.agents/memory/standards/`.
+> 3. **Atualize o arquivo `GEMINI.md`**, garantindo que as Golden Rules reflitam a nova verdade.
+> 4. **Atualize este arquivo `CLAUDE.md`**, mantendo os dois orquestradores em perfeita simetria.
+> 5. **Atualize o arquivo mestre** (`doc conhecimento final/OrionTN pos.md`) se o acervo de rotinas for impactado.
+> 6. **Confirme a gravação ao usuário**, assegurando continuidade operacional absoluta.
+
+---
+
+## 6. Checklist de Validação e Comandos Operacionais
+
+Antes de declarar qualquer tarefa ou lote como concluído, execute obrigatoriamente os seguintes comandos a partir da raiz do repositório:
+
+### 1. Checagem Estrita de Tipos TypeScript:
+```powershell
+npx --prefix auditoria tsc -p auditoria/tsconfig.json --noEmit
+```
+*(Critério de aceite: Código de retorno 0 e zero erros).*
+
+### 2. Validação Geométrica dos 8 Invariantes Matemáticos:
+```powershell
+npx --prefix auditoria tsx auditoria/src/verify-all-phase2-boxes.ts
+```
+*(Critério de aceite: 0 discrepâncias geométricas, 100% dos passos com Zero Auto-Oclusão, zero interseção com a navegação lateral em passos de zona `content`, uniões de grupo exatas, multi-demarcações sem oclusão nem colisão e pares PNG+WebP íntegros. Bloqueios `[ATT]`/`[DDD]`/`[XRX]` estruturados são contados à parte).*
+
+### 3. Execução da Auditoria de Fase (via CLI):
+```powershell
+# Execução da Fase 2 (39 rotinas via Worker Pool):
+npx --prefix auditoria tsx auditoria/src/cli.ts --phase 2 --concurrency 4 --dry-run-mutations
+# (a Fase 2 usa o executor do KB; --engine manifest chama o runner declarativo antigo)
+
+# Execução da Fase 3 (118 rotinas do phase3-manifest.ts): as 7 pré-triadas [DDD] de hardware/serviço local
+# saem direto, sem navegador; as 111 restantes vão ao executor do KB com a carga (read_only/mutation) do manifesto.
+# Resumo em auditoria/cache/kb-batch-summary-fase3.json. --pretriage-only gera só as 7 [DDD].
+npx --prefix auditoria tsx auditoria/src/cli.ts --phase 3 --concurrency 4 --dry-run-mutations
+
+# Validação restrita à Fase 3 (completude, pastas gêmeas, [!!!], pré-triadas sem prints):
+npx --prefix auditoria tsx auditoria/src/verify-all-phase2-boxes.ts --phase 3
+
+# Execução de Rotina Individual:
+npx --prefix auditoria tsx auditoria/src/cli.ts --routine M-16.2
+
+# Regeneração seletiva de rotinas do manifesto da Fase 2 (mescla com a telemetria existente):
+npx --prefix auditoria tsx auditoria/src/run-phase2-master.ts --only=M-16.2,M-16.6
+```
+
+### 4. Compilação e Validação de Schemas RAG:
+```powershell
+python scripts/build_kb.py
+```
+*(Critério de aceite: 471 rotinas atômicas validadas sem erros).*
