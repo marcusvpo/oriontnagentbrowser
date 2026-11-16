@@ -7,7 +7,7 @@ import { GovernanceBadge } from "@/components/badges/GovernanceBadge";
 import { RunnerBadge } from "@/components/badges/RunnerBadge";
 import { WorkloadChip } from "@/components/badges/WorkloadChip";
 import { fmtDate, fmtDuration } from "@/lib/format";
-import { SECAO_LABEL, reviewPrefix } from "@/lib/status";
+import { SECAO_LABEL, reviewPrefix, tagsOfSummary } from "@/lib/status";
 
 interface Props {
   rotina: RoutineDetail; prevId?: string; nextId?: string; editing: boolean;
@@ -16,13 +16,14 @@ interface Props {
 
 export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdit, onReview, onOpenReviews, onReexecute }: Props) {
   const s = rotina.summary;
+  const reviewTags = tagsOfSummary(s);
   const running = s.runner.estado === "na_fila" || s.runner.estado === "em_execucao";
   return (
     <div className="studio-head">
       <div className="row-between">
         <div className="stack-1 grow">
           <div className="row">
-            <span className="t-mono crimson">{reviewPrefix(s.statusAuditoria, s.tagsRevisao)}{s.id}</span>
+            <span className="t-mono crimson">{reviewPrefix(s.statusAuditoria, reviewTags)}{s.id}</span>
             <span className="t-overline-xs">{rotina.auditoriaUi?.versao_homologacao ?? "—"}</span>
           </div>
           <h1 className="t-h2">{s.titulo}</h1>
@@ -36,7 +37,7 @@ export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdi
       </div>
       <div className="row-between">
         <div className="row">
-          <AuditStatusBadge status={s.statusAuditoria} divergencias={s.divergenciasCount} tags={s.tagsRevisao} />
+          <AuditStatusBadge status={s.statusAuditoria} divergencias={s.divergenciasCount} reviewTags={reviewTags} />
           <GovernanceBadge status={s.statusGovernanca} />
           <RunnerBadge runner={s.runner} />
           <WorkloadChip type={s.workloadType} />

@@ -3,10 +3,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import yaml from 'yaml';
 import { getSupabaseAdmin, isSupabaseConfigured, SUPABASE_URL } from './supabase.js';
-import { REVIEW_TAGS, isReviewStatus, normalizeReviewTags, reviewTagsFor } from './review-taxonomy.js';
-import { auditExternalSteps } from './invariants.js';
-import { persistRoutineGovernanceToDisk, type GovernanceDiskUpdate } from './governance-disk.js';
+import {
+  REVIEW_TAGS,
+  describeTags,
+  isReviewStatus,
+  normalizeReviewTags,
+  reviewTagsFor,
+  reviewTagsPrefix,
+  tagsFromPrefix,
+  type ReviewTag,
+} from './review-taxonomy.js';
+import { auditExternalSteps, externalStepsFromMd, reviewTagsFromMd } from './invariants.js';
+import { findRevisedMarkdownById, persistRoutineGovernanceToDisk, type GovernanceDiskUpdate } from './governance-disk.js';
+import { analyzeRoutineScope } from './step-scope.js';
 import { syncSingleRoutineToSupabase } from './sync-supabase.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
 import { findRoutineFileById } from './phases.js';
@@ -54,7 +65,7 @@ interface RunnerJobInfo {
   erro?: string;
 }
 
-interface RoutineSummary {
+export interface RoutineSummary {
   id: string;
   titulo: string;
   modulo: Modulo;
@@ -64,7 +75,9 @@ interface RoutineSummary {
   workloadType: WorkloadType;
   statusAuditoria: RoutineAuditState;
   /** Todas as tags da rotina em ordem canônica (ADR-024), ex.: `['ATT', 'CCC']`; vazio fora da revisão humana */
-  tagsRevisao: string[];
+  reviewTags: ReviewTag[];
+  /** Alias legado/compatibilidade com `reviewTags` */
+  tagsRevisao: ReviewTag[];
   statusGovernanca: GovernanceStatus;
   runner: RunnerJobInfo;
   pastaAuditoria: string | null;
@@ -81,6 +94,24 @@ interface RoutineSummary {
   updatedAt: string;
 }
 
+/**
+ * Extrai e normaliza todas as tags de revisão (`ATT`, `CCC`, `DDD`, `XRX`) combinando
+ * coluna `tags_revisao`, frontmatter (`auditoria_ui.review_tags`), prefixo da pasta (`pasta_auditoria`),
+ * cabeçalho do markdown revisado e o status principal.
+ */
+export function extractRoutineReviewTags(row: any, revMdContent?: string): ReviewTag[] {
+  const status = row?.status_auditoria;
+  const dbTags = Array.isArray(row?.tags_revisao) ? row.tags_revisao : [];
+  if (status === 'nao_auditada' || status === 'validado_inalterado' || status === 'validado_com_ajustes') {
+    return normalizeReviewTags(dbTags);
+  }
+  const fmTags = Array.isArray(row?.auditoria_ui?.review_tags) ? row.auditoria_ui.review_tags : [];
+  const prefixTags = row?.pasta_auditoria ? tagsFromPrefix(String(row.pasta_auditoria)) : [];
+  const mdTags = revMdContent ? reviewTagsFromMd(revMdContent) : [];
+  const statusTags = isReviewStatus(status) ? reviewTagsFor(status) : [];
+  return normalizeReviewTags([...dbTags, ...fmTags, ...prefixTags, ...mdTags, ...statusTags]);
+}
+
 function mapJobRow(row: any): RunnerJobInfo {
   if (!row) return { estado: 'idle' };
   return {
@@ -95,7 +126,8 @@ function mapJobRow(row: any): RunnerJobInfo {
   };
 }
 
-function mapRoutineSummary(row: any, latestJob?: any): RoutineSummary {
+export function mapRoutineSummary(row: any, latestJob?: any, revMdContent?: string): RoutineSummary {
+  const reviewTags = extractRoutineReviewTags(row, revMdContent);
   return {
     id: row.id,
     titulo: row.titulo,
@@ -105,7 +137,8 @@ function mapRoutineSummary(row: any, latestJob?: any): RoutineSummary {
     temVideo: Boolean(row.tem_video),
     workloadType: row.workload_type as WorkloadType,
     statusAuditoria: row.status_auditoria as RoutineAuditState,
-    tagsRevisao: normalizeReviewTags(Array.isArray(row.tags_revisao) && row.tags_revisao.length > 0 ? row.tags_revisao : reviewTagsFor(row.status_auditoria)),
+    reviewTags,
+    tagsRevisao: reviewTags,
     statusGovernanca: row.status_governanca as GovernanceStatus,
     runner: mapJobRow(latestJob),
     pastaAuditoria: row.pasta_auditoria || null,
@@ -159,7 +192,7 @@ async function fetchReviewsList(filters: {
   const supabase = getSupabaseAdmin();
   let query = supabase
     .from('routine_reviews')
-    .select('*, routines!inner(id, titulo, modulo, fase, status_auditoria, total_passos)')
+    .select('*, routines!inner(id, titulo, modulo, fase, status_auditoria, tags_revisao, pasta_auditoria, auditoria_ui, total_passos)')
     .order('atualizado_em', { ascending: false });
 
   if (filters.routineId) query = query.eq('routine_id', filters.routineId);
@@ -191,6 +224,7 @@ async function fetchReviewsList(filters: {
     rotinaModulo: r.routines?.modulo ?? 'geral',
     rotinaFase: r.routines?.fase ?? null,
     rotinaStatusAuditoria: r.routines?.status_auditoria ?? 'nao_auditada',
+    rotinaReviewTags: r.routines ? extractRoutineReviewTags(r.routines) : [],
     rotinaTotalPassos: r.routines?.total_passos ?? 0,
     revisor: r.revisor,
     categoria: r.categoria,
@@ -256,6 +290,12 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
   const autoCuradas = allSummaries.filter(r => r.statusAuditoria === 'validado_com_ajustes').length;
   const countStatus = (list: typeof allSummaries, status: RoutineAuditState) => list.filter(r => r.statusAuditoria === status).length;
   const bloqueadas = allSummaries.filter(r => isReview(r.statusAuditoria)).length;
+  const porTagRevisao: Record<ReviewTag, number> = { ATT: 0, CCC: 0, DDD: 0, XRX: 0 };
+  for (const r of allSummaries) {
+    for (const tag of r.reviewTags) {
+      if (tag in porTagRevisao) porTagRevisao[tag]++;
+    }
+  }
 
   const phaseDefs = [
     { fase: 1 as PhaseNumber, titulo: 'Piloto' },
@@ -376,6 +416,7 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
     taxaAprovacao,
     autoCuradas,
     bloqueadas,
+    porTagRevisao,
     porFase,
     porCarga,
     porModulo,
@@ -383,6 +424,142 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
     filaRunner,
     atividadeRecente,
   };
+}
+
+/**
+ * Resolve o mapa `stepNumber -> portalExterno` a partir de múltiplas fontes (coluna `step_scope` do Supabase,
+ * `auditoria_ui.etapas_externas`, callouts no `markdown_revisado` e análise de fallback dos passos).
+ */
+export function resolveExternalStepMap(params: {
+  rRow: any;
+  sRows: any[];
+  effectiveMd?: string;
+  diskAuditoriaUi?: any;
+}): Map<number, string | undefined> {
+  const { rRow, sRows, effectiveMd = '', diskAuditoriaUi } = params;
+  const externalMap = new Map<number, string | undefined>();
+
+  const uiExternas = rRow?.auditoria_ui?.etapas_externas ?? diskAuditoriaUi?.etapas_externas;
+  if (Array.isArray(uiExternas)) {
+    for (const entry of uiExternas) {
+      const n = Number(entry?.passo);
+      if (Number.isFinite(n)) {
+        externalMap.set(n, entry?.portal ? String(entry.portal) : undefined);
+      }
+    }
+  }
+
+  if (effectiveMd) {
+    for (const ext of externalStepsFromMd(effectiveMd)) {
+      if (!externalMap.has(ext.stepNumber) || !externalMap.get(ext.stepNumber)) {
+        externalMap.set(ext.stepNumber, ext.portal);
+      }
+    }
+    const body = effectiveMd.replace(/\r\n/g, '\n');
+    const stepsStart = body.search(/^#### Passo a passo/m);
+    const stepsSection = stepsStart >= 0 ? body.slice(stepsStart).replace(/^#### Passo a passo[^\n]*\n/, '') : body;
+    const stepsEnd = stepsSection.search(/^#### /m);
+    const stepArea = stepsEnd >= 0 ? stepsSection.slice(0, stepsEnd) : stepsSection;
+    const stepMatches = stepArea.matchAll(/^(\d+)\.\s[\s\S]*?(?=^\d+\.\s|^\*\s|$(?![\s\S]))/gm);
+    for (const m of stepMatches) {
+      const n = Number(m[1]);
+      const block = m[0];
+      if (!block.includes('Etapa Externa (Fora do Orion TN)')) continue;
+      const portalMatch = block.match(/Orion TN\s*\(\*\*([^*]+)\*\*\)/i);
+      if (!externalMap.has(n) || (!externalMap.get(n) && portalMatch?.[1])) {
+        externalMap.set(n, portalMatch?.[1]?.trim() || externalMap.get(n));
+      }
+    }
+  }
+
+  for (const s of sRows || []) {
+    const n = Number(s.step_number);
+    if (s.step_scope === 'external_portal') {
+      if (!externalMap.has(n) || s.portal_externo) {
+        externalMap.set(n, s.portal_externo ?? externalMap.get(n) ?? undefined);
+      }
+    }
+  }
+
+  // Fallback para linhas antigas/parciais sem `step_scope` gravado no banco ou sem metadados no frontmatter
+  const needsScopeAnalysis =
+    (sRows || []).length > 0 &&
+    externalMap.size === 0 &&
+    (sRows || []).some(s => s.step_scope === null || s.step_scope === undefined);
+  if (needsScopeAnalysis) {
+    const scopeAnalysis = analyzeRoutineScope(
+      (sRows || []).map(s => ({
+        stepNumber: Number(s.step_number),
+        rawText: String(s.original_text || s.validated_text || ''),
+        targets: Array.isArray(s.targets) ? s.targets : [],
+        actionType: s.action_type || 'click',
+        subItems: Array.isArray(s.sub_items) ? s.sub_items : [],
+      }))
+    );
+    for (const ext of scopeAnalysis.externalSteps) {
+      if (!externalMap.has(ext.stepNumber)) {
+        externalMap.set(ext.stepNumber, ext.portal);
+      }
+    }
+  }
+
+  return externalMap;
+}
+
+export function mapStepRowsWithScope(params: {
+  rRow: any;
+  sRows: any[];
+  effectiveMd?: string;
+  diskAuditoriaUi?: any;
+}) {
+  const { sRows } = params;
+  const externalMap = resolveExternalStepMap(params);
+  return (sRows || []).map(s => {
+    const n = Number(s.step_number);
+    const isExternal = s.step_scope === 'external_portal' || externalMap.has(n);
+    const stepScope: 'orion_tn' | 'external_portal' = isExternal ? 'external_portal' : 'orion_tn';
+    const portalExterno = isExternal ? (s.portal_externo ?? externalMap.get(n) ?? undefined) : undefined;
+    return {
+      stepNumber: s.step_number,
+      actionType: s.action_type,
+      zonePolicy: s.zone_policy ?? undefined,
+      targets: s.targets || [],
+      originalText: s.original_text,
+      validatedText: s.validated_text,
+      isModified: Boolean(s.is_modified),
+      status: s.status,
+      // ADR-024: passo de portal externo não tem print por desenho (não é erro de paridade)
+      stepScope,
+      portalExterno,
+      media: s.media ? { ...s.media, subCapturas: undefined } : null,
+      // Sub-capturas (passo-NN-b...): ficam em `media.subCapturas` para não exigir nova coluna (ADR-018)
+      subCapturas: Array.isArray(s.media?.subCapturas) ? s.media.subCapturas : [],
+      callouts: s.layout_result?.callouts ?? undefined,
+      domGeometry: s.dom_geometry ?? undefined,
+      layoutResult: s.layout_result ?? undefined,
+      divergence: s.divergence ?? undefined,
+      executedAction: s.executed_action ?? undefined,
+      invariantes: s.invariantes ?? undefined,
+      errorMessage: s.error_message ?? undefined,
+    };
+  });
+}
+
+function readDiskFallbackForRoutine(routineId: string): { markdown?: string; auditoriaUi?: any; pastaAuditoria?: string } | null {
+  try {
+    const revPath = findRevisedMarkdownById(routineId);
+    if (!revPath || !fs.existsSync(revPath)) return null;
+    const markdown = fs.readFileSync(revPath, 'utf8').replace(/\r\n/g, '\n');
+    const parts = markdown.split(/^---$/m);
+    const fm = parts.length >= 3 ? yaml.parse(parts[1].trim()) : null;
+    return {
+      markdown,
+      auditoriaUi: fm?.auditoria_ui ?? null,
+      pastaAuditoria: path.basename(path.dirname(revPath)),
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function fetchRoutineDetail(id: string) {
@@ -405,30 +582,25 @@ async function fetchRoutineDetail(id: string) {
   if (jErr) throw jErr;
   if (!rRow) return null;
 
-  const summary = mapRoutineSummary(rRow, jRows?.[0]);
-  const steps = (sRows || []).map(s => ({
-    stepNumber: s.step_number,
-    actionType: s.action_type,
-    zonePolicy: s.zone_policy ?? undefined,
-    targets: s.targets || [],
-    originalText: s.original_text,
-    validatedText: s.validated_text,
-    isModified: Boolean(s.is_modified),
-    status: s.status,
-    // ADR-024: passo de portal externo não tem print por desenho (não é erro de paridade)
-    stepScope: s.step_scope ?? 'orion_tn',
-    portalExterno: s.portal_externo ?? undefined,
-    media: s.media ? { ...s.media, subCapturas: undefined } : null,
-    // Sub-capturas (passo-NN-b...): ficam em `media.subCapturas` para não exigir nova coluna (ADR-018)
-    subCapturas: Array.isArray(s.media?.subCapturas) ? s.media.subCapturas : [],
-    callouts: s.layout_result?.callouts ?? undefined,
-    domGeometry: s.dom_geometry ?? undefined,
-    layoutResult: s.layout_result ?? undefined,
-    divergence: s.divergence ?? undefined,
-    executedAction: s.executed_action ?? undefined,
-    invariantes: s.invariantes ?? undefined,
-    errorMessage: s.error_message ?? undefined,
-  }));
+  const hasExplicitExternalInDb = (sRows || []).some(s => s.step_scope === 'external_portal');
+  const needsDiskFallback = !rRow.markdown_revisado || !hasExplicitExternalInDb || !Array.isArray(rRow.tags_revisao);
+  const diskFallback = needsDiskFallback ? readDiskFallbackForRoutine(id) : null;
+  const effectiveMd = rRow.markdown_revisado || diskFallback?.markdown || '';
+  const mergedRow = diskFallback
+    ? {
+        ...rRow,
+        pasta_auditoria: rRow.pasta_auditoria || diskFallback.pastaAuditoria || null,
+        auditoria_ui: rRow.auditoria_ui || diskFallback.auditoriaUi || null,
+      }
+    : rRow;
+
+  const summary = mapRoutineSummary(mergedRow, jRows?.[0], effectiveMd);
+  const steps = mapStepRowsWithScope({
+    rRow: mergedRow,
+    sRows: sRows || [],
+    effectiveMd,
+    diskAuditoriaUi: diskFallback?.auditoriaUi,
+  });
 
   return {
     summary,
@@ -469,11 +641,11 @@ async function fetchRoutineDetail(id: string) {
     auditoriaUi: rRow.auditoria_ui || null,
     // ADR-024: passos de portal externo aceitos sem `passo-NN.png`; os problemas reais (print em passo externo,
     // callout ausente, [CCC] faltando) vêm do mesmo validador usado em `verify-all-phase2-boxes.ts`
-    passosExternos: auditExternalSteps(rRow.markdown_revisado || ''),
+    passosExternos: auditExternalSteps(effectiveMd),
     steps,
     frontmatterOriginalYaml: rRow.frontmatter_original_yaml || '',
     frontmatterRevisadoYaml: rRow.frontmatter_revisado_yaml || '',
-    markdownRevisado: rRow.markdown_revisado || rRow.markdown_original || '',
+    markdownRevisado: effectiveMd || rRow.markdown_original || '',
     bloqueio: rRow.bloqueio ?? undefined,
     historico: (eRows || []).map(mapEventRow),
     revisoes: await fetchReviewsList({ routineId: id }),
@@ -619,19 +791,87 @@ function enqueueRunnerExecution(
   }
 }
 
-// --- INICIALIZAÇÃO ---
+// --- FILTRO DE ROTINAS & INICIALIZAÇÃO ---
 
-if (!isSupabaseConfigured()) {
-  console.error('✕ ERRO: SUPABASE_URL e SUPABASE_SECRET_KEY não definidos em auditoria/.env');
-  process.exit(1);
+export interface RoutineFilterInput {
+  fase?: string | null;
+  modulos?: string[];
+  secoes?: string[];
+  statusesAuditoria?: string[];
+  statusesGovernanca?: string[];
+  tagsRevisao?: string[];
+  carga?: string | null;
+  temVideo?: string | null;
+  comDivergencias?: string | null;
+  q?: string;
 }
 
-console.log('====================================================');
-console.log('  ORION AUDIT CONSOLE — API SERVER + SUPABASE       ');
-console.log('====================================================');
-console.log(`✓ Supabase URL: ${SUPABASE_URL}`);
-console.log(`✓ Porta Local:  http://localhost:${PORT}`);
-console.log('====================================================\n');
+export function filterRoutineSummaries(summaries: RoutineSummary[], f: RoutineFilterInput): RoutineSummary[] {
+  let filtered = summaries;
+  if (f.fase) {
+    filtered =
+      f.fase === 'sem_fase'
+        ? filtered.filter(r => r.fase === null)
+        : filtered.filter(r => r.fase === Number(f.fase));
+  }
+  if (f.modulos && f.modulos.length > 0) filtered = filtered.filter(r => f.modulos!.includes(r.modulo));
+  if (f.secoes && f.secoes.length > 0) filtered = filtered.filter(r => f.secoes!.includes(r.secao));
+  if (f.statusesAuditoria && f.statusesAuditoria.length > 0) {
+    filtered = filtered.filter(r => f.statusesAuditoria!.includes(r.statusAuditoria));
+  }
+  if (f.statusesGovernanca && f.statusesGovernanca.length > 0) {
+    filtered = filtered.filter(r => f.statusesGovernanca!.includes(r.statusGovernanca));
+  }
+  const wantedTags = normalizeReviewTags(
+    (f.tagsRevisao || []).flatMap(raw => String(raw).split(',').map(s => s.trim()))
+  );
+  if (wantedTags.length > 0) {
+    filtered = filtered.filter(r => r.reviewTags.some(t => wantedTags.includes(t)));
+  }
+  if (f.carga) filtered = filtered.filter(r => r.workloadType === f.carga);
+  if (f.temVideo !== null && f.temVideo !== undefined && f.temVideo !== '') {
+    const tv = f.temVideo === 'true';
+    filtered = filtered.filter(r => r.temVideo === tv);
+  }
+  if (f.comDivergencias !== null && f.comDivergencias !== undefined && f.comDivergencias !== '') {
+    const cd = f.comDivergencias === 'true';
+    filtered = filtered.filter(r => (r.divergenciasCount > 0) === cd);
+  }
+  const q = f.q?.trim().toLowerCase();
+  if (q) {
+    if (q.startsWith('#/')) {
+      filtered = filtered.filter(r => r.rotasHash.some(h => h.toLowerCase().includes(q)));
+    } else {
+      filtered = filtered.filter(
+        r =>
+          r.id.toLowerCase().includes(q) ||
+          r.titulo.toLowerCase().includes(q) ||
+          r.tags.some(t => t.toLowerCase().includes(q)) ||
+          r.rotasHash.some(h => h.toLowerCase().includes(q)) ||
+          reviewTagsPrefix(r.reviewTags).trim().toLowerCase().includes(q) ||
+          r.reviewTags.some(t => t.toLowerCase() === q)
+      );
+    }
+  }
+  return filtered;
+}
+
+const isDirectExecution =
+  !!process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  if (!isSupabaseConfigured()) {
+    console.error('✕ ERRO: SUPABASE_URL e SUPABASE_SECRET_KEY não definidos em auditoria/.env');
+    process.exit(1);
+  }
+
+  console.log('====================================================');
+  console.log('  ORION AUDIT CONSOLE — API SERVER + SUPABASE       ');
+  console.log('====================================================');
+  console.log(`✓ Supabase URL: ${SUPABASE_URL}`);
+  console.log(`✓ Porta Local:  http://localhost:${PORT}`);
+  console.log('====================================================\n');
+}
 
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -695,7 +935,11 @@ const server = http.createServer(async (req, res) => {
       const statusAuditoriaParam = params.getAll('statusAuditoria');
       const statusGovernancaParam = params.getAll('statusGovernanca');
       // ADR-024: filtro por tag (ATT, CCC, DDD, XRX), que enxerga também as tags adicionais de uma rotina multi-tag
-      const tagRevisaoParam = params.getAll('tagRevisao').map(t => t.toUpperCase());
+      const tagRevisaoParam = [
+        ...params.getAll('tagRevisao'),
+        ...params.getAll('reviewTags'),
+        ...params.getAll('tag'),
+      ];
       const cargaParam = params.get('carga');
       const temVideoParam = params.get('temVideo');
       const comDivergenciasParam = params.get('comDivergencias');
@@ -706,41 +950,18 @@ const server = http.createServer(async (req, res) => {
       const order = params.get('order') || 'asc';
 
       const { summaries: allSummaries, rawRows } = await fetchAllRoutinesSummary();
-      let filtered = allSummaries;
-
-      if (faseParam) {
-        filtered =
-          faseParam === 'sem_fase'
-            ? filtered.filter(r => r.fase === null)
-            : filtered.filter(r => r.fase === Number(faseParam));
-      }
-      if (moduloParam.length > 0) filtered = filtered.filter(r => moduloParam.includes(r.modulo));
-      if (secaoParam.length > 0) filtered = filtered.filter(r => secaoParam.includes(r.secao));
-      if (statusAuditoriaParam.length > 0) filtered = filtered.filter(r => statusAuditoriaParam.includes(r.statusAuditoria));
-      if (statusGovernancaParam.length > 0) filtered = filtered.filter(r => statusGovernancaParam.includes(r.statusGovernanca));
-      if (tagRevisaoParam.length > 0) filtered = filtered.filter(r => r.tagsRevisao.some(t => tagRevisaoParam.includes(t)));
-      if (cargaParam) filtered = filtered.filter(r => r.workloadType === cargaParam);
-      if (temVideoParam !== null && temVideoParam !== '') {
-        const tv = temVideoParam === 'true';
-        filtered = filtered.filter(r => r.temVideo === tv);
-      }
-      if (comDivergenciasParam !== null && comDivergenciasParam !== '') {
-        const cd = comDivergenciasParam === 'true';
-        filtered = filtered.filter(r => (r.divergenciasCount > 0) === cd);
-      }
-      if (q) {
-        if (q.startsWith('#/')) {
-          filtered = filtered.filter(r => r.rotasHash.some(h => h.toLowerCase().includes(q)));
-        } else {
-          filtered = filtered.filter(
-            r =>
-              r.id.toLowerCase().includes(q) ||
-              r.titulo.toLowerCase().includes(q) ||
-              r.tags.some(t => t.toLowerCase().includes(q)) ||
-              r.rotasHash.some(h => h.toLowerCase().includes(q))
-          );
-        }
-      }
+      const filtered = filterRoutineSummaries(allSummaries, {
+        fase: faseParam,
+        modulos: moduloParam,
+        secoes: secaoParam,
+        statusesAuditoria: statusAuditoriaParam,
+        statusesGovernanca: statusGovernancaParam,
+        tagsRevisao: tagRevisaoParam,
+        carga: cargaParam,
+        temVideo: temVideoParam,
+        comDivergencias: comDivergenciasParam,
+        q,
+      });
 
       filtered.sort((a: any, b: any) => {
         const va = a[sort] ?? '';
@@ -795,10 +1016,13 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (isReview(existing.status_auditoria) && !body.confirmacaoManual) {
+        const tagsStr =
+          describeTags(extractRoutineReviewTags(existing)) ||
+          `[${REVIEW_TAGS[existing.status_auditoria as ReviewStatus].tag}]`;
         sendJson(409, {
           error: {
             code: 'manual_confirmation_required',
-            message: `Confirme a validação manual antes de aprovar uma rotina [${REVIEW_TAGS[existing.status_auditoria as ReviewStatus].tag}].`,
+            message: `Confirme a validação manual antes de aprovar uma rotina ${tagsStr}.`,
           },
         });
         return;
@@ -1304,6 +1528,10 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`🚀 API Servidor (Supabase) ativo em http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
-});
+if (isDirectExecution) {
+  server.listen(PORT, HOST, () => {
+    console.log(`🚀 API Servidor (Supabase) ativo em http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+  });
+}
+
+export { server };

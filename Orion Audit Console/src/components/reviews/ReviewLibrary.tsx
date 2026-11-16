@@ -5,6 +5,7 @@ import {
   Alert, Badge, Button, Card, Checkbox, Divider, EmptyState, Field, Input, Select, Tabs, Textarea,
 } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { Modal } from "@/components/ui/Modal";
+import { AuditStatusBadge } from "@/components/badges/AuditStatusBadge";
 import { useReviewer } from "@/components/governance/useReviewer";
 import { useRevisoesRotina, useUpdateRevisao } from "@/hooks/useRotinas";
 import { fmtDate } from "@/lib/format";
@@ -266,6 +267,7 @@ export function ReviewCardList({
                       {rev.routineId}
                     </Link>
                   )}
+                  <AuditStatusBadge status={rev.rotinaStatusAuditoria} reviewTags={rev.rotinaReviewTags} compact />
                   <Badge status={meta.badge}>{meta.label}</Badge>
                   <span className="chip">{REVIEW_CATEGORY_LABEL[rev.categoria]}</span>
                   <span className="chip t-mono"><History size={12} strokeWidth={1.5} /> v{rev.versao}</span>

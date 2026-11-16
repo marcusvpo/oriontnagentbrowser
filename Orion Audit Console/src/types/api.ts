@@ -37,6 +37,7 @@ export interface RoutineReviewItem {
   rotinaModulo: Modulo;
   rotinaFase: PhaseNumber | null;
   rotinaStatusAuditoria: RoutineAuditState;
+  rotinaReviewTags?: ReviewTagCode[];
   rotinaTotalPassos: number;
   revisor: string;
   categoria: ReviewCategory;
@@ -93,7 +94,9 @@ export interface AuditoriaUiFrontmatter {
   versao_homologacao: string;
   ambiente?: string;
   prints_geradas: number;
-  tipo_bloqueio?: string;              // só em [ATT]/[DDD]/[XRX]
+  tipo_bloqueio?: string;              // só em [ATT]/[CCC]/[DDD]/[XRX]
+  review_tags?: ReviewTagCode[];
+  etapas_externas?: Array<{ passo: number; portal: string }>;
   auto_cura?: {
     acionada: boolean;
     divergencias_detectadas: Array<{
@@ -116,6 +119,8 @@ export interface RoutineSummary {
   workloadType: WorkloadType;
   statusAuditoria: RoutineAuditState;  // status PRINCIPAL (ATT/DDD/XRX têm precedência sobre CCC)
   /** ADR-024: todas as tags da rotina em ordem canônica ATT, CCC, DDD, XRX (vazio fora da revisão humana) */
+  reviewTags?: ReviewTagCode[];
+  /** Alias mantido por compatibilidade com versões anteriores da API */
   tagsRevisao?: ReviewTagCode[];
   statusGovernanca: GovernanceStatus;
   runner: RunnerJobInfo;
@@ -209,6 +214,7 @@ export interface DashboardStats {
   totalRotinas: number; auditadas: number; naoAuditadas: number; aprovadas: number;
   taxaAprovacao: number;               // 0..1 (aprovadas / auditadas)
   autoCuradas: number; bloqueadas: number;
+  porTagRevisao?: Partial<Record<ReviewTagCode, number>>;
   porFase: PhaseStats[];
   porCarga: Record<WorkloadType, number>;
   porModulo: Array<{ modulo: Modulo; total: number; auditadas: number }>;

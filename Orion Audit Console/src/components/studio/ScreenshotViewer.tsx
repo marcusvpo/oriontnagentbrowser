@@ -9,6 +9,7 @@ import { fmtKb } from "@/lib/format";
 import { anchoredTransform, MAX_VIEWER_SCALE, wheelScale } from "@/lib/viewerZoom";
 import { GeometryOverlay } from "./GeometryOverlay";
 import { Filmstrip } from "./Filmstrip";
+import { ExternalStepCard } from "./ExternalStepCard";
 
 interface Props { steps: StepView[]; active: number; onSelect: (n: number) => void; loading?: boolean; bloqueioTipo?: string }
 
@@ -139,7 +140,9 @@ export function ScreenshotViewer({ steps, active, onSelect, loading, bloqueioTip
 
   let body;
   if (loading) body = <Skeleton height="100%" />;
-  else if (!step?.media) {
+  else if (step?.stepScope === "external_portal") {
+    body = <ExternalStepCard step={step} steps={steps} onSelect={onSelect} />;
+  } else if (!step?.media) {
     body = step?.status === "blocked" || bloqueioTipo
       ? <EmptyState icon={<OctagonAlert size={24} strokeWidth={1.5} />} title="Rotina bloqueada sem prints" description={bloqueioTipo ? `Tipo de bloqueio: ${bloqueioTipo}` : "A execução foi bloqueada antes da captura."} />
       : <EmptyState icon={<ImageOff size={24} strokeWidth={1.5} />} title="Nenhuma print gerada para este passo" description="A rotina ainda não foi executada pelo runner." />;

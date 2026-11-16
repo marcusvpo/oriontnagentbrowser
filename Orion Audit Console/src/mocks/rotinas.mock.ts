@@ -4,9 +4,9 @@ import type {
 } from "@/types/audit";
 import type {
   AuditoriaUiFrontmatter, GeometryInvariantResult, GovernanceEvent, GovernanceStatus, Modulo, PhaseNumber,
-  RoutineAuditState, RoutineDetail, RunnerJobInfo, Secao, StepView,
+  ReviewTagCode, RoutineAuditState, RoutineDetail, RunnerJobInfo, Secao, StepView,
 } from "@/types/api";
-import { isReviewState } from "@/lib/status";
+import { isReviewState, tagsOf } from "@/lib/status";
 import { annotatedScreenshot, blockedScreenshot, rawScreenshot, SCREEN_SIZE, type ScreenSpec } from "./screenshotFactory";
 
 export const AMBIENTE = "Homologação — Cartório Fictício de Notas";
@@ -20,6 +20,8 @@ interface StepDef {
   action: ActionType;
   box?: BoundingBox;            // alvo no canvas 1440×900
   zone?: StepZonePolicy;
+  stepScope?: 'orion_tn' | 'external_portal';
+  portalExterno?: string;
   group?: Array<{ query: string; box: BoundingBox }>;
   divergence?: Omit<SmartLocatorDivergence, "stepNumber" | "detectedAt">;
   failInvariant4?: string;
@@ -27,7 +29,7 @@ interface StepDef {
 
 interface RoutineDef {
   id: string; titulo: string; modulo: Modulo; secao: Secao; fase: PhaseNumber | null; workload: WorkloadType;
-  status: RoutineAuditState; gov: GovernanceStatus; runner?: RunnerJobInfo; rotas: string[]; tags: string[];
+  status: RoutineAuditState; reviewTags?: ReviewTagCode[]; gov: GovernanceStatus; runner?: RunnerJobInfo; rotas: string[]; tags: string[];
   temVideo?: boolean; descricao: string; objetivo: string; sinonimos: string[]; perguntas: string[]; sintomas: string[];
   observacoes: string[]; screen: string; menu: string[]; steps: StepDef[]; worker?: string; executedAt?: string;
   duration?: number; pasta?: string | null;
@@ -126,7 +128,7 @@ function build(d: RoutineDef): RoutineDetail {
     const img = executed ? blockedScreenshot(d.screen, d.blockedStep.error) : undefined;
     steps.push({
       stepNumber: 1, actionType: "click", targets: targetsOf(d.blockedStep.text), originalText: d.blockedStep.text,
-      validatedText: d.blockedStep.text, isModified: false, status: "blocked",
+      validatedText: d.blockedStep.text, isModified: false, status: "blocked", stepScope: "orion_tn",
       media: img ? { pngUrl: img, webpUrl: img, width: 1440, height: 900, pngBytes: 182_400, webpBytes: 61_200 } : null,
       errorMessage: d.blockedStep.error,
     });
@@ -136,8 +138,14 @@ function build(d: RoutineDef): RoutineDetail {
       const targets = targetsOf(s.text);
       const label = targets[0] ?? "Alvo";
       const validatedText = s.validated ?? s.text;
+      const stepScope = s.stepScope ?? "orion_tn";
+      const portalExterno = stepScope === "external_portal" ? s.portalExterno : undefined;
+      if (stepScope === "external_portal") {
+        steps.push({ stepNumber: n, actionType: s.action, zonePolicy: s.zone, targets, originalText: s.text, validatedText, isModified: false, status: "ok", stepScope, portalExterno, media: null });
+        return;
+      }
       if (!executed || !s.box) {
-        steps.push({ stepNumber: n, actionType: s.action, zonePolicy: s.zone, targets, originalText: s.text, validatedText, isModified: false, status: isReviewState(d.status) ? "blocked" : "nao_executado", media: null });
+        steps.push({ stepNumber: n, actionType: s.action, zonePolicy: s.zone, targets, originalText: s.text, validatedText, isModified: false, status: isReviewState(d.status) ? "blocked" : "nao_executado", stepScope, media: null });
         return;
       }
       const groupMembers: DOMGroupMember[] | undefined = s.group?.map((g) => ({ query: g.query, matchedSelector: `label:has-text("${g.query}") + input`, innerText: g.query, cssBox: g.box }));
@@ -161,7 +169,7 @@ function build(d: RoutineDef): RoutineDetail {
       const raw = rawScreenshot(screen);
       steps.push({
         stepNumber: n, actionType: s.action, zonePolicy: s.zone, targets, originalText: s.text, validatedText,
-        isModified: validatedText !== s.text, status: validatedText !== s.text ? "modified" : "ok",
+        isModified: validatedText !== s.text, status: validatedText !== s.text ? "modified" : "ok", stepScope,
         media: { webpUrl: annotated, pngUrl: annotated, rawUrl: raw, width: 1440, height: 900, webpBytes: 48_000 + n * 3_100, pngBytes: 151_000 + n * 9_700 },
         domGeometry: geometry, layoutResult: layout, divergence,
         executedAction: { kind: s.action === "fill" ? "fill" : s.action === "verify" ? "none" : "click", via: "measured-node", selector: geometry.matchedSelector, node: { tagName: geometry.context.tagName, text: realLabel, box: target, insideNavZone: target.y < 56 }, zone: geometry.zone },
@@ -186,10 +194,12 @@ function build(d: RoutineDef): RoutineDetail {
     divergences, executedAt, durationSeconds: d.duration ?? 42, changelogPath: "(interno)",
   } : null;
 
+  const reviewTags = tagsOf(d.status, d.reviewTags);
   const prints = steps.filter((s) => s.media).length;
   const auditoriaUi: AuditoriaUiFrontmatter | null = report ? {
     data_execucao: executedAt.slice(0, 10), status: report.status, carga: d.workload, worker_id: d.worker ?? "worker-1",
     versao_homologacao: VERSAO_HOMOLOGACAO, ambiente: AMBIENTE, prints_geradas: prints,
+    ...(reviewTags.length ? { review_tags: reviewTags } : {}),
     tipo_bloqueio: d.bloqueio?.tipo,
     auto_cura: { acionada: divergences.length > 0, divergencias_detectadas: divergences.map((v) => ({ passo: v.stepNumber, alvo_documentado: v.documentedTarget, elemento_real: v.actualElementText, camada: v.resolutionLayer, confianca: v.confidence })) },
   } : null;
@@ -206,7 +216,7 @@ function build(d: RoutineDef): RoutineDetail {
   return {
     summary: {
       id: d.id, titulo: d.titulo, modulo: d.modulo, secao: d.secao, fase: d.fase, temVideo: !!d.temVideo, workloadType: d.workload,
-      statusAuditoria: d.status, statusGovernanca: d.gov, runner: d.runner ?? { estado: "idle" },
+      statusAuditoria: d.status, reviewTags, tagsRevisao: reviewTags, statusGovernanca: d.gov, runner: d.runner ?? { estado: "idle" },
       pastaAuditoria: d.pasta !== undefined ? d.pasta : executed ? `${d.id}-${d.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").slice(0, 40)}` : null,
       totalPassos: steps.length, printsGeradas: prints, divergenciasCount: divergences.length, menorConfianca: menor,
       rotasHash: d.rotas, tags: d.tags, dataExecucao: executed ? executedAt : undefined, workerId: executed ? d.worker ?? "worker-1" : undefined,
@@ -370,6 +380,32 @@ const DEFS: RoutineDef[] = [
         "Reinstalar o driver TWAIN do fabricante e reiniciar a estação.",
         "Abrir a tela de digitalização e selecionar a fonte TWAIN listada.",
         "Digitalizar um cartão de teste e conferir a imagem gerada.",
+      ],
+    },
+  },
+  {
+    id: "C-CENTRAL-02", titulo: "Habilitação de Pessoa Obrigada Ativa no Portal SISCOAF para Envio de Comunicações", modulo: "centrais", secao: "C", fase: 3, workload: "mutation",
+    status: "atualizacao_editorial", reviewTags: ["ATT", "CCC"], gov: "pendente_aprovacao", rotas: [], tags: ["centrais", "coaf", "siscoaf"], worker: "worker-1",
+    executedAt: iso(16, 14, 10), duration: 19, pasta: "[ATT][CCC] C-CENTRAL-02-habilitacao-de-pessoa-obrigada-ativa-no-portal-sis", screen: "Configurações — Menu", menu: ["Configurações", "Notas", "Firmas", "Selos"],
+    descricao: "Orienta a habilitação de preposto ativo no portal SISCOAF e o vínculo do CPF remetente no Orion TN.",
+    objetivo: "Permitir o envio de comunicações ao COAF pelos colaboradores autorizados.",
+    sinonimos: ["habilitar siscoaf", "preposto coaf", "comunicação coaf"], perguntas: commonPerguntas("habilitar pessoa obrigada no SISCOAF"),
+    sintomas: ["Erro de usuário não habilitado no SISCOAF", "Caminho Configurações > Parâmetros Gerais não encontrado"],
+    observacoes: ["Mantenha o cadastro de prepostos atualizado no SISCOAF."],
+    steps: [
+      { text: "O Tabelião Titular deve acessar o portal oficial do **SISCOAF** utilizando seu certificado digital e-CPF.", action: "navigate", stepScope: "external_portal", portalExterno: "SISCOAF" },
+      { text: "Navegue até **Pessoas Obrigadas > Habilitações de Usuários / Gerenciar Prepostos**.", action: "navigate", stepScope: "external_portal", portalExterno: "SISCOAF" },
+      { text: "Cadastre o CPF do colaborador responsável pelas comunicações, concedendo perfil ativo de remetente.", action: "fill", stepScope: "external_portal", portalExterno: "SISCOAF" },
+      { text: "No **Orion TN**, acesse **Configurações > Parâmetros Gerais > Comunicação COAF**.", action: "click", stepScope: "orion_tn" },
+      { text: "No campo **CPF do Responsável pelo Envio**, informe com exatidão o CPF habilitado no portal.", action: "fill", stepScope: "orion_tn" },
+      { text: "Clique em **Gravar**.", action: "click", stepScope: "orion_tn" },
+    ],
+    bloqueio: {
+      tipo: "Defasagem Editorial do Manual (Recurso Inexistente na Tela)",
+      motivo: 'O caminho "Configurações > Parâmetros Gerais > Comunicação COAF" não existe na árvore de navegação real do Orion TN; os passos 1–3 ocorrem no portal SISCOAF (validação humana).',
+      roteiroManual: [
+        "Validar manualmente os passos 1 a 3 no portal oficial do SISCOAF.",
+        "Localizar a tela equivalente de Comunicação COAF no menu Configurações da versão atual e reescrever o passo 4.",
       ],
     },
   },

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useBlocker } from "@tanstack/react-router";
-import { FileQuestion } from "lucide-react";
+import { FileQuestion, Globe } from "lucide-react";
 import { Alert, Button, EmptyState, Field, Skeleton, Tabs, Textarea } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { AppShell } from "@/components/layout/AppShell";
 import { StudioHeader } from "@/components/studio/StudioHeader";
 import { StepComparisonCard } from "@/components/studio/StepComparisonCard";
 import { BlockedBanner } from "@/components/studio/BlockedBanner";
+import { ExternalStepCard } from "@/components/studio/ExternalStepCard";
+import { Filmstrip } from "@/components/studio/Filmstrip";
 import { MarkdownPreview } from "@/components/studio/MarkdownPreview";
 import { FrontmatterView } from "@/components/studio/FrontmatterView";
 import { TelemetryView } from "@/components/studio/TelemetryView";
@@ -17,6 +19,8 @@ import { ReexecuteDialog } from "@/components/governance/ReexecuteDialog";
 import { EditModeToolbar } from "@/components/governance/EditModeToolbar";
 import { RoutineReviewsModal } from "@/components/reviews/ReviewLibrary";
 import { useRotina, useRotinas } from "@/hooks/useRotinas";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { tagsOfSummary } from "@/lib/status";
 import { toListQuery, validateRotinasSearch } from "@/lib/search";
 import { estimateTokens, lintText } from "@/lib/lint";
 import { ApiError } from "@/services/api";
@@ -71,6 +75,24 @@ function Estudio() {
     if (scroll && tab === "passos") cardRefs.current[n]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
+  const activeStep = rotina?.steps.find((s) => s.stepNumber === active);
+  const isExternalActive = activeStep?.stepScope === "external_portal";
+  const stepIdx = rotina ? rotina.steps.findIndex((s) => s.stepNumber === active) : -1;
+  const goExternalStep = (d: number) => {
+    if (!rotina) return;
+    const next = rotina.steps[stepIdx + d];
+    if (next) select(next.stepNumber);
+  };
+  useKeyboardShortcuts(
+    {
+      ArrowRight: () => goExternalStep(1),
+      ArrowLeft: () => goExternalStep(-1),
+      j: () => goExternalStep(1),
+      k: () => goExternalStep(-1),
+    },
+    isExternalActive,
+  );
+
   const idx = order.indexOf(id);
   const allText = useMemo(() => {
     if (!rotina) return "";
@@ -108,8 +130,6 @@ function Estudio() {
     );
   }
 
-  const activeStep = rotina.steps.find((s) => s.stepNumber === active);
-
   return (
     <AppShell crumbs={crumbs} flush>
       <div className="studio">
@@ -118,7 +138,13 @@ function Estudio() {
         <div className="studio-body" ref={bodyRef} style={{ ["--studio-left" as string]: `${leftPct}%` }}>
           <section className="studio-pane" aria-label="Texto">
             <div className="stack-4">
-              {rotina.bloqueio && <BlockedBanner bloqueio={rotina.bloqueio} />}
+              {rotina.bloqueio && (
+                <BlockedBanner
+                  bloqueio={rotina.bloqueio}
+                  statusAuditoria={rotina.summary.statusAuditoria}
+                  reviewTags={tagsOfSummary(rotina.summary)}
+                />
+              )}
               {editing && (
                 <EditModeToolbar tokens={estimateTokens(allText)} errors={issues.filter((i) => i.level === "error").length} warnings={issues.filter((i) => i.level === "warning").length}
                   dirty={dirty} onDiscard={() => { setEditing(false); setDrafts({}); setDescDraft(undefined); }} onSaveApprove={() => setDialog("approve")} />
@@ -147,7 +173,21 @@ function Estudio() {
           <div className="studio-resizer" role="separator" aria-orientation="vertical" aria-label="Redimensionar painéis" tabIndex={0} onPointerDown={startResize}
             onKeyDown={(e) => { if (e.key === "ArrowLeft") setLeftPct((p) => Math.max(25, p - 2)); if (e.key === "ArrowRight") setLeftPct((p) => Math.min(70, p + 2)); }} />
           <section className="studio-pane studio-pane--right" aria-label="Visualizador de prints">
-            <ScreenshotViewer steps={rotina.steps} active={active} onSelect={(n) => select(n)} bloqueioTipo={rotina.steps.every((s) => !s.media) ? rotina.bloqueio?.tipo : undefined} />
+            {isExternalActive && activeStep ? (
+              <>
+                <div className="row-between">
+                  <span className="t-overline-xs">
+                    <Globe size={12} strokeWidth={1.5} aria-hidden /> Passo {activeStep.stepNumber} de {rotina.steps.length} · Etapa Externa
+                  </span>
+                </div>
+                <div className="viewer viewer--external">
+                  <ExternalStepCard step={activeStep} steps={rotina.steps} onSelect={(n) => select(n)} />
+                </div>
+                <Filmstrip steps={rotina.steps} active={active} onSelect={(n) => select(n)} />
+              </>
+            ) : (
+              <ScreenshotViewer steps={rotina.steps} active={active} onSelect={(n) => select(n)} bloqueioTipo={rotina.steps.every((s) => !s.media) ? rotina.bloqueio?.tipo : undefined} />
+            )}
           </section>
         </div>
       </div>

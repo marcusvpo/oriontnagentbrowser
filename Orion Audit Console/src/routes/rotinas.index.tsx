@@ -9,6 +9,7 @@ import { RoutinesTable } from "@/components/explorer/RoutinesTable";
 import { ReexecuteDialog } from "@/components/governance/ReexecuteDialog";
 import { useRotinas } from "@/hooks/useRotinas";
 import { toListQuery, validateRotinasSearch, type RotinasSearch } from "@/lib/search";
+import { tagsOfSummary } from "@/lib/status";
 import { api } from "@/services/api";
 import { toast } from "@/lib/toast";
 
@@ -59,9 +60,9 @@ function Rotinas() {
   const exportCsv = async () => {
     const all = await api.listRotinas({ ...query, page: 1, pageSize: 500 });
     const list = selected.size ? all.data.filter((r) => selected.has(r.id)) : all.data;
-    const head = ["id", "titulo", "modulo", "secao", "fase", "statusAuditoria", "statusGovernanca", "carga", "passos", "prints", "divergencias", "menorConfianca", "rotasHash", "dataExecucao", "worker"];
+    const head = ["id", "titulo", "modulo", "secao", "fase", "statusAuditoria", "reviewTags", "statusGovernanca", "carga", "passos", "prints", "divergencias", "menorConfianca", "rotasHash", "dataExecucao", "worker"];
     const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const csv = [head.join(";"), ...list.map((r) => [r.id, r.titulo, r.modulo, r.secao, r.fase, r.statusAuditoria, r.statusGovernanca, r.workloadType, r.totalPassos, r.printsGeradas, r.divergenciasCount, r.menorConfianca, r.rotasHash.join(" "), r.dataExecucao, r.workerId].map(q).join(";"))].join("\n");
+    const csv = [head.join(";"), ...list.map((r) => [r.id, r.titulo, r.modulo, r.secao, r.fase, r.statusAuditoria, tagsOfSummary(r).join(","), r.statusGovernanca, r.workloadType, r.totalPassos, r.printsGeradas, r.divergenciasCount, r.menorConfianca, r.rotasHash.join(" "), r.dataExecucao, r.workerId].map(q).join(";"))].join("\n");
     const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a"); a.href = url; a.download = "rotinas-orion.csv"; a.click(); URL.revokeObjectURL(url);
     toast("CSV exportado", `${list.length} rotina(s).`);

@@ -80,7 +80,7 @@ body { margin: 0; }
 .phase-row:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .stackbar { display: flex; height: var(--space-2); border-radius: var(--radius-xs); overflow: hidden; background: var(--color-ink); border: var(--border-hairline); }
 .stackbar > span { display: block; height: 100%; }
-.seg-ok { background: var(--color-success); } .seg-adj { background: var(--color-warning); } .seg-blk { background: var(--color-danger); } .seg-att { background: var(--color-warning); opacity: 0.7; } .seg-ccc { background: var(--color-info, var(--color-ash)); opacity: 0.85; } .seg-ddd { background: var(--color-danger); } .seg-xrx { background: var(--color-ash); } .seg-none { background: transparent; }
+.seg-ok { background: var(--color-success); } .seg-adj { background: var(--color-warning); } .seg-blk { background: var(--color-danger); } .seg-att { background: var(--color-warning); opacity: 0.7; } .seg-ccc { background: var(--color-external); opacity: 0.9; } .seg-ddd { background: var(--color-danger); } .seg-xrx { background: var(--color-ash); } .seg-none { background: transparent; }
 .legend { display: flex; gap: var(--space-4); flex-wrap: wrap; }
 .legend-item { display: inline-flex; align-items: center; gap: var(--space-1-5); font: 500 var(--text-overline-xs)/1 var(--font-mono); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-ash); }
 .legend-swatch { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-xs); }
@@ -300,4 +300,101 @@ button.chip:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .btn-reviews-highlight:hover .btn-reviews-highlight-count {
   background: var(--color-bone);
   color: var(--color-crimson);
+}
+
+/* Destaque visual para Portal Externo ([CCC] / stepScope: external_portal) */
+:root {
+  --color-external: #38bdf8;
+  --color-external-wash: rgba(56, 189, 248, 0.12);
+  --color-external-line: rgba(56, 189, 248, 0.45);
+}
+.ds-badge--external {
+  border-color: var(--color-external-line);
+  background: var(--color-external-wash);
+  color: var(--color-external);
+}
+.ds-badge--external-portal {
+  border-color: var(--color-filament-strong);
+  background: var(--color-slate);
+  color: var(--color-bone);
+}
+.ds-alert--external {
+  border-color: var(--color-external-line);
+  background: var(--color-external-wash);
+  color: var(--color-bone);
+}
+.ds-alert--external svg {
+  color: var(--color-external);
+}
+.audit-badges {
+  gap: var(--space-1-5);
+  align-items: center;
+}
+.tag-filter-link {
+  text-decoration: none;
+  display: inline-flex;
+  border-radius: var(--radius-xs);
+}
+.tag-filter-link:hover .ds-badge {
+  border-color: var(--color-bone);
+}
+.tag-filter-link:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.step-card[data-scope="external_portal"] {
+  box-shadow: inset 3px 0 0 var(--color-external);
+}
+.step-card[data-scope="external_portal"][data-active="true"] {
+  border-color: var(--color-crimson);
+  box-shadow: inset 3px 0 0 var(--color-external), var(--shadow-focus);
+}
+.viewer--external {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  overflow-y: auto;
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 55%), var(--color-ink);
+}
+.external-step-card {
+  width: min(560px, 100%);
+  border: 1px solid var(--color-external-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-graphite);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.external-step-emblem {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-external-line);
+  background: var(--color-external-wash);
+  color: var(--color-external);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.external-step-quote {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 2px solid var(--color-external-line);
+  background: var(--color-ink);
+  border-radius: var(--radius-xs);
+}
+.film-external {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  color: var(--color-external);
+  background: rgba(56, 189, 248, 0.08);
+}
+.film-flag--external {
+  border-color: var(--color-external-line);
+  background: var(--color-external-wash);
+  color: var(--color-external);
 }

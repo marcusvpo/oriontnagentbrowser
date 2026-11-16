@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'yaml';
 import { parseRoutineMarkdown } from './parser.js';
 import { classifyRoutineWorkload } from './worker-pool.js';
-import { auditPrint, externalStepsFromMd, loadPrintTelemetry, printNameOf, type PrintTelemetry } from './invariants.js';
+import { auditPrint, externalStepsFromMd, loadPrintTelemetry, printNameOf, reviewTagsFromMd, type PrintTelemetry } from './invariants.js';
 import {
   getSupabaseAdmin,
   isSupabaseConfigured,
@@ -442,12 +442,22 @@ async function buildRoutineRecords(params: {
   // ADR-024: lista completa de tags (ordem canônica) e passos externos ao Orion TN, lidos do relatório
   const tagsRevisao: string[] = !auditedInfo
     ? []
-    : Array.isArray(auditoriaUi?.review_tags)
-      ? normalizeReviewTags(auditoriaUi.review_tags)
-      : tagsFromPrefix(auditedInfo.slug).length > 0
-        ? tagsFromPrefix(auditedInfo.slug)
-        : reviewTagsFor(statusAuditoria);
-  const externalByStep = new Map(externalStepsFromMd(revMdContent).map(e => [e.stepNumber, e.portal] as const));
+    : normalizeReviewTags([
+        ...(Array.isArray(auditoriaUi?.review_tags) ? auditoriaUi.review_tags : []),
+        ...tagsFromPrefix(auditedInfo.slug),
+        ...reviewTagsFromMd(revMdContent),
+        ...(isReviewStatus(statusAuditoria) ? reviewTagsFor(statusAuditoria) : []),
+      ]);
+  const externalByStep = new Map<number, string>();
+  if (Array.isArray(auditoriaUi?.etapas_externas)) {
+    for (const entry of auditoriaUi.etapas_externas) {
+      const n = Number(entry?.passo);
+      if (Number.isFinite(n) && entry?.portal) externalByStep.set(n, String(entry.portal));
+    }
+  }
+  for (const ext of externalStepsFromMd(revMdContent)) {
+    if (!externalByStep.has(ext.stepNumber)) externalByStep.set(ext.stepNumber, ext.portal);
+  }
 
   let bloqueio: any = null;
   if (statusAuditoria === 'comunicacao_externa') {

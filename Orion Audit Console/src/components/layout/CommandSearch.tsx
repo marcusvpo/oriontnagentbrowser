@@ -4,7 +4,7 @@ import { FileSearch, Hash } from "lucide-react";
 import { EmptyState, Input } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { Modal } from "@/components/ui/Modal";
 import { useRotinas } from "@/hooks/useRotinas";
-import { reviewPrefix } from "@/lib/status";
+import { reviewPrefix, tagsOfSummary } from "@/lib/status";
 import { AuditStatusBadge } from "@/components/badges/AuditStatusBadge";
 
 /** Busca global (Ctrl+K) por ID, título ou rota hash. */
@@ -37,10 +37,10 @@ export function CommandSearch({ open, onClose }: { open: boolean; onClose: () =>
           {rows.map((r, i) => (
             <li key={r.id}>
               <button className="cmd-item" role="option" aria-selected={i === sel} onMouseEnter={() => setSel(i)} onClick={() => go(r.id)}>
-                <span className="t-mono nowrap">{reviewPrefix(r.statusAuditoria, r.tagsRevisao)}{r.id}</span>
+                <span className="t-mono nowrap">{reviewPrefix(r.statusAuditoria, tagsOfSummary(r))}{r.id}</span>
                 <span className="grow">{r.titulo}</span>
                 {q.startsWith("#/") && <span className="chip"><Hash size={12} strokeWidth={1.5} />{r.rotasHash[0]}</span>}
-                <AuditStatusBadge status={r.statusAuditoria} />
+                <AuditStatusBadge status={r.statusAuditoria} reviewTags={tagsOfSummary(r)} compact />
               </button>
             </li>
           ))}

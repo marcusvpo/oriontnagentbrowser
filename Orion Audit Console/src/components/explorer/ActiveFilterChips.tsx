@@ -8,6 +8,7 @@ const LABELS: Record<string, string> = { fase: "Fase", modulo: "Módulo", secao:
 function valueLabel(k: string, v: string) {
   if (k === "status") return v.split(",").map((s) => AUDIT_STATUS[s as keyof typeof AUDIT_STATUS]?.label ?? s).join(", ");
   if (k === "gov") return v.split(",").map((s) => GOV_STATUS[s as keyof typeof GOV_STATUS]?.label ?? s).join(", ");
+  if (k === "tag") return v.split(",").map((t) => `[${t}]`).join(", ");
   if (k === "fase") return v === "sem_fase" ? "Sem fase" : v;
   if (k === "video" || k === "div") return v === "true" ? "Sim" : "Não";
   return v.replace(/,/g, ", ");

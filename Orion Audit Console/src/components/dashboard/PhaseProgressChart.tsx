@@ -1,12 +1,22 @@
-import { useNavigate } from "@tanstack/react-router";
-import { Card } from "@/design-system/orion-audit-console---design-system-bdbb01";
-import type { PhaseStats } from "@/types/api";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Badge, Card, Tooltip } from "@/design-system/orion-audit-console---design-system-bdbb01";
+import { REVIEW_TAG_META, REVIEW_TAG_ORDER } from "@/lib/status";
+import type { PhaseStats, ReviewTagCode } from "@/types/api";
 
-export function PhaseProgressChart({ phases, total }: { phases: PhaseStats[]; total: number }) {
+export function PhaseProgressChart({
+  phases,
+  total,
+  tagCounts,
+}: {
+  phases: PhaseStats[];
+  total: number;
+  tagCounts?: Partial<Record<ReviewTagCode, number>>;
+}) {
   const navigate = useNavigate();
+  const hasTagCounts = tagCounts && REVIEW_TAG_ORDER.some((t) => (tagCounts[t] ?? 0) > 0);
   return (
     <Card kicker="Progresso por fase">
-      <div className="legend" style={{ marginBottom: "var(--space-4)" }}>
+      <div className="legend" style={{ marginBottom: hasTagCounts ? "var(--space-3)" : "var(--space-4)" }}>
         <span className="legend-item"><span className="legend-swatch seg-ok" />Validado</span>
         <span className="legend-item"><span className="legend-swatch seg-adj" />Auto-curada</span>
         <span className="legend-item"><span className="legend-swatch seg-att" />[ATT] Atualização</span>
@@ -15,6 +25,25 @@ export function PhaseProgressChart({ phases, total }: { phases: PhaseStats[]; to
         <span className="legend-item"><span className="legend-swatch seg-xrx" />[XRX] Cruzada</span>
         <span className="legend-item"><span className="legend-swatch stackbar" />Não auditada</span>
       </div>
+      {hasTagCounts && (
+        <div className="row" style={{ marginBottom: "var(--space-4)" }} aria-label="Filtrar por tag de revisão">
+          {REVIEW_TAG_ORDER.map((t) => {
+            const meta = REVIEW_TAG_META[t];
+            const Icon = meta.icon;
+            const count = tagCounts?.[t] ?? 0;
+            return (
+              <Tooltip key={t} content={`${meta.label} (${count} rotinas, inclui multi-tag)`}>
+                <Link to="/rotinas" search={{ tag: t }} className="tag-filter-link" aria-label={`Filtrar por tag ${t}: ${count} rotinas`}>
+                  <Badge status={meta.tone} className={meta.extraClass} hideDot>
+                    <Icon size={12} strokeWidth={1.5} aria-hidden />
+                    {meta.shortLabel} {count}
+                  </Badge>
+                </Link>
+              </Tooltip>
+            );
+          })}
+        </div>
+      )}
       <div className="stack-1">
         {phases.map((p) => {
           const isF6 = p.fase === 6;

@@ -20,6 +20,7 @@ const modulos: Array<[Modulo, number, number]> = [
 
 export const baseStats: Omit<DashboardStats, "atividadeRecente" | "filaRunner"> = {
   totalRotinas: 471, auditadas: 64, naoAuditadas: 407, aprovadas: 41, taxaAprovacao: 41 / 64, autoCuradas: 9, bloqueadas: 10,
+  porTagRevisao: { ATT: 107, CCC: 4, DDD: 18, XRX: 24 },
   porFase: [
     phase(1, 2, 1, 1, 0),
     phase(2, 50, 27, 3, 4),

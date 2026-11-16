@@ -11,7 +11,7 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { useRotinas } from "@/hooks/useRotinas";
 import { isRealtimeConfigured } from "@/lib/supabase";
 import { fmtPct } from "@/lib/format";
-import { REVIEW_FILTER } from "@/lib/status";
+import { REVIEW_FILTER, REVIEW_TAG_META, REVIEW_TAG_ORDER } from "@/lib/status";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,13 +57,32 @@ function Dashboard() {
             <KpiCard label="Auditadas" value={String(s.auditadas)} delta={`${fmtPct(s.auditadas / s.totalRotinas)} do total`} trend="up" search={{ status: `validado_inalterado,validado_com_ajustes,${REVIEW_FILTER}` }} />
             <KpiCard label="Taxa de aprovação" value={fmtPct(s.taxaAprovacao)} delta={`${s.aprovadas} aprovadas ÷ ${s.auditadas} auditadas`} trend="up" search={{ gov: "aprovada" }} />
             <KpiCard label="Auto-curadas" value={String(s.autoCuradas)} delta="Divergências corrigidas" search={{ status: "validado_com_ajustes" }} />
-            <KpiCard label="Em revisão [ATT][CCC][DDD][XRX]" value={String(s.bloqueadas)} delta="Exigem validação manual" trend="down" search={{ status: REVIEW_FILTER }} />
+            <KpiCard
+              label="Em revisão humana"
+              value={String(s.bloqueadas)}
+              delta="Exigem validação manual (multi-tag incluso)"
+              trend="down"
+              search={{ status: REVIEW_FILTER }}
+              footer={
+                <div className="row" style={{ gap: "var(--space-1)" }}>
+                  {REVIEW_TAG_ORDER.map((t) => {
+                    const meta = REVIEW_TAG_META[t];
+                    const count = s.porTagRevisao?.[t] ?? 0;
+                    return (
+                      <Badge key={t} status={meta.tone} className={meta.extraClass} hideDot>
+                        [{t}] {count}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              }
+            />
             <KpiCard label="Não auditadas" value={String(s.naoAuditadas)} delta={`${fmtPct(s.naoAuditadas / s.totalRotinas)} restantes`} search={{ status: "nao_auditada" }} />
           </div>
 
           <div className="section-heading"><h2 className="t-h2">Panorama da auditoria</h2><span className="t-overline-xs">Fases · Carga · Módulos</span></div>
           <div className="dash-grid">
-            <div className="span-8"><PhaseProgressChart phases={s.porFase} total={s.totalRotinas} /></div>
+            <div className="span-8"><PhaseProgressChart phases={s.porFase} total={s.totalRotinas} tagCounts={s.porTagRevisao} /></div>
             <div className="span-4 stack-4">
               <WorkloadDonut readOnly={s.porCarga.read_only} mutation={s.porCarga.mutation} />
               <Card kicker="Fila do runner">

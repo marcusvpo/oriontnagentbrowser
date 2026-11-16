@@ -4,7 +4,7 @@ import type {
   RequestReviewResponse, RoutineDetail, RoutineReviewItem, UpdateReviewPayload, UpdateReviewResponse,
 } from "@/types/api";
 import { ApiError, type ReexecuteBatchPayload, type ReexecuteBatchResponse } from "@/services/api";
-import { isReviewState, tagsOf } from "@/lib/status";
+import { isReviewState, reviewPrefix, tagsOfSummary } from "@/lib/status";
 import { buildRotinas } from "./rotinas.mock";
 import { baseStats } from "./stats.mock";
 
@@ -88,7 +88,7 @@ export const mockApi = {
     if (q.secao?.length) rows = rows.filter((r) => q.secao!.includes(r.secao));
     if (q.statusAuditoria?.length) rows = rows.filter((r) => q.statusAuditoria!.includes(r.statusAuditoria));
     if (q.statusGovernanca?.length) rows = rows.filter((r) => q.statusGovernanca!.includes(r.statusGovernanca));
-    if (q.tagRevisao?.length) rows = rows.filter((r) => tagsOf(r.statusAuditoria, r.tagsRevisao).some((t) => q.tagRevisao!.includes(t)));
+    if (q.tagRevisao?.length) rows = rows.filter((r) => tagsOfSummary(r).some((t) => q.tagRevisao!.includes(t)));
     if (q.carga) rows = rows.filter((r) => r.workloadType === q.carga);
     if (q.temVideo !== undefined) rows = rows.filter((r) => r.temVideo === q.temVideo);
     if (q.comDivergencias !== undefined) rows = rows.filter((r) => (r.divergenciasCount > 0) === q.comDivergencias);
@@ -96,7 +96,7 @@ export const mockApi = {
       const t = q.q.trim().toLowerCase();
       rows = t.startsWith("#/")
         ? rows.filter((r) => r.rotasHash.some((h) => h.toLowerCase().includes(t)))
-        : rows.filter((r) => [r.id, r.titulo, ...r.tags, ...r.rotasHash].some((s) => s.toLowerCase().includes(t)));
+        : rows.filter((r) => [r.id, r.titulo, reviewPrefix(r.statusAuditoria, tagsOfSummary(r)).trim(), ...r.tags, ...r.rotasHash].some((s) => s.toLowerCase().includes(t)));
     }
     const sort = q.sort ?? "id"; const dir = q.order === "desc" ? -1 : 1;
     rows.sort((a, b) => {
@@ -147,6 +147,7 @@ export const mockApi = {
       rotinaModulo: r.summary.modulo,
       rotinaFase: r.summary.fase,
       rotinaStatusAuditoria: r.summary.statusAuditoria,
+      rotinaReviewTags: tagsOfSummary(r.summary),
       rotinaTotalPassos: r.summary.totalPassos,
       revisor: p.revisor,
       categoria: p.categoria,

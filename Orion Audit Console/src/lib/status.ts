@@ -22,6 +22,47 @@ export const REVIEW_TAG_LABEL: Record<ReviewTagCode, string> = {
   DDD: "Dependência de dados",
   XRX: "Dependência cruzada",
 };
+export const REVIEW_TAG_STATE: Record<ReviewTagCode, ReviewState> = {
+  ATT: "atualizacao_editorial",
+  CCC: "comunicacao_externa",
+  DDD: "dependencia_dados_banco",
+  XRX: "dependencia_cruzada_rotina",
+};
+export const REVIEW_TAG_META: Record<ReviewTagCode, StatusMeta & { tag: ReviewTagCode; shortLabel: string; extraClass?: string }> = {
+  ATT: {
+    tag: "ATT",
+    shortLabel: "[ATT]",
+    label: "[ATT] Atualização editorial",
+    tone: "warning",
+    icon: FileWarning,
+    description: "O manual cita tela, caminho, botão ou campo que não existe na versão atual. Exige revisão editorial humana.",
+  },
+  CCC: {
+    tag: "CCC",
+    shortLabel: "[CCC]",
+    label: "[CCC] Comunicação externa",
+    tone: "neutral",
+    extraClass: "ds-badge--external",
+    icon: ExternalLink,
+    description: "Parte do passo a passo ocorre em portal externo ao Orion TN (SISCOAF, e-Notariado, CENSEC, Receita...). Essas etapas não são executadas nem fotografadas; a validação é humana.",
+  },
+  DDD: {
+    tag: "DDD",
+    shortLabel: "[DDD]",
+    label: "[DDD] Dependência de dados",
+    tone: "failed",
+    icon: Database,
+    description: "Faltam registros no banco de homologação (ou o ambiente/hardware não permite validar). Exige a equipe de Produtos.",
+  },
+  XRX: {
+    tag: "XRX",
+    shortLabel: "[XRX]",
+    label: "[XRX] Dependência cruzada",
+    tone: "neutral",
+    icon: GitBranch,
+    description: "Depende da execução prévia de outra rotina que cria os registros necessários.",
+  },
+};
 export const isReviewState = (s: string | null | undefined): s is ReviewState => !!s && (REVIEW_STATES as readonly string[]).includes(s);
 /** Normaliza uma lista de tags para a ordem canônica, sem duplicatas nem valores desconhecidos. */
 export const sortTags = (tags: ReadonlyArray<string> | null | undefined): ReviewTagCode[] =>
@@ -31,6 +72,14 @@ export const tagsOf = (status: string | null | undefined, tags?: ReadonlyArray<s
   const full = sortTags(tags);
   if (full.length > 0) return full;
   return isReviewState(status) ? [REVIEW_TAG[status]] : [];
+};
+/** Extrai tags de revisão de um resumo da API aceitando `reviewTags` (preferencial) ou `tagsRevisao`. */
+export const tagsOfSummary = (
+  s?: { statusAuditoria?: string | null; reviewTags?: ReadonlyArray<string> | null; tagsRevisao?: ReadonlyArray<string> | null } | null,
+): ReviewTagCode[] => {
+  if (!s) return [];
+  const merged = sortTags([...(s.reviewTags ?? []), ...(s.tagsRevisao ?? [])]);
+  return tagsOf(s.statusAuditoria, merged);
 };
 /** Prefixo de exibição na ordem canônica e sem espaço entre colchetes: `[ATT][CCC] ` (vazio fora da revisão humana). */
 export const reviewPrefix = (s: string | null | undefined, tags?: ReadonlyArray<string> | null): string => {
