@@ -34,6 +34,47 @@ export interface DOMViewportMetrics {
   scrollY: number;
 }
 
+export type SemanticRole =
+  | 'navigation_root'
+  | 'navigation_leaf'
+  | 'search_filter_input'
+  | 'search_trigger_button'
+  | 'grid_row_picker'
+  | 'section_confirm_button'
+  | 'service_execution_trigger'
+  | 'entity_creation_button'
+  | 'form_input'
+  | 'form_submit'
+  | 'form_cancel';
+
+export type StepIntent =
+  | 'navigate_menu'
+  | 'search_or_filter'
+  | 'pick_grid_row'
+  | 'confirm_section'
+  | 'launch_service_or_item'
+  | 'create_entity'
+  | 'configure_parameter'
+  | 'fill_form_field'
+  | 'submit_form'
+  | 'cancel_or_clear'
+  | 'generic_action';
+
+export interface DOMSemanticSignature {
+  /** Título do bloco/seção visual mais próximo (fieldset legend, panel-heading, card-header, h3-h5...) */
+  sectionTitle?: string;
+  /** Contexto de linha quando o elemento está em uma tabela (`<tr>`) */
+  rowContext?: {
+    rowIndex: number;
+    firstColText: string;
+    secondColText?: string;
+  };
+  /** Rótulo associado lido de `<label>`, `<span>` adjacente, placeholder, `title` ou `ng-reflect-*` */
+  associatedLabel?: string;
+  /** Papel funcional inferido para a Matriz de Compatibilidade Intenção × Papel */
+  semanticRole: SemanticRole;
+}
+
 /**
  * Contexto estrutural e semântico extraído da árvore DOM real,
  * eliminando adivinhações por números mágicos ou leitura de pixels RGB.
@@ -48,6 +89,8 @@ export interface DOMElementContext {
   isModal?: boolean;
   iframeOffset?: Point;
   neighborBoxes?: BoundingBox[];
+  /** Assinatura Semântica Hierárquica extraída ao vivo no DOM (ADR-027) */
+  semantic?: DOMSemanticSignature;
 }
 
 /**
@@ -558,6 +601,8 @@ export interface AnnotationOutput {
 
 export interface RoutineStep {
   stepNumber: number;
+  /** ID da rotina proprietária (ex.: 'C-CENTRAL-02'), propagado para consulta de RAG de revisões (ADR-027) */
+  routineId?: string;
   rawText: string;
   targets: string[]; // Elementos visuais em **negrito**
   actionType: ActionType;

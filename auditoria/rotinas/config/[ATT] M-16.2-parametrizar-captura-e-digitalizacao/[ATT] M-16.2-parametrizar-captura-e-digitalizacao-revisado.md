@@ -16,7 +16,7 @@ auditoria_ui:
   sessao_perfil_pleno: true
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T02:13:55.647Z
+  governanca_atualizado_em: 2026-11-17T03:40:19.582Z
   governanca_comentario: No passo 2, demarcar apenas o item 'Captura e digitalização' no menu lateral esquerdo sem ocluir o texto. No passo 3, demarcar os campos reais do painel central ('Cor para digitalização do DUT', 'Dpi's para digitalização do DUT', 'Mostrar configurações do scanner'), nunca a coluna inteira da sidebar.
 ---
 

@@ -1133,6 +1133,92 @@ export function buildDOMIntrospectionScript(
       const isDropdownItem = !isGroup && !!ctxEl.closest('.dropdown-menu, [role="menu"], [role="listbox"]');
       const isModal = !!ctxEl.closest('.modal, .modal-dialog, [role="dialog"]');
 
+      // ADR-027: Assinatura Semântica Hierárquica (seção, linha de grade, rótulo associado e papel)
+      function extractSemanticSignature(el) {
+        const cleanSem = s => String(s || '').replace(/\\s+/g, ' ').trim().slice(0, 120);
+        let sectionTitle = '';
+        let cur = el;
+        while (cur && cur !== document.body && cur.nodeType === 1) {
+          if (cur.tagName === 'FIELDSET') {
+            const leg = cur.querySelector('legend');
+            if (leg && isVisible(leg)) { sectionTitle = cleanSem(leg.innerText || leg.textContent); break; }
+          }
+          if (cur.matches && cur.matches('.panel, .card, .box, .modal-content, .well, section, form')) {
+            const hd = cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend');
+            if (hd && isVisible(hd)) { sectionTitle = cleanSem(hd.innerText || hd.textContent); break; }
+          }
+          const prev = cur.previousElementSibling;
+          if (prev && /^H[2-5]$/.test(prev.tagName) && isVisible(prev)) {
+            sectionTitle = cleanSem(prev.innerText || prev.textContent);
+            break;
+          }
+          cur = cur.parentElement;
+        }
+        if (!sectionTitle && el.closest) {
+          const panel = el.closest('.panel, .card, .box, fieldset, .modal-content');
+          if (panel) {
+            const h = panel.querySelector('legend, .panel-heading, .card-header, .box-header, .modal-title, h3, h4, h5');
+            if (h && isVisible(h)) sectionTitle = cleanSem(h.innerText || h.textContent);
+          }
+        }
+
+        let rowContext;
+        const tr = el.closest ? el.closest('tr') : null;
+        if (tr && tr.parentElement) {
+          const rows = Array.from(tr.parentElement.children).filter(r => r.tagName === 'TR');
+          const rowIndex = Math.max(0, rows.indexOf(tr));
+          const cells = Array.from(tr.querySelectorAll('td, th')).map(c => cleanSem(c.innerText || c.textContent)).filter(Boolean);
+          if (cells.length > 0) {
+            rowContext = { rowIndex, firstColText: cells[0], secondColText: cells[1] };
+          }
+        }
+
+        let associatedLabel = '';
+        const lbl = (el.labels && el.labels[0]) || (el.closest && el.closest('label'));
+        if (lbl) associatedLabel = cleanSem(lbl.innerText || lbl.textContent);
+        if (!associatedLabel && el.parentElement) {
+          const sibLbl = Array.from(el.parentElement.children).find(k => k !== el && (k.tagName === 'LABEL' || k.tagName === 'SPAN') && isVisible(k));
+          if (sibLbl) associatedLabel = cleanSem(sibLbl.innerText || sibLbl.textContent);
+        }
+        if (!associatedLabel) {
+          associatedLabel = cleanSem(
+            el.getAttribute('title') ||
+            el.getAttribute('data-original-title') ||
+            el.getAttribute('placeholder') ||
+            el.getAttribute('ng-reflect-name') ||
+            ''
+          );
+        }
+
+        const txtNorm = cleanSem(el.innerText || el.textContent || associatedLabel).toLowerCase();
+        let semanticRole = 'form_input';
+        if (isTopNav) {
+          semanticRole = isDropdownItem ? 'navigation_leaf' : 'navigation_root';
+        } else if (/\\bnovo\\s+(cart[ãa]o|ficha|usu[áa]rio|protocolo|or[çc]amento)\\b/.test(txtNorm)) {
+          semanticRole = 'entity_creation_button';
+        } else if (/\\befetuar\\s+servi[çc]o\\b/.test(txtNorm) || /btnConcluirOutrosServicos/.test(el.id || '')) {
+          semanticRole = 'service_execution_trigger';
+        } else if (rowContext && (txtNorm === '+' || el.querySelector('.glyphicon-plus, .fa-plus') || /selecion/i.test(el.id || ''))) {
+          semanticRole = 'grid_row_picker';
+        } else if (/^finalizar$/i.test(txtNorm)) {
+          semanticRole = 'section_confirm_button';
+        } else if (/^(filtrar|pesquisar|buscar)$/i.test(txtNorm) && el.tagName === 'BUTTON') {
+          semanticRole = 'search_trigger_button';
+        } else if (/^(salvar|concluir|gravar|cadastrar|transmitir)$/i.test(txtNorm)) {
+          semanticRole = 'form_submit';
+        } else if (/^(limpar|cancelar|voltar|fechar)$/i.test(txtNorm)) {
+          semanticRole = 'form_cancel';
+        } else if ((el.tagName === 'INPUT' || el.tagName === 'SELECT') && (/busca|pesquisa|filtro/i.test(sectionTitle) || /ctrl\\s*\\+\\s*b/i.test(associatedLabel))) {
+          semanticRole = 'search_filter_input';
+        }
+
+        const sig = { semanticRole };
+        if (sectionTitle) sig.sectionTitle = sectionTitle;
+        if (rowContext) sig.rowContext = rowContext;
+        if (associatedLabel) sig.associatedLabel = associatedLabel;
+        return sig;
+      }
+
       const payload = {
         cssBox,
         viewport: {
@@ -1151,7 +1237,8 @@ export function buildDOMIntrospectionScript(
           isDropdownItem,
           isModal,
           iframeOffset: frameOffset,
-          neighborBoxes
+          neighborBoxes,
+          semantic: extractSemanticSignature(ctxEl)
         },
         matchedSelector,
         url: window.location.href,

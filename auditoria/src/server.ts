@@ -1270,6 +1270,10 @@ const server = http.createServer(async (req, res) => {
       const updated = await fetchRoutineDetail(id);
       const createdReviews = await fetchReviewsList({ routineId: id });
       const revisao = createdReviews.find((r: any) => r.id === reviewId);
+      try {
+        const { refreshHumanReviewsCache } = await import('./human-review-rag.js');
+        refreshHumanReviewsCache().catch(() => undefined);
+      } catch {}
       sendJson(200, { rotina: updated, evento: mapEventRow(evt), revisao });
       return;
     }
@@ -1393,6 +1397,10 @@ const server = http.createServer(async (req, res) => {
 
       const items = await fetchReviewsList({ routineId: existing.routine_id });
       const revisao = items.find((i: any) => i.id === reviewId);
+      try {
+        const { refreshHumanReviewsCache } = await import('./human-review-rag.js');
+        refreshHumanReviewsCache().catch(() => undefined);
+      } catch {}
       sendJson(200, { revisao });
       return;
     }

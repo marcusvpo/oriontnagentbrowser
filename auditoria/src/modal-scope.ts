@@ -12,10 +12,10 @@ import type { AgentBrowserClient } from './browser.js';
  * pelo auto-seed e pelo reset entre rotinas.
  */
 export const ACTIVE_MODAL_SELECTOR =
-  '.modal.in, .modal.show, .orion-lightweight-modal.in, .orion-lightweight-in, [role="dialog"], [aria-modal="true"]';
+  '.modal.in, .modal.show, .modal[style*="display: block"], .orion-lightweight-modal.in, .orion-lightweight-in, #modalAvisoCertificado, [role="dialog"], [aria-modal="true"]';
 
 /** Controles de saída sem efeito colateral, na ordem de preferência. */
-const EXIT_LABELS = ['cancelar', 'fechar', 'voltar', 'nao', 'sair'];
+const EXIT_LABELS = ['cancelar', 'fechar', 'voltar', 'nao', 'sair', 'ok', 'entendi', 'ciente'];
 
 /**
  * Fecha o modal do topo por um controle de saída sem efeito (X, Cancelar, Fechar, Voltar).

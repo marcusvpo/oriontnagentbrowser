@@ -117,3 +117,24 @@ O ambiente de homologação do Orion TN opera no formato Web SPA com hash routin
 12. **Anti-Mock Mandatório & Telas 100% Reais (ADR-010):** Proibição terminante de utilizar screenshots estáticos de cache para simular passos de telas internas. Todo print de passo DEVE ser capturado ao vivo da tela real renderizada no navegador Chromium. Se um botão não existir ou a tela não abrir, não desenhe caixas de destaque em coordenadas arbitrárias/fantasmas: capture a tela do bloqueio e marque a rotina como `requer_revisao_humana`.
 13. **Taxonomia `[ATT]`/`[DDD]`/`[XRX]` para Revisão Humana (ADR-021):** O prefixo `[!!!]` foi aposentado. Toda rotina com revisão humana recebe `[ATT]` (`atualizacao_editorial`), `[DDD]` (`dependencia_dados_banco` / ambiente/hardware) ou `[XRX]` (`dependencia_cruzada_rotina`) no nome da pasta e do `-revisado.md`.
 14. **Git Seguro & Sync Write-Through com Supabase (ADR-023):** O repositório usa Git + GitHub privado com `.gitignore` blindado — **nunca** commitar `auditoria/auth/`, `.env`, `session-*.json` ou `auditoria/rotinas/**/*.png`. Cada rotina concluída sincroniza automaticamente com o Supabase via `syncSingleRoutineToSupabase` (`--no-sync` apenas para testes offline).
+
+---
+
+## 6. Arquitetura V2.5 — Inteligência Semântica, Estado Universal e RAG de Revisões (ADR-027)
+
+1. **Grafo Semântico de Seções UI (`dom-geometry.ts` + `semantic-compatibility.ts`):**
+   - Toda extração DOM registra a **Assinatura Semântica Hierárquica** do nó (`sectionTitle`, `rowContext`, `associatedLabel`, `semanticRole`).
+   - A matriz de compatibilidade `evaluateSemanticCompatibility` bloqueia com peso `0.0` antes da similaridade textual qualquer colisão incompatível (ex.: lançamento de serviço vs `"Novo cartão +"`, parâmetro/modalidade vs `"Cidade"`/`"UF"`, navbar raiz vs campo de formulário, e colisões por substring intra-palavra como `"Autenticidade"` vs `"Cidade"`).
+2. **Máquina de Estado Interativa Universal com DOM Diffing (`stateful-step-engine.ts`):**
+   - Detecta passos produtores de estado (`detectStatefulStepPlan`) em **qualquer módulo do Orion TN** (`Notas`, `Certidões`, `Firmas`, `Livros`, `Selos`, `Caixa`, `Protesto`).
+   - Executa sonda segura contextual (`"teste"`, 1ª opção válida) e compara `captureDOMStateSnapshot` Antes × Depois via `diffDOMStateSnapshots`, avançando fluxos Mestre-Detalhe (`+` -> `Nomes/Partes para reconhecimento` -> `Finalizar`) e transições multi-etapa até sub-portais em nova guia com sub-capturas (`passo-NN-b`, `passo-NN-c`).
+3. **Memória Soberana de Revisões Humanas (`human-review-rag.ts`):**
+   - Carrega revisões de `public.routine_reviews` (com cache local em `auditoria/cache/human-reviews-cache.json` atualizado por `--seed-reviews` e pelas APIs do Orion Audit Console) como **Camada 0.1** (prioridade máxima com comprovação ao vivo no DOM) + regras globais do Grafo de Conhecimento Cruzado entre rotinas.
+4. **Reauditoria e Seed em Lote:**
+   - Reauditar rotinas pendentes sem hardware:
+     `npx --prefix auditoria tsx auditoria/src/cli.ts --reaudit-pending --headless --dry-run-mutations`
+   - Sincronizar revisões humanas no Supabase + cache RAG:
+     `npx --prefix auditoria tsx auditoria/src/cli.ts --seed-reviews`
+   - Validar invariantes matemáticos (0 discrepâncias):
+     `npx --prefix auditoria tsx auditoria/src/verify-all-phase2-boxes.ts`
+

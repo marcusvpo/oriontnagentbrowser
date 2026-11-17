@@ -1,8 +1,8 @@
 # Especificação Técnica: Auditoria Visual de Rotinas via Agent-Browser & Sharp
 
 **Status:** ATIVO / HOMOLOGADO  
-**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.4 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime)  
-**Normas Vinculantes:** ADR-007 a ADR-025  
+**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal e RAG Soberano)  
+**Normas Vinculantes:** ADR-007 a ADR-027  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -517,3 +517,20 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * `firmas-interactive.ts` conduz `#/pedidoFirmas/cadastrar` (`search_person` com `"teste" + Enter`, `+` em `Nomes encontrados` em `passo-NN-b`, `Nomes para reconhecimento` + `Finalizar` em `passo-NN-c`, `review_card`, `sga_order`, `add_service` em `Serviços realizados` / `Efetuar Serviço`, `act_and_print` e `finish_order` com `--dry-run-mutations`).
 * Em grades populadas após `--dry-run-mutations`, a ausência de `Limpar` no formulário aberto é convertida em ajuste editorial/UI (`validado_com_ajustes`), e `prior-audit.ts`/`report.ts` normalizam entradas históricas sem `curas_reaproveitadas`.
 * Testes offline em `src/__tests__/adr026-zoom-rbac-firmas-locator.test.ts` (`npm --prefix auditoria test`: 104/104 aprovados).
+
+---
+
+## 16. Grafo Semântico de Seções, Máquina de Estado Universal e RAG Soberano (ADR-027)
+
+### 16.1. Grafo Semântico & Compatibilidade Intenção × Papel (`types.ts`, `dom-geometry.ts`, `smart-locator.ts`, `semantic-compatibility.ts`)
+* `extractSemanticSignature` enriquece nós DOM/A11y com `sectionTitle`, `rowContext`, `associatedLabel` e `semanticRole` (`navigation_root`, `navigation_leaf`, `search_filter_input`, `search_trigger_button`, `grid_row_picker`, `section_confirm_button`, `service_execution_trigger`, `entity_creation_button`, `form_input`, `form_submit`, `form_cancel`).
+* `evaluateSemanticCompatibility(step, target, node)` infere `StepIntent` via `inferStepIntent` e veta (`compatible: false`, `weight: 0`) incompatibilidades funcionais ou colisões lexicais intra-palavra (`hasIntraWordSubstringCollision`) antes do cálculo Sørensen–Dice em `rankSemanticCandidatesInA11y`, aplicando bônus de seção (`weight: 1.15`) quando `sectionTitle` coincide.
+
+### 16.2. Máquina de Estado Universal com DOM Diffing (`stateful-step-engine.ts`, `executor.ts`)
+* `captureDOMStateSnapshot()` / `diffDOMStateSnapshots()` comparam seções visíveis, grades com row picker, botões e inputs antes × depois da ação para detectar mudanças reativas.
+* `detectStatefulStepPlan()`, `resolveStatefulStep()` e `runStatefulStepPostAction()` conduzem universalmente fluxos mestre-detalhe (`search_and_pick`), delegam `#/pedidoFirmas/cadastrar` ao `firmas-interactive.ts` e executam transições multi-hop sidebar → sub-portal em nova guia (`guided_sidebar_subportal`, ex.: `C-CENTRAL-02` passo 4 -> `Configurações > Parametrizações > Comunicações > Orion Coaf`), sempre sob `--dry-run-mutations`.
+
+### 16.3. RAG Soberano de Revisões Humanas e Menu Visível (`human-review-rag.ts`, `menu-path.ts`, `seed-human-reviews.ts`, `server.ts`, `modal-scope.ts`)
+* `loadHumanReviewsKnowledge()` e `compileHumanReviewsKnowledge()` transformam registros de `routine_reviews` (com cache síncrono em `auditoria/cache/human-reviews-cache.json`) em **Camada 0.1** (`resolveMenuPathViaHumanReview` em `chooseMenuItem` e `getHumanTargetSuggestionsForStep` em `smart-locator.ts`) e no `CrossRoutineKnowledgeGraph` global (`antiTargets`, equivalências de menu e aliases icônicos). `--seed-reviews` e `server.ts` chamam `refreshHumanReviewsCache()`.
+* `buildMenuTreeScript()` seleciona o `<a>` visível quando existe placeholder `<a style="display: none;">` no `<li>` (`FIRMPEDCERTIN01` -> `#menuNovaCertidaoEServico`) mantendo o alias textual para o `selector` visível; `closeActiveModals()` fecha `#modalAvisoCertificado` antes da abertura da cascata.
+* Testes offline em `src/__tests__/adr027-semantic-graph-stateful-rag.test.ts` (`npm --prefix auditoria test`: 114/114 aprovados em 28 suítes).

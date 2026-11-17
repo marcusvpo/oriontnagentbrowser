@@ -5,10 +5,14 @@ import { isGenericContainerMatch } from './evidence.js';
 import { isFullAccessSession, probePermissionBlockedTargets, readSessionIdentity } from './rbac.js';
 import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
 import { resolveGridActions } from './icon-action-resolver.js';
+import { evaluateSemanticCompatibility } from './semantic-compatibility.js';
+import { getHumanTargetSuggestionsForStep } from './human-review-rag.js';
 import type {
   DOMCallout,
   DOMResolvedGeometry,
+  DOMSemanticSignature,
   RoutineStep,
+  SemanticRole,
   SmartLocatorDivergence,
   SmartLocatorResult,
   StepZonePolicy
@@ -21,17 +25,30 @@ export interface ParsedA11yNode {
   rawLine: string;
   /** Texto exato do nó no DOM, quando difere do nome exibido (ex.: rótulo com marca de obrigatório "Descrição*") */
   domQuery?: string;
+  /** Contexto semântico de seção, linha de grade, rótulo associado e papel (ADR-027) */
+  sectionTitle?: string;
+  rowContext?: DOMSemanticSignature['rowContext'];
+  associatedLabel?: string;
+  semanticRole?: SemanticRole;
+  inNavbar?: boolean;
 }
 
 /**
- * Rótulos visíveis da tela (ADR-018): `label`, `legend`, cabeçalhos de grade e placeholders. A Árvore
- * de Acessibilidade interativa não os traz quando o rótulo não está associado ao campo, e é por eles
- * que um humano reconhece um campo renomeado (ex.: o manual diz "Pesquisar por descrição" e a tela,
- * "Descrição"). Entram como candidatos da Auto-Cura com o papel `label`; cada um ainda é validado no
- * DOM dentro da zona do passo antes de virar evidência.
+ * Rótulos visíveis da tela (ADR-018 + ADR-027): `label`, `legend`, cabeçalhos de grade, checkboxes em `<span>`
+ * e placeholders, enriquecidos com o título da seção visual e contexto de linha (`rowContext`).
  */
 export async function collectVisibleLabelNodes(client: AgentBrowserClient): Promise<ParsedA11yNode[]> {
-  const labels = await client.evalJson<Array<{ name: string; query: string }>>(`
+  const labels = await client.evalJson<
+    Array<{
+      name: string;
+      query: string;
+      role?: string;
+      sectionTitle?: string;
+      rowContext?: DOMSemanticSignature['rowContext'];
+      associatedLabel?: string;
+      semanticRole?: SemanticRole;
+    }>
+  >(`
     (() => {
       const NAV = ${JSON.stringify(NAV_ZONE_SELECTOR)};
       const clean = t => String(t == null ? '' : t).replace(/\\s+/g, ' ').trim();
@@ -40,37 +57,65 @@ export async function collectVisibleLabelNodes(client: AgentBrowserClient): Prom
         const s = window.getComputedStyle(e);
         return r.width > 1 && r.height > 1 && s.display !== 'none' && s.visibility !== 'hidden';
       };
+      const sectionOf = el => {
+        let cur = el;
+        while (cur && cur !== document.body && cur.nodeType === 1) {
+          if (cur.tagName === 'FIELDSET') {
+            const leg = cur.querySelector('legend');
+            if (leg && vis(leg)) return clean(leg.innerText || leg.textContent);
+          }
+          if (cur.matches && cur.matches('.panel, .card, .box, .modal-content, .well, section')) {
+            const hd = cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend');
+            if (hd && vis(hd)) return clean(hd.innerText || hd.textContent);
+          }
+          cur = cur.parentElement;
+        }
+        return '';
+      };
+      const rowOf = el => {
+        const tr = el.closest && el.closest('tr');
+        if (!tr || !tr.parentElement) return undefined;
+        const rows = Array.from(tr.parentElement.children).filter(r => r.tagName === 'TR');
+        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => clean(c.innerText || c.textContent)).filter(Boolean);
+        return cells.length > 0 ? { rowIndex: Math.max(0, rows.indexOf(tr)), firstColText: cells[0], secondColText: cells[1] } : undefined;
+      };
       const out = [];
       const seen = new Set();
-      const add = raw => {
+      const add = (el, raw, roleOverride) => {
         const query = clean(raw);
-        // Nome exibido: sem a marca de obrigatório nem os dois-pontos finais
         const name = query.replace(/[\\s*:]+$/, '');
         const key = name.toLowerCase();
         if (name.length < 3 || name.length > 60 || seen.has(key)) return;
         seen.add(key);
-        out.push({ name, query });
+        const sectionTitle = sectionOf(el) || undefined;
+        const rowContext = rowOf(el);
+        const associatedLabel = clean(el.getAttribute('title') || el.getAttribute('data-original-title') || el.getAttribute('placeholder') || el.getAttribute('ng-reflect-name') || '') || undefined;
+        out.push({ name, query, role: roleOverride, sectionTitle, rowContext, associatedLabel });
       };
       for (const el of document.querySelectorAll('label, legend, th')) {
-        if (vis(el) && !el.closest(NAV)) add(el.innerText || el.textContent);
+        if (vis(el) && !el.closest(NAV)) add(el, el.innerText || el.textContent, 'label');
       }
       for (const el of document.querySelectorAll('span, orion-checkbox')) {
         if (!vis(el) || el.closest(NAV)) continue;
         const checks = el.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-        if (checks.length === 1) add(el.innerText || el.textContent);
+        if (checks.length === 1) add(el, el.innerText || el.textContent, 'label');
       }
       for (const el of document.querySelectorAll('input[placeholder], textarea[placeholder]')) {
-        if (vis(el) && !el.closest(NAV)) add(el.getAttribute('placeholder'));
+        if (vis(el) && !el.closest(NAV)) add(el, el.getAttribute('placeholder'), 'label');
       }
       return JSON.stringify(out.slice(0, 80));
     })()
   `);
   return (labels || []).map(l => ({
     ref: '',
-    role: 'label',
+    role: l.role || 'label',
     name: l.name,
     rawLine: `label "${l.name}"`,
-    domQuery: l.query !== l.name ? l.query : undefined
+    domQuery: l.query !== l.name ? l.query : undefined,
+    sectionTitle: l.sectionTitle,
+    rowContext: l.rowContext,
+    associatedLabel: l.associatedLabel,
+    semanticRole: l.semanticRole
   }));
 }
 
@@ -303,7 +348,21 @@ export function rankSemanticCandidatesInA11y(
       const normNode = normalizeText(node.name);
       if (!normNode) continue;
       // ADR-024 + ADR-026: bloqueia campo em passo de navegação, CTRL + B, "Novo cartão +" sem "cartão" e colapso em navbar
-      if (step && forbiddenCandidateReason(step, { name: node.name, role: node.role })) continue;
+      if (step && forbiddenCandidateReason(step, { name: node.name, role: node.role, inNavbar: node.inNavbar })) continue;
+
+      // ADR-027: Matriz de Compatibilidade Intenção × Papel + filtro anti-substring ANTES do Sørensen-Dice
+      const compat = step
+        ? evaluateSemanticCompatibility(step, docTarget, {
+            name: node.name,
+            role: node.role,
+            inNavbar: node.inNavbar,
+            sectionTitle: node.sectionTitle,
+            rowContext: node.rowContext,
+            associatedLabel: node.associatedLabel,
+            semanticRole: node.semanticRole
+          })
+        : { compatible: true, weight: 1.0, stepIntent: 'generic_action' as const, nodeRole: 'form_input' as const };
+      if (!compat.compatible || compat.weight === 0) continue;
 
       let score = 0;
       let reason = '';
@@ -331,6 +390,9 @@ export function rankSemanticCandidatesInA11y(
         score = Math.min(0.95, dice + tokenOverlap);
         reason = `Similaridade semântica na árvore de acessibilidade (${Math.round(score * 100)}%)`;
       }
+
+      // Ponderação semântica por correspondência de seção (`sectionTitle` vs texto do passo)
+      score = Math.min(0.98, score * compat.weight);
 
       // Bônus se o role for um controle interativo primário (button, link, tab, menuitem)
       if (['button', 'link', 'tab', 'menuitem', 'textbox', 'combobox'].includes(node.role)) {
@@ -791,6 +853,44 @@ export async function locateAndCaptureWithSelfHealing(
       gridActions: gridScanStatus,
       ...menuGuard
     };
+  }
+
+  // =========================================================================
+  // CAMADA 0.1 (ADR-027): Diretriz Soberana da Revisão Humana (`routine_reviews`)
+  // Comprova ao vivo no DOM os alvos reais apontados pelo revisor antes das heurísticas.
+  // =========================================================================
+  const humanSuggestions = getHumanTargetSuggestionsForStep(step);
+  for (const sug of humanSuggestions) {
+    const sugZone = sug.preferredZone ?? zonePolicy;
+    const geometry = await client.getDOMGeometry([sug.actual], { scrollIntoView: true, zone: sugZone });
+    const forbidden = geometry ? forbiddenMeasuredReason(step, geometry.context) : null;
+    if (geometry && !isGenericContainerMatch(geometry) && !forbidden) {
+      console.log(`   ★ [RAG Revisão Humana] Alvo orientado por revisão humana comprovado ao vivo: "${sug.documented}" -> "${sug.actual}"`);
+      await client.screenshot(rawScreenshotPath);
+      const divergence: SmartLocatorDivergence = {
+        stepNumber: step.stepNumber,
+        documentedTarget: sug.documented,
+        actualElementText: sug.actual,
+        resolutionLayer: 'dom_synonym_heuristic',
+        confidence: 0.98,
+        reason: sug.reason,
+        detectedAt: new Date().toISOString(),
+        evidence: {
+          source: 'dom-measured',
+          matchedSelector: geometry.matchedSelector,
+          elementText: geometry.context.innerText || sug.actual,
+          box: geometry.cssBox
+        },
+        textChange: { from: `**${sug.documented}**`, to: `**${sug.actual}**` }
+      };
+      return {
+        found: true,
+        healed: true,
+        geometry,
+        matchedTargetName: sug.actual,
+        divergence
+      };
+    }
   }
 
   // =========================================================================

@@ -303,6 +303,13 @@ export async function seedHumanReviews(opts: { quiet?: boolean; only?: string[] 
     });
   }
 
+  try {
+    const { refreshHumanReviewsCache } = await import('./human-review-rag.js');
+    await refreshHumanReviewsCache();
+  } catch {
+    // opcional offline
+  }
+
   return results;
 }
 

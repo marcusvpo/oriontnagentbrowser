@@ -6,7 +6,8 @@ import { annotateScreenshot } from './annotator.js';
 import { AgentBrowserClient } from './browser.js';
 import { ensureAuthenticated, isSessionActiveInPage, noteFullReset, noteLightReset } from './auth.js';
 import { locateAndCaptureWithSelfHealing, hasNavigationIntent, buildCalloutsFromGroup, inferStepZone, normalizeText } from './smart-locator.js';
-import { resolveFirmasStep, runFirmasSearchPostStep, type FirmasPostStepResult } from './firmas-interactive.js';
+import { loadHumanReviewsKnowledge } from './human-review-rag.js';
+import { resolveStatefulStep, runStatefulStepPostAction, type StatefulPostStepResult } from './stateful-step-engine.js';
 import { describeMenuPathMissing, extractMenuPaths } from './menu-path.js';
 import { classifyRoutineWorkload } from './worker-pool.js';
 import { generateMockPerson } from './mock-generator.js';
@@ -288,14 +289,16 @@ async function resetToHome(client: AgentBrowserClient): Promise<void> {
   };
   if ((await openModals()) > 0) {
     console.log('[Auditoria] Modal remanescente após o reset; descartando...');
+    await closeActiveModals(client).catch(() => undefined);
     try {
-      await client.pressKey('Escape');
+      if ((await openModals()) > 0) await client.pressKey('Escape');
     } catch {}
     if ((await openModals()) > 0) await load();
+    if ((await openModals()) > 0) await closeActiveModals(client).catch(() => undefined);
     if ((await openModals()) > 0) {
       await client
         .eval(
-          `document.querySelectorAll('.modal-backdrop, .cdk-overlay-backdrop, .swal2-container').forEach(e => e.remove()); document.querySelectorAll('.modal.show, .modal.in').forEach(e => { e.classList.remove('show','in'); e.style.display = 'none'; }); document.body.classList.remove('modal-open'); true`
+          `document.querySelectorAll('.modal-backdrop, .cdk-overlay-backdrop, .swal2-container').forEach(e => e.remove()); document.querySelectorAll('.modal.show, .modal.in, .orion-lightweight-modal, #modalAvisoCertificado').forEach(e => { e.classList.remove('show','in','orion-lightweight-in'); e.style.display = 'none'; }); document.body.classList.remove('modal-open'); true`
         )
         .catch(() => undefined);
     }
@@ -410,6 +413,9 @@ export async function executeRoutineAudit(
 
   const cacheDir = path.join(config.rootDir, 'auditoria', 'cache', 'raw');
   await fs.promises.mkdir(cacheDir, { recursive: true });
+
+  // ADR-027: Carrega diretrizes e aprendizado cruzado das revisões humanas do Supabase (com cache local)
+  await loadHumanReviewsKnowledge().catch(() => undefined);
 
   // ADR-024: rotina inteira externa não toca o navegador (nada a navegar, medir ou fotografar)
   const usesBrowser = internalSteps.length > 0;
@@ -613,7 +619,11 @@ export async function executeRoutineAudit(
     }
   }
 
-  for (const originalStep of gate.satisfied ? parsed.steps : []) {
+  const stepsToRun = gate.satisfied ? parsed.steps : [];
+  for (let stepIdx = 0; stepIdx < stepsToRun.length; stepIdx++) {
+    const originalStep = stepsToRun[stepIdx];
+    const nextStepRaw = stepsToRun[stepIdx + 1];
+    const nextStepWithId: RoutineStep | undefined = nextStepRaw ? { ...nextStepRaw, routineId: parsed.id } : undefined;
     // ADR-024: passo em portal externo — sem ação no navegador e sem print. O resultado fica registrado (por
     // número do passo) para o relatório, que preserva o texto original e acrescenta o callout informativo.
     if (originalStep.scope === 'external_portal') {
@@ -654,8 +664,8 @@ export async function executeRoutineAudit(
       }
     }
     const step: RoutineStep = implicit
-      ? { ...manualStep, targets: implicit.targets, mainTargetCount: implicit.targets.length, actionType: 'verify', zone: 'content' }
-      : manualStep;
+      ? { ...manualStep, routineId: parsed.id, targets: implicit.targets, mainTargetCount: implicit.targets.length, actionType: 'verify', zone: 'content' }
+      : { ...manualStep, routineId: parsed.id };
     if (implicit) {
       implicitByStep.set(step.stepNumber, implicit.targets);
       console.log(`   [Alvos Implícitos] Passo sem negrito: campos da tela deduzidos de "${implicit.nouns.join(', ')}" -> ${implicit.targets.join(', ')}`);
@@ -932,14 +942,14 @@ export async function executeRoutineAudit(
       if (prior.block?.stepNumber === step.stepNumber) {
         console.log(`   [Reauditoria] ↺ Checkpoint: este é o passo em que a rotina parou no ambiente anterior${prior.block.tipo ? ` (${prior.block.tipo})` : ''}; verificando se agora é superado.`);
       }
-      let firmasResolved: Awaited<ReturnType<typeof resolveFirmasStep>> = null;
+      let statefulResolved: Awaited<ReturnType<typeof resolveStatefulStep>> = null;
       if (!implicit && !isOptionsOnly) {
-        firmasResolved = await resolveFirmasStep(client, locStep, rawStepPath).catch(() => null);
+        statefulResolved = await resolveStatefulStep(client, locStep, rawStepPath, nextStepWithId).catch(() => null);
       }
-      let locResult = firmasResolved
-        ? firmasResolved.locResult
+      let locResult = statefulResolved
+        ? statefulResolved.locResult
         : await locateAndCaptureWithSelfHealing(client, locStep, rawStepPath, locOptions);
-      if (firmasResolved?.adjusted) adjustedSteps.add(step.stepNumber);
+      if (statefulResolved?.adjusted) adjustedSteps.add(step.stepNumber);
 
       // ADR-025: sub-portal integrado em nova guia. Com o alvo ausente na tela, um link que abre nova guia e tem
       // afinidade com o passo/rotina é acionado; a guia vira o foco (até o resetToHome) e o MESMO passo é
@@ -1037,8 +1047,8 @@ export async function executeRoutineAudit(
         }
         const executedAction: ExecutedStepAction = isOptionsOnly
           ? { kind: 'none', via: 'skipped', zone: domGeometry.zone, reason: 'Passo lista opções alternativas: nenhuma é acionada' }
-          : firmasResolved?.skipStandardAction
-            ? { kind: 'none', via: 'skipped', zone: domGeometry.zone, reason: 'Fluxo interativo conduzido na tela de Reconhecimento de firmas' }
+          : statefulResolved?.skipStandardAction
+            ? { kind: 'none', via: 'skipped', zone: domGeometry.zone, reason: 'Fluxo interativo conduzido pela Máquina de Estado Universal' }
             : await executeStepAction(client, step, locResult, domGeometry, { dryRunMutations });
         if (executedAction.via === 'dry-run' && executedAction.commitLabel) {
           skippedCommits.push({ stepNumber: step.stepNumber, label: executedAction.commitLabel });
@@ -1050,19 +1060,30 @@ export async function executeRoutineAudit(
           callouts: multi,
           executedAction
         });
-        let firmasPostNote: string | undefined;
-        if (firmasResolved?.kind === 'search_person') {
-          const post: FirmasPostStepResult = await runFirmasSearchPostStep(client, step, {
+        let statefulPostNote: string | undefined;
+        if (!isOptionsOnly && !implicit) {
+          const post: StatefulPostStepResult = await runStatefulStepPostAction(client, step, nextStepWithId, {
             getLastIndex: () => lastIndex,
             rawPathFor,
             getNextLetter: () => nextLetter,
             addSubFrame
-          }).catch((err): FirmasPostStepResult => {
-            console.warn(`   ⚠ [Firmas Interativo] Falha na busca ao vivo: ${err?.message || err}`);
+          }).catch((err): StatefulPostStepResult => {
+            console.warn(`   ⚠ [Estado Universal] Falha na transição interativa: ${err?.message || err}`);
             return { executed: false };
           });
           if (post.adjusted) adjustedSteps.add(step.stepNumber);
-          if (post.note) firmasPostNote = post.note;
+          if (post.note) statefulPostNote = post.note;
+          if (post.openedTab) {
+            activeTab = {
+              id: post.openedTab.tabId,
+              url: post.openedTab.url,
+              title: post.openedTab.title,
+              openedAtStep: step.stepNumber
+            };
+            console.log(
+              `   [Nova Guia Estado Universal] Foco na guia "${activeTab.title || activeTab.url}" (${activeTab.id}) para os próximos passos.`
+            );
+          }
         }
         // ADR-025: o link que abriu o sub-portal é fotografado na guia de ORIGEM (sub-captura `passo-NN-b`)
         if (subportal) {
@@ -1179,8 +1200,8 @@ export async function executeRoutineAudit(
           note: [
             prerequisiteNote,
             subportalNote,
-            firmasResolved?.note,
-            firmasPostNote,
+            statefulResolved?.note,
+            statefulPostNote,
             executedAction.openedTab ? `A ação abriu a guia **${executedAction.openedTab.title || 'sem título'}**; os passos seguintes foram auditados nela.` : undefined
           ].filter(Boolean).join(' ') || undefined,
           status: locked.text !== step.rawText ? 'modified' : 'ok'

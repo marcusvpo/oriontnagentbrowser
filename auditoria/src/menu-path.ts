@@ -1,4 +1,6 @@
 import type { AgentBrowserClient } from './browser.js';
+import { resolveMenuPathViaHumanReview } from './human-review-rag.js';
+import { closeActiveModals } from './modal-scope.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 import type { BoundingBox, MenuPathMissingEvidence, RoutineStep, SmartLocatorDivergence, SmartLocatorResult } from './types.js';
 
@@ -144,7 +146,13 @@ export function buildMenuTreeScript(): string {
         for (const li of Array.from(ul.children)) {
           if (li.tagName !== 'LI') continue;
           if (hiddenByApp(li)) continue;
-          const a = Array.from(li.children).find(c => c.tagName === 'A');
+          const aList = Array.from(li.children).filter(c => c.tagName === 'A');
+          const a =
+            aList.find(
+              c =>
+                c.style?.display !== 'none' &&
+                (!window.getComputedStyle || window.getComputedStyle(c).display !== 'none')
+            ) || aList[0];
           const sub = Array.from(li.children).find(c => c.tagName === 'UL');
           const ownBlocked = blocked(li);
           const disabled = inheritedDisabled || ownBlocked;
@@ -161,6 +169,13 @@ export function buildMenuTreeScript(): string {
             nextChain = chain.concat(text);
             nextSelectors = selectors.concat('[' + attr + ']');
             items.push({ chain: nextChain, selectors: nextSelectors, disabled, blockTitle: disabled ? blockTitle : undefined, hasChildren: !!sub });
+            for (const altA of aList) {
+              if (altA === a) continue;
+              const altText = clean(altA.textContent);
+              if (altText && altText.toLowerCase() !== text.toLowerCase()) {
+                items.push({ chain: chain.concat(altText), selectors: nextSelectors, disabled, blockTitle: disabled ? blockTitle : undefined, hasChildren: !!sub });
+              }
+            }
           }
           if (sub) walk(sub, nextChain, nextSelectors, disabled, blockTitle);
         }
@@ -202,7 +217,7 @@ export function chooseMenuItem(
   paths: DocumentedMenuPath[],
   items: MenuTreeItem[],
   priorChains: string[][] = [],
-  options: { ignoreDisabledBlocks?: boolean } = {}
+  options: { ignoreDisabledBlocks?: boolean; routineId?: string } = {}
 ): MenuPathMatch | null {
   const eligible = items.filter(i => i.chain.length >= 2);
   const usable = eligible.filter(i => !i.disabled);
@@ -215,6 +230,21 @@ export function chooseMenuItem(
         ? { item: exact, documented, exact: true, blocked: true, confidence: 1, reason: exact.blockTitle || 'Item bloqueado para o perfil logado' }
         : { item: exact, documented, exact: true, confidence: 1, reason: 'Caminho de menu idêntico ao documentado' };
     }
+  }
+
+  // ADR-027 (Camada 0.1): Diretriz soberana da revisão humana (routine_reviews) e grafo cruzado
+  for (const documented of paths) {
+    const guide = resolveMenuPathViaHumanReview(options.routineId, documented.segments);
+    if (!guide) continue;
+    const hit = usable.find(i => sameChain(i.chain, guide.targetChain));
+    if (!hit) continue;
+    return {
+      item: hit,
+      documented,
+      exact: false,
+      confidence: guide.viaDirectReview ? 0.98 : 0.94,
+      reason: guide.reason
+    };
   }
 
   // ADR-025: rota comprovada numa auditoria anterior. Só vale se o item EXISTE na árvore lida agora (a dica
@@ -422,10 +452,12 @@ async function openCascadeWithPointer(client: AgentBrowserClient, selectors: str
     if (!rects || !rects[0]?.vis) return null;
 
     // Nível 0: o menu de topo abre por clique. Um menu já aberto não recebe novo clique (fecharia).
-    for (let tries = 0; tries < 2 && !rects[1]?.vis; tries++) {
+    for (let tries = 0; tries < 3 && !rects[1]?.vis; tries++) {
       try {
         await client.click(selectors[0]);
-      } catch {}
+      } catch {
+        await closeActiveModals(client).catch(() => undefined);
+      }
       await client.wait(400);
       rects = (await readCascade(client, selectors)) || rects;
     }
@@ -544,7 +576,7 @@ export async function resolveAndNavigateMenuPath(
     console.warn(`   ⚠ [Rota de Menu] ${detail}; o caminho "${documentedLabel}" não pôde ser verificado.`);
     return { found: false, healed: false, geometry: null, matchedTargetName: documentedLabel, menuPathOpenFailed: detail };
   }
-  const match = chooseMenuItem(paths, items, priorChains, options);
+  const match = chooseMenuItem(paths, items, priorChains, { ...options, routineId: step.routineId });
   if (!match) {
     // ADR-024: caminho inexistente na árvore real NÃO é curado para outro elemento (muito menos para um campo
     // de texto): o passo carrega a evidência lida da árvore e a rotina vira `[ATT]`.
