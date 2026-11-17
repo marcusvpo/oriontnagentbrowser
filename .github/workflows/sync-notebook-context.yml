@@ -1,7 +1,7 @@
 name: Sync NotebookLM Context
 
-# Super-Contexto Orion TN (ADR-034): empacota o repositorio com repomix em 4 arquivos Markdown e
-# sobrescreve 4 Google Docs nativos via drive.files.update (IDs/URLs preservados).
+# Super-Contexto Orion TN (ADR-034): empacota o repositorio com repomix em 5 arquivos Markdown e
+# sobrescreve 5 Google Docs nativos via drive.files.update (IDs/URLs preservados).
 on:
   push:
     branches: [main]
@@ -40,5 +40,6 @@ jobs:
           GDRIVE_FILE_ID_MEMORY: ${{ secrets.GDRIVE_FILE_ID_MEMORY }}
           GDRIVE_FILE_ID_ENGINE: ${{ secrets.GDRIVE_FILE_ID_ENGINE }}
           GDRIVE_FILE_ID_ENGINE_2: ${{ secrets.GDRIVE_FILE_ID_ENGINE_2 }}
+          GDRIVE_FILE_ID_ENGINE_3: ${{ secrets.GDRIVE_FILE_ID_ENGINE_3 }}
           GDRIVE_FILE_ID_CONSOLE: ${{ secrets.GDRIVE_FILE_ID_CONSOLE }}
         run: node scripts/upload-to-drive.mjs

@@ -2,18 +2,18 @@
 /**
  * Upload idempotente do Super-Contexto Orion TN para o Google Drive (ADR-034).
  *
- * Le os 4 pacotes gerados pelo repomix (`npm run pack:context`) e SOBRESCREVE o conteudo
- * de 4 Google Docs nativos ja existentes via `drive.files.update` (ID/URL preservados).
+ * Le os 5 pacotes gerados pelo repomix (`npm run pack:context`) e SOBRESCREVE o conteudo
+ * de 5 Google Docs nativos ja existentes via `drive.files.update` (ID/URL preservados).
  * Nunca usa `files.create`: a Service Account nao tem cota de armazenamento propria
  * (evita HTTP 403 `storageQuotaExceeded`).
  *
  * Uso:
- *   node scripts/upload-to-drive.mjs           # valida e envia os 4 pacotes
+ *   node scripts/upload-to-drive.mjs           # valida e envia os 5 pacotes
  *   node scripts/upload-to-drive.mjs --check   # so valida configs/tamanhos, sem rede nem credenciais
  *
  * Variaveis de ambiente (somente NOMES aqui; valores vivem em Secrets/.env ignorado pelo Git):
  *   GDRIVE_SERVICE_ACCOUNT_KEY   JSON da Service Account (fallback: GOOGLE_APPLICATION_CREDENTIALS = caminho do arquivo)
- *   GDRIVE_FILE_ID_MEMORY, GDRIVE_FILE_ID_ENGINE, GDRIVE_FILE_ID_ENGINE_2, GDRIVE_FILE_ID_CONSOLE
+ *   GDRIVE_FILE_ID_MEMORY, GDRIVE_FILE_ID_ENGINE, GDRIVE_FILE_ID_ENGINE_2, GDRIVE_FILE_ID_ENGINE_3, GDRIVE_FILE_ID_CONSOLE
  *   GDRIVE_UPLOAD_MIME           opcional (padrao text/markdown)
  */
 import fs from 'node:fs';
@@ -30,8 +30,8 @@ try {
   /* sem .env: segue apenas com process.env */
 }
 
-/** Limite por Google Doc (o Docs rejeita conversao acima de ~1,02 M de caracteres; 950k = margem). */
-const MAX_CHARS = 950_000;
+/** Teto por Google Doc: ~570k caracteres (~260 paginas). Acima de ~300 paginas o parser do NotebookLM estoura o timeout (o Docs aceitaria ate ~1,02 M). */
+const MAX_CHARS = 570_000;
 /** Limite de palavras por fonte do NotebookLM (500k); avisa a partir de 450k. */
 const WARN_WORDS = 450_000;
 const DOC_MIME = 'application/vnd.google-apps.document';
@@ -43,7 +43,8 @@ const FIELDS = 'id, name, modifiedTime, webViewLink';
 const BUNDLES = [
   { key: 'memory', label: '01 Memoria e Contratos', file: '.repomix-output/01-memoria-e-contratos.md', envVar: 'GDRIVE_FILE_ID_MEMORY', config: 'repomix.memory.config.json' },
   { key: 'engine', label: '02a Motor (nucleo)', file: '.repomix-output/02a-motor-nucleo.md', envVar: 'GDRIVE_FILE_ID_ENGINE', config: 'repomix.engine.config.json' },
-  { key: 'engine2', label: '02b Motor (periferia) + scripts', file: '.repomix-output/02b-motor-periferia-e-scripts.md', envVar: 'GDRIVE_FILE_ID_ENGINE_2', config: 'repomix.engine2.config.json' },
+  { key: 'engine2', label: '02b Motor (operacao)', file: '.repomix-output/02b-motor-operacao.md', envVar: 'GDRIVE_FILE_ID_ENGINE_2', config: 'repomix.engine2.config.json' },
+  { key: 'engine3', label: '02c Motor (periferia) + scripts', file: '.repomix-output/02c-motor-periferia-e-scripts.md', envVar: 'GDRIVE_FILE_ID_ENGINE_3', config: 'repomix.engine3.config.json' },
   { key: 'console', label: '03 Console e testes', file: '.repomix-output/03-console-e-testes.md', envVar: 'GDRIVE_FILE_ID_CONSOLE', config: 'repomix.console.config.json' },
 ];
 
@@ -78,19 +79,36 @@ function checkConfigs() {
       }
     }
   }
-  if (configs.engine && configs.engine2) {
-    const ignored = new Set(configs.engine2.ignore?.customPatterns ?? []);
-    for (const entry of configs.engine.include ?? []) {
-      if (!ignored.has(entry)) {
-        errors.push(`${entry} esta no nucleo (02a) mas nao no ignore da periferia (02b): sairia duplicado.`);
-      }
-    }
-  }
+  checkEngineDisjoint(configs);
   if (configs.engine && configs.memory) {
     const memory = new Set(configs.memory.include ?? []);
     for (const entry of configs.engine.include ?? []) {
       if (memory.has(entry)) errors.push(`${entry} aparece nos pacotes 01 e 02a.`);
     }
+  }
+}
+
+/**
+ * 02a.include, 02b.include e 02c devem ser 100% disjuntos e cobrir todo auditoria/src/*.ts
+ * (exceto types.ts, que vive no pacote 01): zero sobreposicao e zero arquivo esquecido.
+ */
+function checkEngineDisjoint(configs) {
+  const { engine, engine2, engine3 } = configs;
+  if (!engine || !engine2 || !engine3) return;
+  const inA = new Set(engine.include ?? []);
+  const inB = new Set(engine2.include ?? []);
+  for (const entry of inA) if (inB.has(entry)) errors.push(`${entry} aparece nos pacotes 02a e 02b.`);
+  const ignoreC = new Set(engine3.ignore?.customPatterns ?? []);
+  for (const entry of [...inA, ...inB]) {
+    if (!ignoreC.has(entry)) errors.push(`${entry} esta em 02a/02b mas nao no ignore de 02c: sairia duplicado.`);
+  }
+  const srcDir = path.join(ROOT_DIR, 'auditoria', 'src');
+  for (const name of fs.readdirSync(srcDir)) {
+    if (!name.endsWith('.ts') || name.endsWith('.test.ts')) continue;
+    const rel = `auditoria/src/${name}`;
+    if (rel === 'auditoria/src/types.ts') continue;
+    const owners = [inA.has(rel) && '02a', inB.has(rel) && '02b', !ignoreC.has(rel) && '02c'].filter(Boolean);
+    if (owners.length !== 1) errors.push(`${rel} pertence a ${owners.length} pacotes do motor (${owners.join(',') || 'nenhum'}); deve estar em exatamente 1.`);
   }
 }
 

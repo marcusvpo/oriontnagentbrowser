@@ -13,8 +13,9 @@
     "pack:memory": "repomix --config repomix.memory.config.json",
     "pack:engine": "repomix --config repomix.engine.config.json",
     "pack:engine2": "repomix --config repomix.engine2.config.json",
+    "pack:engine3": "repomix --config repomix.engine3.config.json",
     "pack:console": "repomix --config repomix.console.config.json",
-    "pack:context": "npm run pack:memory && npm run pack:engine && npm run pack:engine2 && npm run pack:console",
+    "pack:context": "npm run pack:memory && npm run pack:engine && npm run pack:engine2 && npm run pack:engine3 && npm run pack:console",
     "check:context": "node scripts/upload-to-drive.mjs --check",
     "sync:notebook": "npm run pack:context && node scripts/upload-to-drive.mjs"
   },

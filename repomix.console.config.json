@@ -3,7 +3,7 @@
   "output": {
     "filePath": ".repomix-output/03-console-e-testes.md",
     "style": "markdown",
-    "headerText": "ORION TN - Super-Contexto (Parte 4/4): Orion Audit Console (React/TanStack, com testes) + suite de testes do motor (auditoria/src/__tests__). Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "headerText": "ORION TN - Super-Contexto (Parte 5/5): Orion Audit Console (React/TanStack, com testes) + suite de testes do motor (auditoria/src/__tests__). Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
     "fileSummary": true,
     "directoryStructure": true,
     "removeComments": false,

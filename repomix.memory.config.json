@@ -3,7 +3,7 @@
   "output": {
     "filePath": ".repomix-output/01-memoria-e-contratos.md",
     "style": "markdown",
-    "headerText": "ORION TN - Super-Contexto (Parte 1/4): Memoria Viva, ADRs, padroes, skills, contratos de tipos e migrations SQL. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "headerText": "ORION TN - Super-Contexto (Parte 1/5): Memoria Viva, ADRs, padroes, skills, contratos de tipos e migrations SQL. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
     "fileSummary": true,
     "directoryStructure": true,
     "removeComments": false,
