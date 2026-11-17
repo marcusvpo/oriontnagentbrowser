@@ -1,6 +1,7 @@
 import type { AgentBrowserClient } from './browser.js';
 import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
 import { ACTIVE_MODAL_SELECTOR } from './modal-scope.js';
+import { findRouteEntriesByTabOrSection } from './route-crawler.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 
 /**
@@ -61,6 +62,14 @@ export interface ScreenMatchSuggestion {
   reason: string;
 }
 
+export interface CrossRouteHint {
+  target: string;
+  route: string;
+  menuPath: string;
+  matchedIn: 'tab' | 'section' | 'title';
+  matchedLabel: string;
+}
+
 export interface AttScreenDiagnosis {
   stepNumber: number;
   capturedAt: string;
@@ -70,6 +79,8 @@ export interface AttScreenDiagnosis {
   suggestions: ScreenMatchSuggestion[];
   /** Alvos sem nenhum elemento real de afinidade suficiente */
   unmatched: string[];
+  /** Pistas consultivas em outras rotas do grafo vivo (`orion-route-graph.json`, ADR-030) */
+  crossRouteHints?: CrossRouteHint[];
   /** Print de referência da tela (a do passo bloqueado ou `passo-NN-contexto-att.png`) */
   contextPrint?: string;
   /** Instrução de reescrita do passo, derivada das sugestões */
@@ -378,6 +389,28 @@ export function buildAttDiagnosis(input: {
 }): AttScreenDiagnosis {
   const targets = input.menuPath ? [] : input.targets;
   const { suggestions, unmatched } = suggestScreenMatches(targets, input.inventory, input.stepText);
+
+  const crossRouteHints: CrossRouteHint[] = [];
+  const queryTerms = input.menuPath
+    ? input.targets
+        .map(t => t.split('>').pop()?.trim() || '')
+        .filter(Boolean)
+    : unmatched;
+  for (const term of queryTerms) {
+    const hints = findRouteEntriesByTabOrSection(term, undefined, { excludeHash: input.inventory.route })
+      .filter(h => h.score >= 0.8)
+      .slice(0, 2);
+    for (const h of hints) {
+      crossRouteHints.push({
+        target: term,
+        route: h.entry.hash,
+        menuPath: h.entry.chain.join(' > '),
+        matchedIn: h.matchedIn,
+        matchedLabel: h.matchedLabel
+      });
+    }
+  }
+
   return {
     stepNumber: input.stepNumber,
     capturedAt: (input.now ?? new Date()).toISOString(),
@@ -385,6 +418,7 @@ export function buildAttDiagnosis(input: {
     targets,
     suggestions,
     unmatched,
+    ...(crossRouteHints.length > 0 ? { crossRouteHints } : {}),
     contextPrint: input.contextPrint,
     rewriteHint: buildRewriteHint(input.stepNumber, suggestions, unmatched),
     menuPath: input.menuPath || undefined
@@ -483,6 +517,14 @@ export function renderAttDiagnosisTip(d: AttScreenDiagnosis): string {
   if (d.unmatched.length > 0) {
     lines.push(`> * **Sem correspondência funcional na tela:** ${d.unmatched.map(bold).join(', ')}.`);
   }
+  if (d.crossRouteHints && d.crossRouteHints.length > 0) {
+    const kindPt: Record<CrossRouteHint['matchedIn'], string> = { tab: 'aba', section: 'seção', title: 'título' };
+    lines.push(
+      `> * **Pistas em outras rotas (\`orion-route-graph.json\`):** ${d.crossRouteHints
+        .map(h => `"${h.target}" aparece em **${h.menuPath}** (${h.route || 'sem hash'}, ${kindPt[h.matchedIn]} **${h.matchedLabel}**)`)
+        .join('; ')}.`
+    );
+  }
   if (d.rewriteHint) lines.push(`> * ${d.rewriteHint} O texto original do manual foi preservado nesta rotina.`);
   if (d.contextPrint) lines.push(`> * **Referência visual:** ${d.contextPrint} (tela exata no momento do bloqueio).`);
   return lines.join('\n');
@@ -527,6 +569,16 @@ export function attDiagnosisYamlLines(d: AttScreenDiagnosis): string[] {
     lines.push(`    correspondencias_sugeridas: []`);
   }
   lines.push(`    alvos_sem_correspondencia: ${qList(d.unmatched)}`);
+  if (d.crossRouteHints && d.crossRouteHints.length > 0) {
+    lines.push(`    pistas_mapa_rotas:`);
+    for (const h of d.crossRouteHints) {
+      lines.push(`      - alvo: ${q(h.target)}`);
+      lines.push(`        menu: ${q(h.menuPath)}`);
+      lines.push(`        rota: ${q(h.route)}`);
+      lines.push(`        encontrado_em: ${q(h.matchedIn)}`);
+      lines.push(`        rotulo_real: ${q(h.matchedLabel)}`);
+    }
+  }
   if (d.rewriteHint) lines.push(`    sugestao_reescrita: ${q(d.rewriteHint.replace(/\*\*/g, ''))}`);
   if (d.contextPrint) lines.push(`    print_contexto: ${q(d.contextPrint)}`);
   return lines;

@@ -60,6 +60,16 @@ export type StepIntent =
   | 'cancel_or_clear'
   | 'generic_action';
 
+export interface DOMAngularBindings {
+  ngModel?: string;
+  ngClick?: string;
+  uiSref?: string;
+  ngDisabled?: string;
+  ngIf?: string;
+  humanizedModel?: string;
+  humanizedAction?: string;
+}
+
 export interface DOMSemanticSignature {
   /** Título do bloco/seção visual mais próximo (fieldset legend, panel-heading, card-header, h3-h5...) */
   sectionTitle?: string;
@@ -73,6 +83,8 @@ export interface DOMSemanticSignature {
   associatedLabel?: string;
   /** Papel funcional inferido para a Matriz de Compatibilidade Intenção × Papel */
   semanticRole: SemanticRole;
+  /** Bindings Angular/AngularJS extraídos como sinal auxiliar determinístico (ADR-030) */
+  angularBindings?: DOMAngularBindings;
 }
 
 /**

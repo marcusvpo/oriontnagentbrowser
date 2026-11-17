@@ -1,7 +1,8 @@
 import type { AgentBrowserClient } from './browser.js';
 import { resolveMenuPathViaHumanReview } from './human-review-rag.js';
-import { resolveCanonicalMenuPath, type CanonicalMenuBasis } from './menu-canonical.js';
+import { canonNormalize, resolveCanonicalMenuPath, type CanonicalMenuBasis } from './menu-canonical.js';
 import { closeActiveModals } from './modal-scope.js';
+import { findRouteEntriesByTabOrSection } from './route-crawler.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 import type { BoundingBox, MenuPathMissingEvidence, RoutineStep, SmartLocatorDivergence, SmartLocatorResult } from './types.js';
 
@@ -372,6 +373,41 @@ export function chooseMenuItem(
     };
   }
 
+  // ADR-030: consulta auxiliar ao grafo vivo de rotas (orion-route-graph.json) quando a folha
+  // documentada é uma aba ou seção única de uma tela cujo menu existe na árvore viva.
+  for (const documented of paths) {
+    if (documented.segments.length < 2) continue;
+    const docLeaf = documented.segments[documented.segments.length - 1];
+    const hints = findRouteEntriesByTabOrSection(docLeaf, undefined, { moduloHint: documented.segments[0] })
+      .filter(h => h.score >= 0.84 && (h.matchedIn === 'tab' || h.matchedIn === 'section'));
+    const usableHints = hints
+      .map(h => ({ hint: h, item: usable.find(i => sameChain(i.chain, h.entry.chain)) }))
+      .filter((pair): pair is { hint: typeof hints[number]; item: MenuTreeItem } => Boolean(pair.item));
+    if (usableHints.length === 0) continue;
+
+    const topScore = usableHints[0].hint.score;
+    const topTied = usableHints.filter(u => u.hint.score === topScore);
+    let chosen = topTied.length === 1 ? topTied[0] : null;
+    if (!chosen) {
+      const modNorm = canonNormalize(documented.segments[0]);
+      const sameMod = topTied.filter(u => canonNormalize(u.item.chain[0]) === modNorm);
+      if (sameMod.length === 1) chosen = sameMod[0];
+    }
+    if (chosen) {
+      const kindPt = chosen.hint.matchedIn === 'tab' ? 'aba' : 'seção';
+      return {
+        item: chosen.item,
+        documented,
+        exact: false,
+        confidence: Number(Math.min(0.88, chosen.hint.score).toFixed(2)),
+        reason: `Grafo vivo de rotas (orion-route-graph.json): "${docLeaf}" é ${kindPt} "${chosen.hint.matchedLabel}" da tela "${chosen.item.chain.join(' > ')}"`,
+        tail: [docLeaf],
+        consumed: documented.segments.length - 1,
+        canonicalBasis: 'tail_as_screen_section'
+      };
+    }
+  }
+
   // Nenhuma folha acessível: a folha documentada existe, mas só em itens bloqueados para o perfil?
   if (!options.ignoreDisabledBlocks) {
     for (const documented of paths) {
@@ -412,12 +448,20 @@ export function buildMenuPathMissingEvidence(paths: DocumentedMenuPath[], items:
     .map(i => i.chain[i.chain.length - 1]);
 
   const leaf = segs[segs.length - 1];
-  const leafElsewhere = items
-    .filter(i => {
-      const l = i.chain[i.chain.length - 1];
-      return normalizeText(l) === normalizeText(leaf) || computeDiceSimilarity(l, leaf) >= LEAF_MIN_SIMILARITY;
-    })
-    .map(i => i.chain.join(' > '));
+  const leafElsewhereSet = new Set(
+    items
+      .filter(i => {
+        const l = i.chain[i.chain.length - 1];
+        return normalizeText(l) === normalizeText(leaf) || computeDiceSimilarity(l, leaf) >= LEAF_MIN_SIMILARITY;
+      })
+      .map(i => i.chain.join(' > '))
+  );
+  for (const h of findRouteEntriesByTabOrSection(leaf, undefined, { moduloHint: segs[0] })) {
+    if (h.score < 0.84) continue;
+    const kindPt = h.matchedIn === 'tab' ? 'aba' : h.matchedIn === 'section' ? 'seção' : 'título';
+    leafElsewhereSet.add(`${h.entry.chain.join(' > ')} (${kindPt}: ${h.matchedLabel})`);
+  }
+  const leafElsewhere = Array.from(leafElsewhereSet);
 
   return {
     documented: segs.join(' > '),
@@ -494,7 +538,7 @@ const centerY = (r: CascadeRect) => r.y + Math.round(r.h / 2);
  * Cada trecho é conferido no DOM; `hover` por seletor e `focus` (que aciona o `openSubMenu` nativo)
  * são alternativas se um nível não abrir.
  */
-async function openCascadeWithPointer(client: AgentBrowserClient, selectors: string[]): Promise<CascadeRect[] | null> {
+export async function openCascadeWithPointer(client: AgentBrowserClient, selectors: string[]): Promise<CascadeRect[] | null> {
   const last = selectors.length - 1;
 
   for (let attempt = 1; attempt <= MAX_CASCADE_ATTEMPTS; attempt++) {

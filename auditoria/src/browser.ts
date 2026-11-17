@@ -8,6 +8,461 @@ import { config } from './config.js';
 
 const execFileAsync = promisify(execFile);
 
+/** Resposta de API capturada pelo monitor de rede XHR/Fetch (ADR-030). */
+export interface OrionLastApiResponse {
+  status: number;
+  url: string;
+  timestamp: number;
+  isEmptyArray: boolean;
+  validationMessage?: string;
+  snippet?: string;
+}
+
+/** Estado vivo de `window.__orionNetMonitor` no navegador. */
+export interface OrionNetMonitorSnapshot {
+  installed: boolean;
+  pendingCount: number;
+  totalRequests: number;
+  lastActivityAt: number;
+  lastApiResponse: OrionLastApiResponse | null;
+}
+
+/**
+ * Remove origem/protocolo/host/IP da URL monitorada, preservando apenas `pathname + search`
+ * para cumprir a blindagem de segredos e IPs internos (ADR-023 / ADR-025).
+ */
+export function sanitizeMonitoredUrl(rawUrl: string | null | undefined): string {
+  const txt = String(rawUrl ?? '').trim();
+  if (!txt) return '';
+  try {
+    const parsed = new URL(txt, 'http://orion.local');
+    return `${parsed.pathname}${parsed.search}`.slice(0, 180);
+  } catch {
+    return txt.replace(/^https?:\/\/[^/]+/i, '').slice(0, 180);
+  }
+}
+
+/**
+ * Interpreta o status HTTP e o corpo bruto de uma resposta XHR/Fetch para detectar
+ * retorno de grade vazia (`[]` / `{ content: [] }`) ou mensagens de validação HTTP 400/422.
+ */
+export function parseApiResponsePayload(
+  status: number,
+  rawUrl: string,
+  rawBody: string | null | undefined,
+  timestamp = Date.now()
+): OrionLastApiResponse {
+  const url = sanitizeMonitoredUrl(rawUrl);
+  const body = String(rawBody ?? '').trim();
+  const snippet = body ? body.replace(/\s+/g, ' ').trim().slice(0, 240) : undefined;
+  let isEmptyArray = false;
+  let validationMessage: string | undefined;
+
+  let parsed: any = null;
+  if (body && (body.startsWith('{') || body.startsWith('['))) {
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      parsed = null;
+    }
+  }
+
+  if (status >= 200 && status < 300 && parsed !== null) {
+    if (Array.isArray(parsed)) {
+      isEmptyArray = parsed.length === 0;
+    } else if (typeof parsed === 'object') {
+      const listField = ['content', 'items', 'data', 'registros', 'records', 'rows', 'lista'].find(k =>
+        Array.isArray(parsed[k])
+      );
+      if (listField && parsed[listField].length === 0) {
+        isEmptyArray = true;
+      } else if (parsed.totalElements === 0 || parsed.total === 0) {
+        isEmptyArray = true;
+      }
+    }
+  }
+
+  if (status >= 400) {
+    if (parsed && typeof parsed === 'object') {
+      const directMsg = [parsed.message, parsed.mensagem, parsed.error_description, parsed.detail, parsed.erro, parsed.error, parsed.title]
+        .find(v => typeof v === 'string' && v.trim().length > 0);
+      if (directMsg) {
+        validationMessage = String(directMsg).replace(/\s+/g, ' ').trim().slice(0, 220);
+      } else if (Array.isArray(parsed.errors) || Array.isArray(parsed.mensagens)) {
+        const arr = (Array.isArray(parsed.errors) ? parsed.errors : parsed.mensagens) as any[];
+        const msgs = arr
+          .map(item => (typeof item === 'string' ? item : item?.message || item?.mensagem || item?.defaultMessage || ''))
+          .map(s => String(s).trim())
+          .filter(Boolean);
+        if (msgs.length > 0) validationMessage = msgs.join('; ').slice(0, 220);
+      }
+    } else if (body && !/^<!doctype|^<html/i.test(body)) {
+      validationMessage = body.replace(/\s+/g, ' ').trim().slice(0, 220);
+    }
+  }
+
+  return {
+    status,
+    url,
+    timestamp,
+    isEmptyArray,
+    ...(validationMessage ? { validationMessage } : {}),
+    ...(snippet ? { snippet } : {})
+  };
+}
+
+/**
+ * Gera o script idempotente que instala `window.__orionNetMonitor` para interceptar
+ * `XMLHttpRequest` e `fetch`, mantendo `pendingCount` e `lastApiResponse` atualizados.
+ */
+export function buildNetMonitorInitScript(): string {
+  return `
+    (() => {
+      if (window.__orionNetMonitor && window.__orionNetMonitor.installed) {
+        return JSON.stringify(window.__orionNetMonitor);
+      }
+      const mon = {
+        installed: true,
+        pendingCount: 0,
+        totalRequests: 0,
+        lastActivityAt: Date.now(),
+        lastApiResponse: null
+      };
+      window.__orionNetMonitor = mon;
+
+      const sanitizeUrl = raw => {
+        const txt = String(raw == null ? '' : raw).trim();
+        if (!txt) return '';
+        try {
+          const u = new URL(txt, window.location.origin || 'http://orion.local');
+          return (u.pathname + u.search).slice(0, 180);
+        } catch (e) {
+          return txt.replace(/^https?:\\/\\/[^/]+/i, '').slice(0, 180);
+        }
+      };
+
+      const isAssetUrl = url => /\\.(html?|css|js|png|jpe?g|webp|svg|woff2?|ttf|ico)(\\?|$)/i.test(url || '');
+
+      const recordResponse = (status, rawUrl, rawBody, contentType) => {
+        const url = sanitizeUrl(rawUrl);
+        const body = String(rawBody == null ? '' : rawBody).trim();
+        const isJsonLike = /json/i.test(contentType || '') || body.startsWith('{') || body.startsWith('[');
+        if (status < 400 && isAssetUrl(url) && !isJsonLike) return;
+        if (status < 400 && !isJsonLike && !/\\/api\\//i.test(url)) return;
+
+        let parsed = null;
+        if (body && (body.startsWith('{') || body.startsWith('['))) {
+          try { parsed = JSON.parse(body); } catch (e) { parsed = null; }
+        }
+        let isEmptyArray = false;
+        if (status >= 200 && status < 300 && parsed !== null) {
+          if (Array.isArray(parsed)) {
+            isEmptyArray = parsed.length === 0;
+          } else if (typeof parsed === 'object') {
+            const keys = ['content', 'items', 'data', 'registros', 'records', 'rows', 'lista'];
+            const listKey = keys.find(k => Array.isArray(parsed[k]));
+            if (listKey && parsed[listKey].length === 0) isEmptyArray = true;
+            else if (parsed.totalElements === 0 || parsed.total === 0) isEmptyArray = true;
+          }
+        }
+        let validationMessage;
+        if (status >= 400) {
+          if (parsed && typeof parsed === 'object') {
+            const msg = [parsed.message, parsed.mensagem, parsed.error_description, parsed.detail, parsed.erro, parsed.error, parsed.title]
+              .find(v => typeof v === 'string' && v.trim().length > 0);
+            if (msg) {
+              validationMessage = String(msg).replace(/\\s+/g, ' ').trim().slice(0, 220);
+            } else {
+              const arr = Array.isArray(parsed.errors) ? parsed.errors : (Array.isArray(parsed.mensagens) ? parsed.mensagens : null);
+              if (arr) {
+                const msgs = arr.map(it => typeof it === 'string' ? it : (it && (it.message || it.mensagem || it.defaultMessage) || '')).map(s => String(s).trim()).filter(Boolean);
+                if (msgs.length > 0) validationMessage = msgs.join('; ').slice(0, 220);
+              }
+            }
+          } else if (body && !/^<!doctype|^<html/i.test(body)) {
+            validationMessage = body.replace(/\\s+/g, ' ').trim().slice(0, 220);
+          }
+        }
+        const snippet = body ? body.replace(/\\s+/g, ' ').trim().slice(0, 240) : undefined;
+        mon.lastApiResponse = {
+          status: status,
+          url: url,
+          timestamp: Date.now(),
+          isEmptyArray: isEmptyArray,
+          ...(validationMessage ? { validationMessage } : {}),
+          ...(snippet ? { snippet } : {})
+        };
+      };
+
+      if (typeof window.fetch === 'function' && !window.fetch.__orionMonitored) {
+        const origFetch = window.fetch.bind(window);
+        const wrappedFetch = function(input, init) {
+          const reqUrl = typeof input === 'string' ? input : (input && input.url) || '';
+          mon.pendingCount++;
+          mon.totalRequests++;
+          mon.lastActivityAt = Date.now();
+          return origFetch(input, init).then(
+            res => {
+              let cloned = null;
+              let ct = '';
+              try {
+                ct = (res.headers && res.headers.get && res.headers.get('content-type')) || '';
+                if (res.status >= 400 || /json|text|problem/i.test(ct) || !ct) {
+                  cloned = res.clone();
+                }
+              } catch (e) {}
+              if (cloned) {
+                cloned.text()
+                  .then(body => { recordResponse(res.status, reqUrl, String(body || '').slice(0, 8192), ct); })
+                  .catch(() => {})
+                  .finally(() => {
+                    mon.pendingCount = Math.max(0, mon.pendingCount - 1);
+                    mon.lastActivityAt = Date.now();
+                  });
+              } else {
+                mon.pendingCount = Math.max(0, mon.pendingCount - 1);
+                mon.lastActivityAt = Date.now();
+              }
+              return res;
+            },
+            err => {
+              mon.pendingCount = Math.max(0, mon.pendingCount - 1);
+              mon.lastActivityAt = Date.now();
+              throw err;
+            }
+          );
+        };
+        wrappedFetch.__orionMonitored = true;
+        window.fetch = wrappedFetch;
+      }
+
+      if (typeof window.XMLHttpRequest === 'function' && window.XMLHttpRequest.prototype && !window.XMLHttpRequest.prototype.__orionMonitored) {
+        const origOpen = window.XMLHttpRequest.prototype.open;
+        const origSend = window.XMLHttpRequest.prototype.send;
+        window.XMLHttpRequest.prototype.open = function(method, url) {
+          this.__orionUrl = String(url || '');
+          return origOpen.apply(this, arguments);
+        };
+        window.XMLHttpRequest.prototype.send = function() {
+          const xhr = this;
+          let settled = false;
+          mon.pendingCount++;
+          mon.totalRequests++;
+          mon.lastActivityAt = Date.now();
+          const finalize = () => {
+            if (settled) return;
+            settled = true;
+            try {
+              if (xhr.status > 0) {
+                const ct = (xhr.getResponseHeader && xhr.getResponseHeader('content-type')) || '';
+                let body = '';
+                if (xhr.responseType === '' || xhr.responseType === 'text') {
+                  body = String(xhr.responseText || '').slice(0, 8192);
+                } else if (xhr.responseType === 'json' && xhr.response != null) {
+                  body = JSON.stringify(xhr.response).slice(0, 8192);
+                }
+                recordResponse(xhr.status, xhr.__orionUrl || '', body, ct);
+              }
+            } catch (e) {}
+            mon.pendingCount = Math.max(0, mon.pendingCount - 1);
+            mon.lastActivityAt = Date.now();
+          };
+          if (xhr.addEventListener) {
+            xhr.addEventListener('loadend', finalize, { once: true });
+          }
+          try {
+            return origSend.apply(this, arguments);
+          } catch (err) {
+            finalize();
+            throw err;
+          }
+        };
+        window.XMLHttpRequest.prototype.__orionMonitored = true;
+      }
+      return JSON.stringify(mon);
+    })()
+  `;
+}
+
+/**
+ * Gera o script de conferência de nó carimbado (`probeActionNode`) atravessando
+ * Open Shadow DOM e iframes same-origin recursivamente até profundidade 6 (ADR-030).
+ */
+export function buildProbeActionNodeScript(
+  stampSelector: string,
+  navZoneSelector = NAV_ZONE_SELECTOR,
+  fallbackZoom = 0.8
+): string {
+  return `
+    (() => {
+      const MAX_DEPTH = 6;
+      const NAV_SEL = ${JSON.stringify(navZoneSelector)};
+      const FALLBACK_ZOOM = ${JSON.stringify(fallbackZoom)};
+
+      const composedParent = node => {
+        if (!node) return null;
+        if (node.parentElement) return node.parentElement;
+        const root = node.getRootNode ? node.getRootNode() : null;
+        return root && root.host ? root.host : null;
+      };
+
+      const composedClosest = (node, selector) => {
+        let cur = node;
+        while (cur) {
+          if (cur.nodeType === 1 && cur.matches && cur.matches(selector)) return cur;
+          cur = composedParent(cur);
+        }
+        return null;
+      };
+
+      const queryAllDeep = (root, selector, depth) => {
+        const d = depth || 0;
+        const out = [];
+        const seen = new Set();
+        if (!root || d > MAX_DEPTH) return out;
+        const add = el => {
+          if (el && !seen.has(el)) {
+            seen.add(el);
+            out.push(el);
+          }
+        };
+        if (root.querySelectorAll) {
+          try {
+            const direct = root.querySelectorAll(selector);
+            for (let i = 0; i < direct.length; i++) add(direct[i]);
+          } catch (e) {}
+        }
+        if (d === 0 && root.shadowRoot) {
+          const own = queryAllDeep(root.shadowRoot, selector, d + 1);
+          for (let j = 0; j < own.length; j++) add(own[j]);
+        }
+        if (d < MAX_DEPTH && root.querySelectorAll) {
+          try {
+            const all = root.querySelectorAll('*');
+            for (let i = 0; i < all.length; i++) {
+              const host = all[i];
+              if (host && host.shadowRoot) {
+                const inner = queryAllDeep(host.shadowRoot, selector, d + 1);
+                for (let j = 0; j < inner.length; j++) add(inner[j]);
+              }
+            }
+          } catch (e) {}
+        }
+        return out;
+      };
+
+      const findDeepBySelector = (doc, selector, frameChain, depth) => {
+        const hits = [];
+        if (!doc || depth > MAX_DEPTH) return hits;
+        const direct = queryAllDeep(doc, selector, 0);
+        for (let i = 0; i < direct.length; i++) {
+          hits.push({ el: direct[i], doc: doc, frameChain: frameChain });
+        }
+        if (depth < MAX_DEPTH) {
+          const iframes = queryAllDeep(doc, 'iframe', 0);
+          for (let i = 0; i < iframes.length; i++) {
+            const frame = iframes[i];
+            try {
+              const childDoc = frame.contentDocument;
+              if (!childDoc || !childDoc.body) continue;
+              const nested = findDeepBySelector(childDoc, selector, frameChain.concat([frame]), depth + 1);
+              for (let j = 0; j < nested.length; j++) hits.push(nested[j]);
+            } catch (e) {}
+          }
+        }
+        return hits;
+      };
+
+      const readEffectiveDocZoom = doc => {
+        try {
+          const win = doc && doc.defaultView;
+          const de = doc && doc.documentElement;
+          if (!de) return 1;
+          const cs = win && win.getComputedStyle ? win.getComputedStyle(de) : null;
+          const z = parseFloat((cs && cs.zoom) || (de.style && de.style.zoom) || '1');
+          return Number.isFinite(z) && z > 0 ? z : 1;
+        } catch (e) {
+          return 1;
+        }
+      };
+
+      const computeChainOffset = frameChain => {
+        let x = 0;
+        let y = 0;
+        let scale = 1;
+        const chain = frameChain || [];
+        for (let i = 0; i < chain.length; i++) {
+          const frame = chain[i];
+          const hostDoc = frame.ownerDocument || document;
+          const hostWin = hostDoc.defaultView || window;
+          const fr = frame.getBoundingClientRect();
+          const cs = hostWin && hostWin.getComputedStyle ? hostWin.getComputedStyle(frame) : null;
+          let hostScale = 1;
+          if (frame.offsetWidth > 0 && fr.width > 0) {
+            hostScale = fr.width / frame.offsetWidth;
+          } else {
+            hostScale = readEffectiveDocZoom(hostDoc);
+            if (hostScale === 1 && i === 0 && Number.isFinite(FALLBACK_ZOOM) && FALLBACK_ZOOM > 0) {
+              hostScale = FALLBACK_ZOOM;
+            }
+          }
+          const stepScale = scale * hostScale;
+          const borderL = frame.clientLeft || (cs ? parseFloat(cs.borderLeftWidth) || 0 : 0);
+          const borderT = frame.clientTop || (cs ? parseFloat(cs.borderTopWidth) || 0 : 0);
+          const padL = cs ? parseFloat(cs.paddingLeft) || 0 : 0;
+          const padT = cs ? parseFloat(cs.paddingTop) || 0 : 0;
+          x = x + fr.left * scale + (borderL + padL) * stepScale;
+          y = y + fr.top * scale + (borderT + padT) * stepScale;
+          scale = stepScale;
+        }
+        return { x, y, scale };
+      };
+
+      const found = findDeepBySelector(document, ${JSON.stringify(stampSelector)}, [], 0);
+      if (found.length !== 1) return null;
+      const hit = found[0];
+      const el = hit.el;
+      const doc = hit.doc || el.ownerDocument || document;
+      const win = doc.defaultView || window;
+      const r = el.getBoundingClientRect();
+      const style = win.getComputedStyle(el);
+      if (r.width <= 1 || r.height <= 1 || style.display === 'none' || style.visibility === 'hidden' || composedClosest(el, '.ng-hide')) return null;
+
+      const frameOffset = computeChainOffset(hit.frameChain);
+      const s = frameOffset.scale || 1;
+      const x1 = Math.round(r.left * s + frameOffset.x);
+      const y1 = Math.round(r.top * s + frameOffset.y);
+      const x2 = Math.round(r.right * s + frameOffset.x);
+      const y2 = Math.round(r.bottom * s + frameOffset.y);
+
+      const ngDis = el.getAttribute && el.getAttribute('ng-disabled');
+      const isDisabled =
+        !!el.disabled ||
+        el.getAttribute('aria-disabled') === 'true' ||
+        !!composedClosest(el, 'fieldset[disabled]') ||
+        (!!ngDis && /^(true|1)$/i.test(String(ngDis).trim()));
+
+      return JSON.stringify({
+        tagName: el.tagName.toLowerCase(),
+        text: (el.innerText || el.textContent || el.getAttribute('placeholder') || el.getAttribute('name') || '').trim().slice(0, 80),
+        box: { x: x1, y: y1, width: x2 - x1, height: y2 - y1 },
+        insideNavZone: !!composedClosest(el, NAV_SEL),
+        disabled: isDisabled,
+        hint: (el.getAttribute('title') || el.getAttribute('aria-label') || el.getAttribute('value') || '').trim().slice(0, 80),
+        opensNewTab: (() => {
+          const a = composedClosest(el, 'a');
+          const js = [el.getAttribute('onclick'), el.getAttribute('ng-click'), a && a.getAttribute('onclick'), a && a.getAttribute('ng-click')].join(' ');
+          if (a && String(a.getAttribute('target') || '').toLowerCase() === '_blank') return true;
+          if (/window\\.open|\\$window\\.open/.test(js)) return true;
+          const href = a ? String(a.getAttribute('href') || '') : '';
+          const txt = String((a || el).innerText || '').toLowerCase();
+          return !!a && (href === '' || href === '#') && /clique aqui|acesse|acessar|tela de configura/.test(txt);
+        })()
+      });
+    })()
+  `;
+}
+
 /** Guia do navegador, como o `agent-browser tab list --json` a descreve (ADR-025). */
 export interface BrowserTab {
   /** `t1`, `t2`... (ou o targetId CDP quando o daemon não devolve o id curto) */
@@ -178,30 +633,80 @@ export class AgentBrowserClient {
 
   /**
    * Aplica o zoom CSS configurado (padrão 0.8 = 80%) mantendo o viewport físico 1440x900 @ DPR 1.0,
-   * para exibir seções inferiores completas sem quebrar getBoundingClientRect() nem os 8 invariantes.
+   * e aproveita a mesma ida ao navegador para garantir `window.__orionNetMonitor` instalado (zero roundtrip extra).
    */
   async applyZoom(zoom = this.browserZoom): Promise<void> {
     const safeZoom = Number.isFinite(zoom) && zoom > 0 ? zoom : 0.8;
-    if (Math.abs(safeZoom - 1) < 0.001) return;
+    const shouldApplyZoom = Math.abs(safeZoom - 1) >= 0.001;
     try {
       await this.eval(`
         (() => {
-          const z = ${JSON.stringify(String(safeZoom))};
-          if (document.documentElement && document.documentElement.style.zoom !== z) {
-            document.documentElement.style.zoom = z;
+          if (${JSON.stringify(shouldApplyZoom)}) {
+            const z = ${JSON.stringify(String(safeZoom))};
+            if (document.documentElement && document.documentElement.style.zoom !== z) {
+              document.documentElement.style.zoom = z;
+            }
+            if (document.head && !document.getElementById('orion-audit-zoom')) {
+              const st = document.createElement('style');
+              st.id = 'orion-audit-zoom';
+              st.textContent = 'html { zoom: ' + z + ' !important; }';
+              document.head.appendChild(st);
+            }
           }
-          if (document.head && !document.getElementById('orion-audit-zoom')) {
-            const st = document.createElement('style');
-            st.id = 'orion-audit-zoom';
-            st.textContent = 'html { zoom: ' + z + ' !important; }';
-            document.head.appendChild(st);
-          }
+          ${buildNetMonitorInitScript()};
           return true;
         })()
       `);
     } catch {
       // Página transitória (ex.: about:blank ou ainda inicializando)
     }
+  }
+
+  /** Garante a instalação idempotente do monitor XHR/Fetch (`window.__orionNetMonitor`). */
+  async ensureNetMonitor(): Promise<boolean> {
+    try {
+      const snap = await this.evalJson<OrionNetMonitorSnapshot>(buildNetMonitorInitScript());
+      return Boolean(snap?.installed);
+    } catch {
+      return false;
+    }
+  }
+
+  /** Lê o snapshot atual do monitor XHR/Fetch (`pendingCount`, `lastApiResponse`). */
+  async readNetMonitor(): Promise<OrionNetMonitorSnapshot | null> {
+    return this.evalJson<OrionNetMonitorSnapshot>(`
+      (() => {
+        if (!window.__orionNetMonitor) return JSON.stringify(null);
+        return JSON.stringify(window.__orionNetMonitor);
+      })()
+    `);
+  }
+
+  /**
+   * Aguarda a rede XHR/Fetch estabilizar (`pendingCount === 0`) sem esperas cegas fixas.
+   * Se o monitor ainda não estiver instalado na aba atual, instala-o antes de consultar.
+   */
+  async waitForNetworkIdle(
+    options: { timeoutMs?: number; idleMs?: number; pollMs?: number } = {}
+  ): Promise<OrionNetMonitorSnapshot | null> {
+    const timeoutMs = options.timeoutMs ?? 5000;
+    const idleMs = options.idleMs ?? 200;
+    const pollMs = options.pollMs ?? 150;
+    const deadline = Date.now() + timeoutMs;
+    let snap = await this.readNetMonitor();
+    if (!snap) {
+      await this.ensureNetMonitor();
+      snap = await this.readNetMonitor();
+    }
+    while (Date.now() < deadline) {
+      if (!snap) return null;
+      if (snap.pendingCount === 0 && Date.now() - snap.lastActivityAt >= idleMs) {
+        return snap;
+      }
+      await new Promise(r => setTimeout(r, pollMs));
+      snap = await this.readNetMonitor();
+    }
+    return snap;
   }
 
   async open(url: string): Promise<string> {
@@ -321,6 +826,26 @@ export class AgentBrowserClient {
     }
     await this.ensureViewport(1440, 900);
     await this.applyZoom();
+
+    // ADR-030: sub-portais [CCC] podem executar redirects pós-load; aguarda estabilização e
+    // reafirma viewport 1440x900, zoom e monitor XHR/Fetch sobre a guia final.
+    let prevHref = '';
+    for (let i = 0; i < 5; i++) {
+      try {
+        const probe = await this.evalJson<{ href: string; ready: string }>(
+          'JSON.stringify({ href: window.location.href || "", ready: document.readyState || "" })'
+        );
+        if (probe && probe.ready === 'complete' && probe.href && probe.href === prevHref) break;
+        prevHref = probe?.href || prevHref;
+      } catch {
+        // redirect em andamento
+      }
+      await this.wait(300);
+    }
+    await this.ensureViewport(1440, 900);
+    await this.applyZoom();
+    await this.ensureNetMonitor();
+
     let url = fresh.url;
     let title = fresh.title;
     try {
@@ -517,40 +1042,12 @@ export class AgentBrowserClient {
   }
 
   /**
-   * Confere, imediatamente antes da ação, o nó carimbado na medição (ADR-015 §2.4): o carimbo deve
-   * apontar para exatamente um nó visível. Devolve a sua descrição atual ou `null` se o carimbo se
-   * perdeu (ex.: o Angular recriou o nó).
+   * Confere, imediatamente antes da ação, o nó carimbado na medição (ADR-015 §2.4 + ADR-030 Deep DOM):
+   * percorre Open Shadow DOM e iframes same-origin recursivamente até profundidade 6, somando
+   * o offset acumulado da cadeia de iframes (`frameOffset`) à caixa retornada.
    */
   async probeActionNode(stampSelector: string): Promise<DOMActionNode | null> {
-    const raw = await this.eval(`
-      (() => {
-        const found = document.querySelectorAll(${JSON.stringify(stampSelector)});
-        if (found.length !== 1) return null;
-        const el = found[0];
-        const r = el.getBoundingClientRect();
-        const style = window.getComputedStyle(el);
-        if (r.width <= 1 || r.height <= 1 || style.display === 'none' || style.visibility === 'hidden') return null;
-        const x1 = Math.round(r.left), y1 = Math.round(r.top);
-        return JSON.stringify({
-          tagName: el.tagName.toLowerCase(),
-          text: (el.innerText || el.textContent || el.getAttribute('placeholder') || el.getAttribute('name') || '').trim().slice(0, 80),
-          box: { x: x1, y: y1, width: Math.round(r.right) - x1, height: Math.round(r.bottom) - y1 },
-          insideNavZone: !!el.closest(${JSON.stringify(NAV_ZONE_SELECTOR)}),
-          disabled: !!el.disabled || el.getAttribute('aria-disabled') === 'true' || !!el.closest('fieldset[disabled]'),
-          hint: (el.getAttribute('title') || el.getAttribute('aria-label') || el.getAttribute('value') || '').trim().slice(0, 80),
-          opensNewTab: (() => {
-            const a = el.closest('a');
-            const js = [el.getAttribute('onclick'), el.getAttribute('ng-click'), a && a.getAttribute('onclick'), a && a.getAttribute('ng-click')].join(' ');
-            if (a && String(a.getAttribute('target') || '').toLowerCase() === '_blank') return true;
-            if (/window\\.open|\\$window\\.open/.test(js)) return true;
-            // Link dirigido por JS (handler do Angular não aparece como atributo) com chamada para navegação
-            const href = a ? String(a.getAttribute('href') || '') : '';
-            const txt = String((a || el).innerText || '').toLowerCase();
-            return !!a && (href === '' || href === '#') && /clique aqui|acesse|acessar|tela de configura/.test(txt);
-          })()
-        });
-      })()
-    `);
+    const raw = await this.eval(buildProbeActionNodeScript(stampSelector, NAV_ZONE_SELECTOR, this.browserZoom));
     if (!raw || raw === 'null' || raw === 'undefined') return null;
     try {
       const first = JSON.parse(raw);
@@ -625,11 +1122,101 @@ export class AgentBrowserClient {
   }
 
   async click(refOrSelector: string): Promise<string> {
-    return this.run(['click', refOrSelector]);
+    try {
+      return await this.run(['click', refOrSelector]);
+    } catch (err) {
+      if (!refOrSelector.startsWith('[data-orion-')) throw err;
+      const clicked = await this.evalJson<boolean>(`
+        (() => {
+          const sel = ${JSON.stringify(refOrSelector)};
+          const queryDeep = (root, d) => {
+            if (!root || d > 6) return null;
+            if (root.querySelector) {
+              const direct = root.querySelector(sel);
+              if (direct) return direct;
+            }
+            if (d === 0 && root.shadowRoot) {
+              const own = queryDeep(root.shadowRoot, d + 1);
+              if (own) return own;
+            }
+            const all = root.querySelectorAll ? root.querySelectorAll('*') : [];
+            for (let i = 0; i < all.length; i++) {
+              const h = all[i];
+              if (h.shadowRoot) {
+                const sHit = queryDeep(h.shadowRoot, d + 1);
+                if (sHit) return sHit;
+              }
+              if (h.tagName === 'IFRAME') {
+                try {
+                  if (h.contentDocument) {
+                    const fHit = queryDeep(h.contentDocument, d + 1);
+                    if (fHit) return fHit;
+                  }
+                } catch (e) {}
+              }
+            }
+            return null;
+          };
+          const el = queryDeep(document, 0);
+          if (!el) return JSON.stringify(false);
+          el.click();
+          return JSON.stringify(true);
+        })()
+      `);
+      if (clicked) return 'clicked-deep-dom';
+      throw err;
+    }
   }
 
   async fill(refOrSelector: string, text: string): Promise<string> {
-    return this.run(['fill', refOrSelector, text]);
+    try {
+      return await this.run(['fill', refOrSelector, text]);
+    } catch (err) {
+      if (!refOrSelector.startsWith('[data-orion-')) throw err;
+      const filled = await this.evalJson<boolean>(`
+        (() => {
+          const sel = ${JSON.stringify(refOrSelector)};
+          const val = ${JSON.stringify(text)};
+          const queryDeep = (root, d) => {
+            if (!root || d > 6) return null;
+            if (root.querySelector) {
+              const direct = root.querySelector(sel);
+              if (direct) return direct;
+            }
+            if (d === 0 && root.shadowRoot) {
+              const own = queryDeep(root.shadowRoot, d + 1);
+              if (own) return own;
+            }
+            const all = root.querySelectorAll ? root.querySelectorAll('*') : [];
+            for (let i = 0; i < all.length; i++) {
+              const h = all[i];
+              if (h.shadowRoot) {
+                const sHit = queryDeep(h.shadowRoot, d + 1);
+                if (sHit) return sHit;
+              }
+              if (h.tagName === 'IFRAME') {
+                try {
+                  if (h.contentDocument) {
+                    const fHit = queryDeep(h.contentDocument, d + 1);
+                    if (fHit) return fHit;
+                  }
+                } catch (e) {}
+              }
+            }
+            return null;
+          };
+          const el = queryDeep(document, 0);
+          if (!el) return JSON.stringify(false);
+          el.focus();
+          el.value = val;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          return JSON.stringify(true);
+        })()
+      `);
+      if (filled) return 'filled-deep-dom';
+      throw err;
+    }
   }
 
   /** Digita com teclas reais (necessário para campos com máscara, como as datas `__/__/____`). */

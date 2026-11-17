@@ -1,8 +1,8 @@
 # Especificação Técnica: Auditoria Visual de Rotinas via Agent-Browser & Sharp
 
 **Status:** ATIVO / HOMOLOGADO  
-**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal e RAG Soberano)  
-**Normas Vinculantes:** ADR-007 a ADR-029  
+**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal, RAG Soberano e Evolução Determinística ADR-030)  
+**Normas Vinculantes:** ADR-007 a ADR-030  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -102,6 +102,7 @@ auditoria/
     ├── governance-disk.ts    # Dupla via de edição/governança em disco (*-revisado.md, ADR-023)
     ├── sync-supabase.ts      # Write-Through por rotina (syncSingleRoutineToSupabase) + sync em lote (ADR-023)
     ├── server.ts             # API REST do Console com dupla via + fila real de reexecução (ADR-023)
+    ├── route-crawler.ts      # Crawler somente-leitura (`--crawl-map`) gravando orion-route-graph.json (ADR-030)
     └── verify-all-phase2-boxes.ts # Validação matemática dos 8 invariantes
 ```
 
@@ -576,3 +577,28 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 ### 18.5. Console
 * `StepMedia.contexto`, `AuditoriaUiFrontmatter.diagnostico_tela_att`, `AttScreenDiagnosisCard`, `ReauditTimeline`, `PhaseSplitCards` e filtro rápido de fase em `RoutineFilters`; helpers puros em `lib/attDiagnosis.ts`. `sync-supabase.ts` usa `passo-NN-contexto-att` como mídia do passo bloqueado sem print.
 * Testes: `auditoria/src/__tests__/adr029-menu-canonical-clusters-prefilter.test.ts`, `Orion Audit Console/src/lib/attDiagnosis.test.ts`, `components/studio/adr029Studio.test.tsx`.
+
+---
+
+## 19. Evolução Determinística Deep DOM, Poda 2B, Bindings Angular, Monitor XHR/Fetch e Crawler de Rotas (ADR-030)
+
+### 19.1. Travessia Deep DOM & Iframes Recursivos Pós-Scroll (`dom-geometry.ts`, `browser.ts`)
+* `composedParent`, `composedClosest`, `composedContains` e `queryAllDeep(root, selector, depth <= 6)` atravessam Open Shadow DOM preservando `sectionTitle`, `rowContext`, modal ativo (`deepElementFromPoint`) e Filtro de Zona Semântica (`inZone`). Ancestral `.ng-hide` invalida `isVisible`.
+* `searchFramesRecursively(rootDoc, frameChain, depth <= 6)` (inclusive iframes em Shadow DOM) grava `frameChain: HTMLIFrameElement[]`; `computeChainOffsetAndClip(frameChain, targetZoom)` soma `clientLeft` + `paddingLeft`, acumula o retângulo de recorte (`clip`) e compensa o fator `zoom: 0.8` via escala real do frame hospedeiro (`fr.width / offsetWidth` com fallback para zoom do documento hospedeiro). O cálculo é reexecutado **após** `scrollIntoView()` e `void el.offsetHeight`.
+* Removida a trava `ownerDocument === document` ao carimbar `actionTarget`; `buildProbeActionNodeScript` usa `findDeepBySelector` e `click`/`fill` têm fallback deep-DOM para stamps em iframe. `withNewTabDetection` aguarda estabilidade de redirects pós-load em sub-portais `[CCC]` e reafirma `ensureViewport(1440, 900)`, `applyZoom()` e `ensureNetMonitor()`.
+
+### 19.2. Poda Semântica da Camada 2B (`smart-locator.ts`)
+* `collectVisibleLabelNodes` (`buildCollectVisibleLabelNodesScript`) atravessa Open Shadow DOM e iframes same-origin.
+* `pruneAndPrioritizeNodesForLLM(step, nodes, 40)` filtra nós acionáveis com `@ref` válido (excluindo `role: 'label'`), limpa PUA/NBSP (`cleanA11yNodeName`), veta `forbiddenCandidateReason` e `evaluateSemanticCompatibility` (`weight === 0`), exclui navegação em `zone === 'content'`, deduplica ações repetidas de grade por `(role, normalizeText(name), normalizeText(sectionTitle))`, prioriza por afinidade semântica antes do corte de 40 nós e revalida o `@ref` devolvido pelo LLM antes de `resolveHealedGeometry`.
+
+### 19.3. Bindings Angular (`types.ts`, `dom-geometry.ts`)
+* `DOMAngularBindings` em `DOMSemanticSignature.angularBindings` e helpers puros `humanizeAngularIdentifier` / `extractAngularBindingsFromAttrs` extraem `ng-model`, `ng-click`, `ui-sref`, `ng-disabled` e `ng-if` para desempate de controles ativos e localização determinística de botões icônicos e inputs sem `<label>`.
+
+### 19.4. Monitor XHR/Fetch (`browser.ts`, `stateful-step-engine.ts`)
+* `buildNetMonitorInitScript()` instala idempotentemente `window.__orionNetMonitor` (`pendingCount`, `totalRequests`, `lastActivityAt`, `lastApiResponse` com `status`, `url` sanitizada via `sanitizeMonitoredUrl`, `isEmptyArray` e `validationMessage` HTTP 400/422) dentro de `applyZoom()`.
+* `runStatefulStepPostAction` usa `readNetMonitor()` / `waitForNetworkIdle()` para aguardar `pendingCount === 0`, sair cedo em `isEmptyArray === true` e registrar `apiValidationMessage` quando a API devolver erro HTTP.
+
+### 19.5. Crawler de Rotas (`route-crawler.ts`, `cli.ts`, `menu-path.ts`, `att-screen-advisor.ts`)
+* `cli.ts --crawl-map [--headless] [--max-routes N]` executa `crawlOrionRouteGraph` em modo somente-leitura e grava `auditoria/cache/orion-route-graph.json`.
+* Conectado como pista auxiliar (sem substituir evidência ao vivo) em `chooseMenuItem` (`tail_as_screen_section`), `buildMenuPathMissingEvidence` (`leafElsewhere`) e `att-screen-advisor.ts` (`crossRouteHints` / `pistas_mapa_rotas`).
+* Testes offline em `auditoria/src/__tests__/adr030-deep-dom-angular-net-crawler.test.ts` (169/169 testes em 42 suítes).

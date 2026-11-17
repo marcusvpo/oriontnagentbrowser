@@ -34,9 +34,158 @@ export interface ParsedA11yNode {
   inNavbar?: boolean;
 }
 
+export function buildCollectVisibleLabelNodesScript(): string {
+  return `
+    (() => {
+      const MAX_DEPTH = 6;
+      const NAV = ${JSON.stringify(NAV_ZONE_SELECTOR)};
+      const clean = t => String(t == null ? '' : t).replace(/[\\uE000-\\uF8FF\\u200B-\\u200D\\uFEFF]/g, '').replace(/\\u00A0/g, ' ').replace(/\\s+/g, ' ').trim();
+      const composedParent = node => {
+        if (!node) return null;
+        if (node.parentElement) return node.parentElement;
+        const root = node.getRootNode ? node.getRootNode() : null;
+        return root && root.host ? root.host : null;
+      };
+      const composedClosest = (node, selector) => {
+        let cur = node;
+        while (cur) {
+          if (cur.nodeType === 1 && cur.matches && cur.matches(selector)) return cur;
+          cur = composedParent(cur);
+        }
+        return null;
+      };
+      const queryAllDeep = (root, selector, depth) => {
+        const d = depth || 0;
+        const out = [];
+        const seen = new Set();
+        if (!root || d > MAX_DEPTH) return out;
+        const add = el => {
+          if (el && !seen.has(el)) {
+            seen.add(el);
+            out.push(el);
+          }
+        };
+        if (root.querySelectorAll) {
+          try {
+            const direct = root.querySelectorAll(selector);
+            for (let i = 0; i < direct.length; i++) add(direct[i]);
+          } catch (e) {}
+        }
+        if (d === 0 && root.shadowRoot) {
+          const own = queryAllDeep(root.shadowRoot, selector, d + 1);
+          for (let j = 0; j < own.length; j++) add(own[j]);
+        }
+        if (d < MAX_DEPTH && root.querySelectorAll) {
+          try {
+            const all = root.querySelectorAll('*');
+            for (let i = 0; i < all.length; i++) {
+              const host = all[i];
+              if (host && host.shadowRoot) {
+                const inner = queryAllDeep(host.shadowRoot, selector, d + 1);
+                for (let j = 0; j < inner.length; j++) add(inner[j]);
+              }
+            }
+          } catch (e) {}
+        }
+        return out;
+      };
+      const vis = e => {
+        if (!e || !e.getBoundingClientRect) return false;
+        if (composedClosest(e, '.ng-hide')) return false;
+        const win = (e.ownerDocument && e.ownerDocument.defaultView) || window;
+        const r = e.getBoundingClientRect();
+        const s = win.getComputedStyle(e);
+        return r.width > 1 && r.height > 1 && s.display !== 'none' && s.visibility !== 'hidden';
+      };
+      const sectionOf = el => {
+        let cur = el;
+        while (cur && cur.nodeType === 1) {
+          const body = cur.ownerDocument ? cur.ownerDocument.body : document.body;
+          const de = cur.ownerDocument ? cur.ownerDocument.documentElement : document.documentElement;
+          if (cur === body || cur === de) break;
+          if (cur.tagName === 'FIELDSET') {
+            const leg = queryAllDeep(cur, 'legend').find(vis) || cur.querySelector('legend');
+            if (leg && vis(leg)) return clean(leg.innerText || leg.textContent);
+          }
+          if (cur.matches && cur.matches('.panel, .card, .box, .modal-content, .well, section')) {
+            const hd =
+              cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend') ||
+              (cur.shadowRoot && cur.shadowRoot.querySelector('.panel-heading, .card-header, .box-header, .modal-header .modal-title, h3, h4, h5, legend'));
+            if (hd && vis(hd)) return clean(hd.innerText || hd.textContent);
+          }
+          cur = composedParent(cur);
+        }
+        return '';
+      };
+      const rowOf = el => {
+        const tr = composedClosest(el, 'tr');
+        const pTr = tr ? composedParent(tr) : null;
+        if (!tr || !pTr) return undefined;
+        const rows = Array.from(pTr.children || []).filter(r => r.tagName === 'TR');
+        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => clean(c.innerText || c.textContent)).filter(Boolean);
+        return cells.length > 0 ? { rowIndex: Math.max(0, rows.indexOf(tr)), firstColText: cells[0], secondColText: cells[1] } : undefined;
+      };
+      const collectDocs = (doc, depth, acc) => {
+        if (!doc || depth > MAX_DEPTH) return;
+        acc.push(doc);
+        if (depth >= MAX_DEPTH) return;
+        const iframes = queryAllDeep(doc, 'iframe');
+        for (let i = 0; i < iframes.length; i++) {
+          try {
+            const f = iframes[i];
+            if (vis(f) && f.contentDocument && f.contentDocument.body) {
+              collectDocs(f.contentDocument, depth + 1, acc);
+            }
+          } catch (e) {}
+        }
+      };
+      const docs = [];
+      collectDocs(document, 0, docs);
+
+      const out = [];
+      const seen = new Set();
+      const add = (el, raw, roleOverride) => {
+        const query = clean(raw);
+        const name = query.replace(/[\\s*:]+$/, '');
+        const sectionTitle = sectionOf(el) || undefined;
+        const key = (sectionTitle ? sectionTitle.toLowerCase() + '|' : '') + name.toLowerCase();
+        if (name.length < 3 || name.length > 60 || seen.has(key)) return;
+        seen.add(key);
+        const rowContext = rowOf(el);
+        const associatedLabel =
+          clean(
+            el.getAttribute('title') ||
+            el.getAttribute('data-original-title') ||
+            el.getAttribute('placeholder') ||
+            el.getAttribute('aria-label') ||
+            el.getAttribute('ng-reflect-name') ||
+            el.getAttribute('ng-model') ||
+            el.getAttribute('ng-click') ||
+            ''
+          ) || undefined;
+        out.push({ name, query, role: roleOverride, sectionTitle, rowContext, associatedLabel });
+      };
+      for (const doc of docs) {
+        for (const el of queryAllDeep(doc, 'label, legend, th')) {
+          if (vis(el) && !composedClosest(el, NAV)) add(el, el.innerText || el.textContent, 'label');
+        }
+        for (const el of queryAllDeep(doc, 'span, orion-checkbox')) {
+          if (!vis(el) || composedClosest(el, NAV)) continue;
+          const checks = queryAllDeep(el, 'input[type="checkbox"], input[type="radio"]');
+          if (checks.length === 1) add(el, el.innerText || el.textContent, 'label');
+        }
+        for (const el of queryAllDeep(doc, 'input[placeholder], textarea[placeholder]')) {
+          if (vis(el) && !composedClosest(el, NAV)) add(el, el.getAttribute('placeholder'), 'label');
+        }
+      }
+      return JSON.stringify(out.slice(0, 80));
+    })()
+  `;
+}
+
 /**
- * Rótulos visíveis da tela (ADR-018 + ADR-027): `label`, `legend`, cabeçalhos de grade, checkboxes em `<span>`
- * e placeholders, enriquecidos com o título da seção visual e contexto de linha (`rowContext`).
+ * Rótulos visíveis da tela (ADR-018 + ADR-027 + ADR-030): `label`, `legend`, cabeçalhos de grade,
+ * checkboxes em `<span>` e placeholders em Deep DOM (Open Shadow DOM + iframes), com `sectionTitle` e `rowContext`.
  */
 export async function collectVisibleLabelNodes(client: AgentBrowserClient): Promise<ParsedA11yNode[]> {
   const labels = await client.evalJson<
@@ -49,64 +198,7 @@ export async function collectVisibleLabelNodes(client: AgentBrowserClient): Prom
       associatedLabel?: string;
       semanticRole?: SemanticRole;
     }>
-  >(`
-    (() => {
-      const NAV = ${JSON.stringify(NAV_ZONE_SELECTOR)};
-      const clean = t => String(t == null ? '' : t).replace(/\\s+/g, ' ').trim();
-      const vis = e => {
-        const r = e.getBoundingClientRect();
-        const s = window.getComputedStyle(e);
-        return r.width > 1 && r.height > 1 && s.display !== 'none' && s.visibility !== 'hidden';
-      };
-      const sectionOf = el => {
-        let cur = el;
-        while (cur && cur !== document.body && cur.nodeType === 1) {
-          if (cur.tagName === 'FIELDSET') {
-            const leg = cur.querySelector('legend');
-            if (leg && vis(leg)) return clean(leg.innerText || leg.textContent);
-          }
-          if (cur.matches && cur.matches('.panel, .card, .box, .modal-content, .well, section')) {
-            const hd = cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend');
-            if (hd && vis(hd)) return clean(hd.innerText || hd.textContent);
-          }
-          cur = cur.parentElement;
-        }
-        return '';
-      };
-      const rowOf = el => {
-        const tr = el.closest && el.closest('tr');
-        if (!tr || !tr.parentElement) return undefined;
-        const rows = Array.from(tr.parentElement.children).filter(r => r.tagName === 'TR');
-        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => clean(c.innerText || c.textContent)).filter(Boolean);
-        return cells.length > 0 ? { rowIndex: Math.max(0, rows.indexOf(tr)), firstColText: cells[0], secondColText: cells[1] } : undefined;
-      };
-      const out = [];
-      const seen = new Set();
-      const add = (el, raw, roleOverride) => {
-        const query = clean(raw);
-        const name = query.replace(/[\\s*:]+$/, '');
-        const key = name.toLowerCase();
-        if (name.length < 3 || name.length > 60 || seen.has(key)) return;
-        seen.add(key);
-        const sectionTitle = sectionOf(el) || undefined;
-        const rowContext = rowOf(el);
-        const associatedLabel = clean(el.getAttribute('title') || el.getAttribute('data-original-title') || el.getAttribute('placeholder') || el.getAttribute('ng-reflect-name') || '') || undefined;
-        out.push({ name, query, role: roleOverride, sectionTitle, rowContext, associatedLabel });
-      };
-      for (const el of document.querySelectorAll('label, legend, th')) {
-        if (vis(el) && !el.closest(NAV)) add(el, el.innerText || el.textContent, 'label');
-      }
-      for (const el of document.querySelectorAll('span, orion-checkbox')) {
-        if (!vis(el) || el.closest(NAV)) continue;
-        const checks = el.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-        if (checks.length === 1) add(el, el.innerText || el.textContent, 'label');
-      }
-      for (const el of document.querySelectorAll('input[placeholder], textarea[placeholder]')) {
-        if (vis(el) && !el.closest(NAV)) add(el, el.getAttribute('placeholder'), 'label');
-      }
-      return JSON.stringify(out.slice(0, 80));
-    })()
-  `);
+  >(buildCollectVisibleLabelNodesScript());
   return (labels || []).map(l => ({
     ref: '',
     role: l.role || 'label',
@@ -625,21 +717,135 @@ async function reconcileUnresolvedGroupTargets(
 }
 
 /**
+ * Remove caracteres de fonte icônica (PUA `\uE000-\uF8FF`), zero-width e NBSP (`\u00A0`)
+ * de nomes extraídos da Árvore de Acessibilidade (ADR-030).
+ */
+export function cleanA11yNodeName(name: string): string {
+  return String(name ?? '')
+    .replace(/[\uE000-\uF8FF\u200B-\u200D\uFEFF]/g, ' ')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const LLM_PRIMARY_ROLES = new Set(['button', 'link', 'tab', 'menuitem', 'textbox', 'searchbox', 'combobox', 'checkbox', 'radio']);
+
+/**
+ * Poda Semântica e Ranqueamento da Camada 2B (ADR-030):
+ *  a) Mantém apenas nós acionáveis com `@ref` válido (`/^@?e\d+$/`), descartando `role: 'label'` sem ref;
+ *  b) Limpa PUA/NBSP, veta `forbiddenCandidateReason` e `evaluateSemanticCompatibility` (`weight === 0`),
+ *     remove itens de navegação quando `zone === 'content'` e rebaixa em `content-preferred`;
+ *  c) Deduplica ações repetidas de grade por `(role, normalizeText(name), normalizeText(sectionTitle))`;
+ *  d) Prioriza por afinidade semântica com o passo antes do corte de `maxNodes` (40).
+ */
+export function pruneAndPrioritizeNodesForLLM(
+  step: RoutineStep,
+  nodes: ParsedA11yNode[],
+  maxNodes = 40
+): ParsedA11yNode[] {
+  const zonePolicy: StepZonePolicy = step.zone ?? inferStepZone(step.rawText, step.actionType);
+  const targets = step.targets.length > 0 ? step.targets : [step.rawText];
+  const stepNorm = normalizeText(step.rawText);
+
+  const dedupKeys = new Set<string>();
+  const scored: Array<{ node: ParsedA11yNode; score: number; order: number }> = [];
+
+  for (let idx = 0; idx < nodes.length; idx++) {
+    const rawNode = nodes[idx];
+    const rawRef = String(rawNode.ref ?? '').trim();
+    if (rawNode.role === 'label' || !/^@?e\d+$/i.test(rawRef)) continue;
+    const ref = rawRef.startsWith('@') ? rawRef : `@${rawRef}`;
+
+    const cleanedName = cleanA11yNodeName(rawNode.name);
+    if (!cleanedName) continue;
+
+    if (forbiddenCandidateReason(step, { name: cleanedName, role: rawNode.role, inNavbar: rawNode.inNavbar })) {
+      continue;
+    }
+
+    const isNavNode = Boolean(
+      rawNode.inNavbar || rawNode.semanticRole === 'navigation_root' || rawNode.semanticRole === 'navigation_leaf'
+    );
+    if (zonePolicy === 'content' && isNavNode) {
+      continue;
+    }
+
+    const cleanSection = rawNode.sectionTitle ? cleanA11yNodeName(rawNode.sectionTitle) : undefined;
+    const normName = normalizeText(cleanedName);
+    const dedupKey = `${rawNode.role.toLowerCase()}|${normName}|${normalizeText(cleanSection || '')}`;
+    if (dedupKeys.has(dedupKey)) continue;
+
+    let bestCompatScore = -1;
+    let bestWeight = 0;
+    for (const docTarget of targets) {
+      const compat = evaluateSemanticCompatibility(step, docTarget, {
+        name: cleanedName,
+        role: rawNode.role,
+        inNavbar: rawNode.inNavbar,
+        sectionTitle: cleanSection,
+        rowContext: rawNode.rowContext,
+        associatedLabel: rawNode.associatedLabel,
+        semanticRole: rawNode.semanticRole
+      });
+      if (!compat.compatible || compat.weight === 0) continue;
+
+      const normDoc = normalizeText(docTarget);
+      const dice = computeDiceSimilarity(normDoc, normName);
+      const exactBoost = normDoc && normName && normDoc === normName ? 0.9 : 0;
+      const phraseBoost = hasWholePhrase(normName, normDoc) || hasWholePhrase(normDoc, normName) ? 0.25 : 0;
+      const synList = ORION_UI_SYNONYMS[normDoc] || [];
+      const synBoost = synList.some(s => synonymMatchesNode(s, normName)) ? 0.5 : 0;
+      const affinity = (dice + exactBoost + phraseBoost + synBoost) * compat.weight;
+      if (affinity > bestCompatScore) {
+        bestCompatScore = affinity;
+        bestWeight = compat.weight;
+      }
+    }
+
+    // Vetado em todos os alvos por incompatibilidade semântica (`weight === 0`)
+    if (bestWeight === 0) continue;
+
+    dedupKeys.add(dedupKey);
+
+    let priority = Math.max(0, bestCompatScore);
+    if (LLM_PRIMARY_ROLES.has(rawNode.role.toLowerCase())) priority += 0.08;
+    if (cleanSection) {
+      const normSec = normalizeText(cleanSection);
+      if (normSec.length >= 3 && stepNorm.includes(normSec)) priority += 0.12;
+    }
+    if (zonePolicy === 'content-preferred' && isNavNode) priority -= 0.4;
+
+    scored.push({
+      node: {
+        ...rawNode,
+        ref,
+        name: cleanedName,
+        ...(cleanSection ? { sectionTitle: cleanSection } : {})
+      },
+      score: priority,
+      order: idx
+    });
+  }
+
+  scored.sort((a, b) => (b.score !== a.score ? b.score - a.score : a.order - b.order));
+  return scored.slice(0, maxNodes).map(s => s.node);
+}
+
+/**
  * Sub-camada 2B: Fallback estruturado de chamada única ao LLM sobre a Árvore de Acessibilidade compacta.
  * Só é acionado se a Sub-camada 2A não atingir confiança >= 0.68 e houver chave de API configurada.
  */
-async function resolveViaLLMOnAccessibilityTree(
+export async function resolveViaLLMOnAccessibilityTree(
   step: RoutineStep,
-  nodes: ParsedA11yNode[]
+  nodes: ParsedA11yNode[],
+  fetchImpl: typeof fetch = fetch
 ): Promise<{ node: ParsedA11yNode; documentedTarget: string; confidence: number; reason: string } | null> {
   const apiKey = process.env.OPENAI_API_KEY;
-  // ADR-024: o LLM nunca vê (e portanto nunca escolhe) campo de texto em passo de navegação nem a busca global
-  nodes = nodes.filter(n => !forbiddenCandidateReason(step, { name: n.name, role: n.role }));
-  if (!apiKey || nodes.length === 0) return null;
+  const pruned = pruneAndPrioritizeNodesForLLM(step, nodes, 40);
+  if (!apiKey || pruned.length === 0) return null;
 
-  const compactTree = nodes
-    .slice(0, 40)
-    .map(n => `${n.ref} [${n.role}] "${n.name}"`)
+  const compactTree = pruned
+    .map(n => `${n.ref} [${n.role}] "${n.name}"${n.sectionTitle ? ` {${n.sectionTitle}}` : ''}`)
     .join('\n');
 
   const prompt = [
@@ -653,7 +859,7 @@ async function resolveViaLLMOnAccessibilityTree(
   ].join('\n');
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchImpl('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -678,8 +884,27 @@ async function resolveViaLLMOnAccessibilityTree(
       return null;
     }
 
-    const matchedNode = nodes.find(n => n.ref === parsed.ref || n.ref === `@${parsed.ref.replace(/^@/, '')}`);
+    const normRef = `@${String(parsed.ref).replace(/^@/, '')}`;
+    const matchedNode = pruned.find(n => n.ref === parsed.ref || n.ref === normRef);
     if (!matchedNode) return null;
+
+    if (forbiddenCandidateReason(step, { name: matchedNode.name, role: matchedNode.role, inNavbar: matchedNode.inNavbar })) {
+      return null;
+    }
+    const targets = step.targets.length > 0 ? step.targets : [step.rawText];
+    const hasCompatibleTarget = targets.some(docTarget => {
+      const compat = evaluateSemanticCompatibility(step, docTarget, {
+        name: matchedNode.name,
+        role: matchedNode.role,
+        inNavbar: matchedNode.inNavbar,
+        sectionTitle: matchedNode.sectionTitle,
+        rowContext: matchedNode.rowContext,
+        associatedLabel: matchedNode.associatedLabel,
+        semanticRole: matchedNode.semanticRole
+      });
+      return compat.compatible && compat.weight > 0;
+    });
+    if (!hasCompatibleTarget) return null;
 
     return {
       node: matchedNode,
@@ -1060,7 +1285,7 @@ export async function locateAndCaptureWithSelfHealing(
     const llmCandidate = await resolveViaLLMOnAccessibilityTree(step, a11yNodes);
     if (llmCandidate) {
       const geometry = await resolveHealedGeometry(client, llmCandidate.node, zonePolicy);
-      if (geometry && !forbiddenMeasuredReason(step, geometry.context)) {
+      if (geometry && !isGenericContainerMatch(geometry) && !forbiddenMeasuredReason(step, geometry.context)) {
         healedCandidate = llmCandidate;
         healedGeometry = geometry;
         resolutionLayer = 'llm_a11y_fallback';

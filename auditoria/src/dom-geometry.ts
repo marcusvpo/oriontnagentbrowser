@@ -4,6 +4,7 @@ import type {
   AnnotationCalloutLayout,
   AnnotationLayoutResult,
   BoundingBox,
+  DOMAngularBindings,
   DOMElementContext,
   DOMResolvedGeometry,
   DOMViewportMetrics,
@@ -11,6 +12,107 @@ import type {
   SemanticZone
 } from './types.js';
 import { ACTIVE_MODAL_SELECTOR } from './modal-scope.js';
+
+const ANGULAR_GENERIC_PREFIXES = new Set([
+  'vm',
+  'ctrl',
+  '$ctrl',
+  'scope',
+  '$scope',
+  'this',
+  'model',
+  'entity',
+  'entidade',
+  'dados',
+  'form',
+  'filtro',
+  'filtros',
+  'filter',
+  'item',
+  'dto',
+  'vo',
+  'obj',
+  'data',
+  'row',
+  'registro'
+]);
+
+/**
+ * Converte um identificador Angular (`filtro.cpfCnpj`, `vm.filtrarPesquisa(item)`)
+ * em termos legíveis e minúsculos para desempate auxiliar e rótulos de fallback (ADR-030).
+ */
+export function humanizeAngularIdentifier(raw: string | null | undefined, kind: 'model' | 'action'): string {
+  let text = String(raw ?? '').trim();
+  if (!text) return '';
+  if (kind === 'model') {
+    text = text.split(/[|?:=&!<>+\-*/;]/)[0].trim();
+  } else {
+    const parts = text
+      .split(';')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const callPart = parts.find(p => /\(/.test(p)) || parts[0] || '';
+    text = callPart
+      .replace(/\([^)]*\)/g, '')
+      .split(/[=&!<>+\-*/]/)[0]
+      .trim();
+  }
+  text = text.replace(/\[[^\]]*\]/g, '').replace(/[^A-Za-z0-9_$.]/g, '').trim();
+  if (!text) return '';
+  const segs = text
+    .split('.')
+    .map(s => s.trim())
+    .filter(Boolean);
+  while (segs.length > 1 && ANGULAR_GENERIC_PREFIXES.has(segs[0].toLowerCase())) {
+    segs.shift();
+  }
+  const target = segs[segs.length - 1] || '';
+  if (!target) return '';
+  return target
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/[_$-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Extrai atributos nativos do AngularJS/Angular (`ng-model`, `ng-click`, `ui-sref`, `ng-disabled`, `ng-if`)
+ * a partir de um dicionário de atributos do elemento (ADR-030).
+ */
+export function extractAngularBindingsFromAttrs(
+  attrs: Record<string, string | null | undefined>
+): DOMAngularBindings | undefined {
+  const norm: Record<string, string> = {};
+  for (const [k, v] of Object.entries(attrs || {})) {
+    const val = v == null ? '' : String(v).trim();
+    if (val) norm[k.toLowerCase()] = val;
+  }
+  const ngModel = norm['ng-model'] || norm['data-ng-model'] || norm['formcontrolname'] || norm['ng-reflect-name'];
+  const ngClick = norm['ng-click'] || norm['data-ng-click'];
+  const uiSref = norm['ui-sref'] || norm['routerlink'] || norm['ng-href'];
+  const ngDisabled = norm['ng-disabled'];
+  const ngIf = norm['ng-if'] || norm['ng-show'] || norm['ng-hide'];
+
+  if (!ngModel && !ngClick && !uiSref && !ngDisabled && !ngIf) return undefined;
+
+  const out: DOMAngularBindings = {};
+  if (ngModel) {
+    out.ngModel = ngModel;
+    const hm = humanizeAngularIdentifier(ngModel, 'model');
+    if (hm) out.humanizedModel = hm;
+  }
+  if (ngClick) {
+    out.ngClick = ngClick;
+    const ha = humanizeAngularIdentifier(ngClick, 'action');
+    if (ha) out.humanizedAction = ha;
+  }
+  if (uiSref) out.uiSref = uiSref;
+  if (ngDisabled) out.ngDisabled = ngDisabled;
+  if (ngIf) out.ngIf = ngIf;
+  return out;
+}
 
 /**
  * Zonas de Navegação (ADR-015): qualquer elemento dentro destes contêineres é navegação
@@ -565,19 +667,24 @@ export function buildDOMIntrospectionScript(
   return `
     (() => {
       const targetZoom = ${JSON.stringify(zoomFactor)};
-      if (Number.isFinite(targetZoom) && targetZoom > 0 && Math.abs(targetZoom - 1) >= 0.001) {
-        const zStr = String(targetZoom);
-        if (document.documentElement && document.documentElement.style.zoom !== zStr) {
-          document.documentElement.style.zoom = zStr;
-          void document.documentElement.offsetHeight;
+      const applyZoomToDoc = doc => {
+        if (!doc) return;
+        if (Number.isFinite(targetZoom) && targetZoom > 0 && Math.abs(targetZoom - 1) >= 0.001) {
+          const zStr = String(targetZoom);
+          if (doc.documentElement && doc.documentElement.style.zoom !== zStr) {
+            doc.documentElement.style.zoom = zStr;
+            void doc.documentElement.offsetHeight;
+          }
+          if (doc.head && !doc.getElementById('orion-audit-zoom')) {
+            const st = doc.createElement('style');
+            st.id = 'orion-audit-zoom';
+            st.textContent = 'html { zoom: ' + zStr + ' !important; }';
+            doc.head.appendChild(st);
+          }
         }
-        if (document.head && !document.getElementById('orion-audit-zoom')) {
-          const st = document.createElement('style');
-          st.id = 'orion-audit-zoom';
-          st.textContent = 'html { zoom: ' + zStr + ' !important; }';
-          document.head.appendChild(st);
-        }
-      }
+      };
+      applyZoomToDoc(document);
+
       const queries = ${JSON.stringify(targetList)};
       const groupQueries = ${JSON.stringify(groupList)};
       const zone = ${JSON.stringify(zone)};
@@ -586,15 +693,169 @@ export function buildDOMIntrospectionScript(
       const NAV_ZONE = ${JSON.stringify(NAV_ZONE_SELECTOR)};
       const MODAL_SEL = ${JSON.stringify(ACTIVE_MODAL_SELECTOR + ", .modal-dialog")};
       const MAIN_SELECTORS = ['main', '[role="main"]', '#content', '#main', '.main-content', '.content-wrapper'];
-      const INTERACTIVE = 'a, button, input, select, textarea, [role="button"], [role="tab"], [role="menuitem"], li > a, label, span, th, td, h1, h2, h3, h4';
+      const INTERACTIVE = 'a, button, input, select, textarea, [role="button"], [role="tab"], [role="menuitem"], li > a, label, span, th, td, h1, h2, h3, h4, [ng-click], [data-ng-click], [ng-model], [data-ng-model], [ui-sref], [formcontrolname]';
       const CONTROL_SEL = 'input:not([type="hidden"]), select, textarea, [contenteditable="true"]';
+      const MAX_SHADOW_DEPTH = 6;
+      const MAX_FRAME_DEPTH = 6;
 
       const vpW = window.innerWidth || document.documentElement.clientWidth || 1440;
       const vpH = window.innerHeight || document.documentElement.clientHeight || 900;
 
+      // ---------------------------------------------------------------------
+      // TRAVESSIA DEEP DOM (Open Shadow DOM + Iframes Recursivos — ADR-030)
+      // ---------------------------------------------------------------------
+      function composedParent(node) {
+        if (!node) return null;
+        if (node.parentElement) return node.parentElement;
+        const root = node.getRootNode ? node.getRootNode() : null;
+        return root && root.host ? root.host : null;
+      }
+
+      function composedClosest(node, selector) {
+        let cur = node;
+        while (cur) {
+          if (cur.nodeType === 1 && cur.matches && cur.matches(selector)) return cur;
+          cur = composedParent(cur);
+        }
+        return null;
+      }
+
+      function composedContains(ancestor, descendant) {
+        if (!ancestor || !descendant) return false;
+        if (ancestor.contains && ancestor.contains(descendant)) return true;
+        let cur = descendant;
+        while (cur) {
+          if (cur === ancestor) return true;
+          cur = composedParent(cur);
+        }
+        return false;
+      }
+
+      function queryAllDeep(root, selector, depth) {
+        const d = depth || 0;
+        const out = [];
+        const seen = new Set();
+        if (!root || d > MAX_SHADOW_DEPTH) return out;
+        const add = el => {
+          if (el && !seen.has(el)) {
+            seen.add(el);
+            out.push(el);
+          }
+        };
+        if (root.querySelectorAll) {
+          try {
+            const direct = root.querySelectorAll(selector);
+            for (let i = 0; i < direct.length; i++) add(direct[i]);
+          } catch (e) {}
+        }
+        if (d === 0 && root.shadowRoot) {
+          const ownShadow = queryAllDeep(root.shadowRoot, selector, d + 1);
+          for (let j = 0; j < ownShadow.length; j++) add(ownShadow[j]);
+        }
+        if (d < MAX_SHADOW_DEPTH && root.querySelectorAll) {
+          try {
+            const all = root.querySelectorAll('*');
+            for (let i = 0; i < all.length; i++) {
+              const host = all[i];
+              if (host && host.shadowRoot) {
+                const inner = queryAllDeep(host.shadowRoot, selector, d + 1);
+                for (let j = 0; j < inner.length; j++) add(inner[j]);
+              }
+            }
+          } catch (e) {}
+        }
+        return out;
+      }
+
+      // ---------------------------------------------------------------------
+      // EXTRATOR DE BINDINGS ANGULAR / ANGULARJS (ADR-030)
+      // ---------------------------------------------------------------------
+      const ANGULAR_GENERIC = new Set([
+        'vm', 'ctrl', '$ctrl', 'scope', '$scope', 'this',
+        'model', 'entity', 'entidade', 'dados', 'form', 'filtro',
+        'filtros', 'filter', 'item', 'dto', 'vo', 'obj', 'data', 'row', 'registro'
+      ]);
+
+      function humanizeAngular(raw, kind) {
+        let text = String(raw == null ? '' : raw).trim();
+        if (!text) return '';
+        if (kind === 'model') {
+          text = text.split(/[|?:=&!<>+\\-*/;]/)[0].trim();
+        } else {
+          const parts = text.split(';').map(s => s.trim()).filter(Boolean);
+          const callPart = parts.find(p => /\\(/.test(p)) || parts[0] || '';
+          text = callPart.replace(/\\([^)]*\\)/g, '').split(/[=&!<>+\\-*/]/)[0].trim();
+        }
+        text = text.replace(/\\[[^\\]]*\\]/g, '').replace(/[^A-Za-z0-9_$.]/g, '').trim();
+        if (!text) return '';
+        const segs = text.split('.').map(s => s.trim()).filter(Boolean);
+        while (segs.length > 1 && ANGULAR_GENERIC.has(segs[0].toLowerCase())) {
+          segs.shift();
+        }
+        const target = segs[segs.length - 1] || '';
+        if (!target) return '';
+        return target
+          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+          .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+          .replace(/[_$-]+/g, ' ')
+          .replace(/\\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+      }
+
+      function extractAngularBindings(el) {
+        if (!el || !el.getAttribute) return null;
+        const g = a => {
+          const v = el.getAttribute(a);
+          return v ? String(v).trim() : '';
+        };
+        const ngModel = g('ng-model') || g('data-ng-model') || g('formcontrolname') || g('ng-reflect-name');
+        const ngClick = g('ng-click') || g('data-ng-click');
+        const uiSref = g('ui-sref') || g('routerlink') || g('ng-href');
+        const ngDisabled = g('ng-disabled');
+        const ngIf = g('ng-if') || g('ng-show') || g('ng-hide');
+        if (!ngModel && !ngClick && !uiSref && !ngDisabled && !ngIf) return null;
+        const out = {};
+        if (ngModel) {
+          out.ngModel = ngModel;
+          const hm = humanizeAngular(ngModel, 'model');
+          if (hm) out.humanizedModel = hm;
+        }
+        if (ngClick) {
+          out.ngClick = ngClick;
+          const ha = humanizeAngular(ngClick, 'action');
+          if (ha) out.humanizedAction = ha;
+        }
+        if (uiSref) out.uiSref = uiSref;
+        if (ngDisabled) out.ngDisabled = ngDisabled;
+        if (ngIf) out.ngIf = ngIf;
+        return out;
+      }
+
+      function isNgDisabled(el) {
+        if (!el) return false;
+        if (el.disabled) return true;
+        if (el.getAttribute && el.getAttribute('aria-disabled') === 'true') return true;
+        const ngDis = el.getAttribute && el.getAttribute('ng-disabled');
+        if (ngDis && /^(true|1)$/i.test(ngDis.trim())) return true;
+        return !!composedClosest(el, 'fieldset[disabled]');
+      }
+
+      function normCompare(s) {
+        return String(s == null ? '' : s)
+          .normalize('NFD')
+          .replace(/[\\u0300-\\u036f]/g, '')
+          .replace(/[^\\w\\s+]/g, ' ')
+          .replace(/\\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+      }
+
       function isVisible(el) {
         if (!el || !el.getBoundingClientRect) return false;
-        const style = window.getComputedStyle(el);
+        if (composedClosest(el, '.ng-hide')) return false;
+        const win = (el.ownerDocument && el.ownerDocument.defaultView) || window;
+        const style = win.getComputedStyle(el);
         if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') === 0) {
           return false;
         }
@@ -608,13 +869,92 @@ export function buildDOMIntrospectionScript(
         return el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (cls.length ? '.' + cls.join('.') : '');
       }
 
+      function readEffectiveDocZoom(doc) {
+        try {
+          const win = doc && doc.defaultView;
+          const de = doc && doc.documentElement;
+          if (!de) return 1;
+          const cs = win && win.getComputedStyle ? win.getComputedStyle(de) : null;
+          const z = parseFloat((cs && cs.zoom) || (de.style && de.style.zoom) || '1');
+          return Number.isFinite(z) && z > 0 ? z : 1;
+        } catch (e) {
+          return 1;
+        }
+      }
+
+      function computeChainOffsetAndClip(frameChain, fallbackZoom) {
+        let x = 0;
+        let y = 0;
+        let scale = 1;
+        let clip = { x: 0, y: 0, width: vpW, height: vpH };
+        const chain = frameChain || [];
+        for (let i = 0; i < chain.length; i++) {
+          const frame = chain[i];
+          const hostDoc = frame.ownerDocument || document;
+          const hostWin = hostDoc.defaultView || window;
+          const fr = frame.getBoundingClientRect();
+          const cs = hostWin && hostWin.getComputedStyle ? hostWin.getComputedStyle(frame) : null;
+
+          let hostScale = 1;
+          if (frame.offsetWidth > 0 && fr.width > 0) {
+            hostScale = fr.width / frame.offsetWidth;
+          } else {
+            hostScale = readEffectiveDocZoom(hostDoc);
+            if (hostScale === 1 && i === 0 && Number.isFinite(fallbackZoom) && fallbackZoom > 0) {
+              hostScale = fallbackZoom;
+            }
+          }
+          const stepScale = scale * hostScale;
+
+          const borderL = frame.clientLeft || (cs ? parseFloat(cs.borderLeftWidth) || 0 : 0);
+          const borderT = frame.clientTop || (cs ? parseFloat(cs.borderTopWidth) || 0 : 0);
+          const padL = cs ? parseFloat(cs.paddingLeft) || 0 : 0;
+          const padT = cs ? parseFloat(cs.paddingTop) || 0 : 0;
+          const borderR = cs ? parseFloat(cs.borderRightWidth) || borderL : borderL;
+          const borderB = cs ? parseFloat(cs.borderBottomWidth) || borderT : borderT;
+          const padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
+          const padB = cs ? parseFloat(cs.paddingBottom) || 0 : 0;
+
+          const frameLeft = x + fr.left * scale;
+          const frameTop = y + fr.top * scale;
+          const contentLeft = frameLeft + (borderL + padL) * stepScale;
+          const contentTop = frameTop + (borderT + padT) * stepScale;
+
+          const contentW = frame.clientWidth > 0
+            ? Math.max(0, (frame.clientWidth - padL - padR) * stepScale)
+            : Math.max(0, fr.width * scale - (borderL + borderR + padL + padR) * stepScale);
+          const contentH = frame.clientHeight > 0
+            ? Math.max(0, (frame.clientHeight - padT - padB) * stepScale)
+            : Math.max(0, fr.height * scale - (borderT + borderB + padT + padB) * stepScale);
+
+          const cx1 = Math.max(clip.x, Math.round(contentLeft));
+          const cy1 = Math.max(clip.y, Math.round(contentTop));
+          const cx2 = Math.min(clip.x + clip.width, Math.round(contentLeft + contentW));
+          const cy2 = Math.min(clip.y + clip.height, Math.round(contentTop + contentH));
+          clip = {
+            x: cx1,
+            y: cy1,
+            width: Math.max(0, cx2 - cx1),
+            height: Math.max(0, cy2 - cy1)
+          };
+
+          x = contentLeft;
+          y = contentTop;
+          scale = stepScale;
+        }
+        return { x: Math.round(x), y: Math.round(y), rawX: x, rawY: y, scale, clip };
+      }
+
       // Caixa inteira por arredondamento das 4 arestas (garante união exata e reproduzível no lado Node)
       function edgeBox(el, off) {
         const r = el.getBoundingClientRect();
-        const x1 = Math.round(r.left + off.x);
-        const y1 = Math.round(r.top + off.y);
-        const x2 = Math.round(r.right + off.x);
-        const y2 = Math.round(r.bottom + off.y);
+        const s = (off && off.scale) ? off.scale : 1;
+        const ox = off && off.rawX != null ? off.rawX : (off ? off.x : 0);
+        const oy = off && off.rawY != null ? off.rawY : (off ? off.y : 0);
+        const x1 = Math.round(r.left * s + ox);
+        const y1 = Math.round(r.top * s + oy);
+        const x2 = Math.round(r.right * s + ox);
+        const y2 = Math.round(r.bottom * s + oy);
         return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
       }
 
@@ -630,17 +970,25 @@ export function buildDOMIntrospectionScript(
         return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
       }
 
-      function clipToViewport(b) {
-        const x1 = Math.max(0, b.x);
-        const y1 = Math.max(0, b.y);
-        const x2 = Math.min(vpW, b.x + b.width);
-        const y2 = Math.min(vpH, b.y + b.height);
+      function clipToViewport(b, clipBox) {
+        const minX = clipBox ? Math.max(0, clipBox.x) : 0;
+        const minY = clipBox ? Math.max(0, clipBox.y) : 0;
+        const maxX = clipBox ? Math.min(vpW, clipBox.x + clipBox.width) : vpW;
+        const maxY = clipBox ? Math.min(vpH, clipBox.y + clipBox.height) : vpH;
+        const x1 = Math.max(minX, b.x);
+        const y1 = Math.max(minY, b.y);
+        const x2 = Math.min(maxX, b.x + b.width);
+        const y2 = Math.min(maxY, b.y + b.height);
         if (x2 - x1 <= 0 || y2 - y1 <= 0) return null;
         return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
       }
 
-      function isOutsideViewport(b) {
-        return b.y < 0 || b.y + b.height > vpH || b.x < 0 || b.x + b.width > vpW;
+      function isOutsideViewport(b, clipBox) {
+        const minX = clipBox ? Math.max(0, clipBox.x) : 0;
+        const minY = clipBox ? Math.max(0, clipBox.y) : 0;
+        const maxX = clipBox ? Math.min(vpW, clipBox.x + clipBox.width) : vpW;
+        const maxY = clipBox ? Math.min(vpH, clipBox.y + clipBox.height) : vpH;
+        return b.y < minY || b.y + b.height > maxY || b.x < minX || b.x + b.width > maxX;
       }
 
       // ---------------------------------------------------------------------
@@ -658,43 +1006,58 @@ export function buildDOMIntrospectionScript(
       // ---------------------------------------------------------------------
       // ESCOPO DE MODAL ATIVO + CHECAGEM DE OCLUSÃO (elementFromPoint)
       // ---------------------------------------------------------------------
-      // Com um modal visível no topo, um nó FORA dele cujo centro é interceptado pelo modal/backdrop está
-      // por trás da sobreposição: não é demarcável nem clicável e nunca é aceito como alvo. Sem modal
-      // aberto o filtro é inerte (comportamento original).
       function topModalOf(doc) {
-        const modals = Array.from(doc.querySelectorAll(MODAL_SEL)).filter(isVisible);
+        const modals = queryAllDeep(doc, MODAL_SEL).filter(isVisible);
         return modals.length > 0 ? modals[modals.length - 1] : null;
+      }
+
+      function deepElementFromPoint(root, cx, cy, depth) {
+        const d = depth || 0;
+        if (!root || !root.elementFromPoint || d > MAX_SHADOW_DEPTH) return null;
+        const hit = root.elementFromPoint(cx, cy);
+        if (!hit) return null;
+        if (hit.shadowRoot) {
+          const inner = deepElementFromPoint(hit.shadowRoot, cx, cy, d + 1);
+          if (inner) return inner;
+        }
+        return hit;
       }
 
       function isBehindModal(el, doc) {
         const modal = topModalOf(doc);
-        if (!modal || modal.contains(el)) return false;
+        if (!modal || composedContains(modal, el)) return false;
         const r = el.getBoundingClientRect();
+        const docVpW = (doc.defaultView && doc.defaultView.innerWidth) || vpW;
+        const docVpH = (doc.defaultView && doc.defaultView.innerHeight) || vpH;
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
-        if (cx < 0 || cy < 0 || cx > vpW || cy > vpH) return false;
-        const top = doc.elementFromPoint(cx, cy);
-        if (!top || top === el || el.contains(top)) return false;
-        return modal.contains(top) || top.matches('.modal, .modal-backdrop, .orion-lightweight-modal, .orion-lightweight-in, [role="dialog"], [aria-modal="true"]') || !!top.closest('.modal, .orion-lightweight-modal');
+        if (cx < 0 || cy < 0 || cx > docVpW || cy > docVpH) return false;
+        const top = deepElementFromPoint(doc, cx, cy, 0);
+        if (!top || top === el || composedContains(el, top)) return false;
+        return (
+          composedContains(modal, top) ||
+          (top.matches && top.matches('.modal, .modal-backdrop, .orion-lightweight-modal, .orion-lightweight-in, [role="dialog"], [aria-modal="true"]')) ||
+          !!composedClosest(top, '.modal, .orion-lightweight-modal')
+        );
       }
 
       function resolveContentRoot(doc) {
         // 1. Um modal aberto é o contêiner de conteúdo vigente
-        const modals = Array.from(doc.querySelectorAll(MODAL_SEL)).filter(isVisible);
+        const modals = queryAllDeep(doc, MODAL_SEL).filter(isVisible);
         if (modals.length > 0) {
           return { el: modals[modals.length - 1], strategy: 'modal-aberto', navs: [] };
         }
 
-        // 2. Coluna irmã da navegação lateral: sobe a partir da sidebar até achar o ancestral
-        //    que tenha um irmão visível, lado a lado e mais largo (a coluna de conteúdo real).
-        //    O critério é a largura, não a área: uma aba com poucos campos tem conteúdo mais baixo que a sidebar.
-        const laterals = Array.from(doc.querySelectorAll(NAV_ZONE)).filter(isVisible).filter(isLateralNav);
+        // 2. Coluna irmã da navegação lateral (atravessa também Shadow DOM via composedParent)
+        const laterals = queryAllDeep(doc, NAV_ZONE).filter(isVisible).filter(isLateralNav);
         for (const nav of laterals) {
           let cur = nav;
-          while (cur && cur.parentElement && cur !== doc.body && cur !== doc.documentElement) {
+          while (cur && cur !== doc.body && cur !== doc.documentElement) {
+            const p = composedParent(cur);
+            if (!p) break;
             const cr = cur.getBoundingClientRect();
-            const beside = Array.from(cur.parentElement.children).filter(s => {
-              if (s === cur || !isVisible(s) || s.matches(NAV_ZONE)) return false;
+            const beside = Array.from(p.children || []).filter(s => {
+              if (s === cur || !isVisible(s) || (s.matches && s.matches(NAV_ZONE))) return false;
               const sr = s.getBoundingClientRect();
               const disjointX = sr.left >= cr.right - 1 || sr.right <= cr.left + 1;
               const overlapY = Math.min(sr.bottom, cr.bottom) - Math.max(sr.top, cr.top);
@@ -708,14 +1071,13 @@ export function buildDOMIntrospectionScript(
               });
               return { el: beside[0], strategy: 'coluna-irma-da-navegacao-lateral', navs: laterals };
             }
-            cur = cur.parentElement;
+            cur = p;
           }
         }
 
-        // 3. Contêiner principal semântico da página. As navegações laterais seguem registradas:
-        //    inZone() rejeita qualquer candidato que as contenha (invólucros da sidebar).
+        // 3. Contêiner principal semântico da página
         for (const sel of MAIN_SELECTORS) {
-          const main = Array.from(doc.querySelectorAll(sel)).find(e => isVisible(e) && !e.closest(NAV_ZONE));
+          const main = queryAllDeep(doc, sel).find(e => isVisible(e) && !composedClosest(e, NAV_ZONE));
           if (main) return { el: main, strategy: 'container-principal:' + sel, navs: laterals };
         }
         return { el: doc.body, strategy: 'document-body', navs: laterals };
@@ -723,29 +1085,46 @@ export function buildDOMIntrospectionScript(
 
       function inZone(el, zs) {
         if (zone !== 'content') return true;
-        // (a) dentro de uma zona de navegação; (b) fora do contêiner de conteúdo;
-        // (c) invólucro que contém a navegação lateral (ex.: a coluna .col-md-24 que embrulha o menu)
-        if (el.closest(NAV_ZONE)) return false;
-        if (!zs.el.contains(el)) return false;
-        return !zs.navs.some(n => el.contains(n));
+        if (composedClosest(el, NAV_ZONE)) return false;
+        if (!composedContains(zs.el, el)) return false;
+        return !zs.navs.some(n => composedContains(el, n));
       }
 
       // ---------------------------------------------------------------------
-      // RESOLUÇÃO DE CANDIDATOS (seletor CSS direto -> texto exato -> texto parcial)
+      // RESOLUÇÃO DE CANDIDATOS (seletor CSS direto -> texto exato -> texto parcial -> bindings Angular)
       // ---------------------------------------------------------------------
+      const isNativeControl = el => /^(A|BUTTON|INPUT|SELECT|TEXTAREA|LABEL)$/.test(el.tagName || '');
+      const sortByBindingAffinity = (list, cleanText) => {
+        if (list.length <= 1) return list;
+        const normQ = normCompare(cleanText);
+        const rank = el => {
+          let s = 0;
+          if (!isNgDisabled(el)) s += 100;
+          if (isNativeControl(el)) s += 20;
+          const b = extractAngularBindings(el);
+          if (b) {
+            const cues = [b.humanizedModel, b.humanizedAction, b.uiSref ? normCompare(b.uiSref) : ''].filter(Boolean);
+            if (cues.some(c => c === normQ)) s += 15;
+            else if (normQ.length >= 3 && cues.some(c => (' ' + c + ' ').includes(' ' + normQ + ' '))) s += 8;
+          }
+          return s;
+        };
+        return list.slice().sort((a, b) => rank(b) - rank(a));
+      };
+
       function findCandidates(doc, rawQuery, zs) {
         if (!rawQuery) return null;
         const scope = zone === 'content' ? zs.el : doc;
 
-        // 1. Tentativa como seletor CSS direto (todos os matches visíveis dentro da zona)
+        // 1. Tentativa como seletor CSS direto (incluindo Open Shadow DOM dentro da zona)
         if (!rawQuery.includes(':has-text(')) {
           try {
-            const candidates = Array.from(scope.querySelectorAll(rawQuery)).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
+            const candidates = queryAllDeep(scope, rawQuery).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
             if (zone === 'content' && scope.matches && scope.matches(rawQuery) && isVisible(scope) && inZone(scope, zs)) {
               candidates.unshift(scope);
             }
             if (candidates.length > 0) {
-              return { els: candidates, matchedSelector: rawQuery };
+              return { els: sortByBindingAffinity(candidates, rawQuery), matchedSelector: rawQuery };
             }
           } catch (e) {}
         }
@@ -759,14 +1138,14 @@ export function buildDOMIntrospectionScript(
 
         if (!cleanText) return null;
 
-        const nodes = Array.from(scope.querySelectorAll(INTERACTIVE)).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
+        const nodes = queryAllDeep(scope, INTERACTIVE).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
         const textOf = n => (n.innerText || n.textContent || '').trim().toLowerCase();
         const valOf = n => (n.getAttribute('value') || n.getAttribute('placeholder') || n.getAttribute('title') || '').trim().toLowerCase();
 
         // 2a. Match exato de texto ou placeholder/value
         const exact = nodes.filter(n => textOf(n) === cleanText || valOf(n) === cleanText);
         if (exact.length > 0) {
-          return { els: exact, matchedSelector: 'text:' + cleanText };
+          return { els: sortByBindingAffinity(exact, cleanText), matchedSelector: 'text:' + cleanText };
         }
 
         // 2b. Match parcial priorizando o elemento mais específico (menor área que contém o texto)
@@ -777,6 +1156,8 @@ export function buildDOMIntrospectionScript(
         });
         if (partialMatches.length > 0) {
           partialMatches.sort((a, b) => {
+            const disDiff = (isNgDisabled(a) ? 1 : 0) - (isNgDisabled(b) ? 1 : 0);
+            if (disDiff !== 0) return disDiff;
             const ra = a.getBoundingClientRect();
             const rb = b.getBoundingClientRect();
             return (ra.width * ra.height) - (rb.width * rb.height);
@@ -784,14 +1165,49 @@ export function buildDOMIntrospectionScript(
           return { els: [partialMatches[0]], matchedSelector: 'text:' + cleanText };
         }
 
-        // 2c. Valor de uma lista suspensa (ADR-018): o texto de um option de um select visível resolve
-        //     para o próprio select, que é o elemento demarcável (o option fechado não tem caixa)
-        const selects = Array.from(scope.querySelectorAll('select')).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
+        // 2c. Valor de uma lista suspensa (ADR-018)
+        const selects = queryAllDeep(scope, 'select').filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
         const owning = selects.filter(sel =>
           Array.from(sel.options).some(o => (o.textContent || '').trim().toLowerCase() === cleanText)
         );
         if (owning.length > 0) {
           return { els: owning, matchedSelector: 'option:' + cleanText };
+        }
+
+        // 2d. Fallback determinístico por bindings Angular (botão icônico sem texto visível ou input sem <label>)
+        const normQ = normCompare(cleanText);
+        if (normQ.length >= 3) {
+          const ngMatches = [];
+          for (const n of nodes) {
+            const b = extractAngularBindings(n);
+            if (!b) continue;
+            const txt = textOf(n);
+            const val = valOf(n);
+            const isFormControl = /^(INPUT|SELECT|TEXTAREA)$/.test(n.tagName || '');
+            const isIconicOrUnlabeled = isFormControl ? !val : txt.length <= 2 && !val;
+            if (!isIconicOrUnlabeled) continue;
+            const cues = [
+              b.humanizedModel ? { kind: 'ng-model', raw: b.ngModel, text: normCompare(b.humanizedModel) } : null,
+              b.humanizedAction ? { kind: 'ng-click', raw: b.ngClick, text: normCompare(b.humanizedAction) } : null,
+              b.uiSref ? { kind: 'ui-sref', raw: b.uiSref, text: normCompare(b.uiSref) } : null
+            ].filter(Boolean);
+            const hit = cues.find(c =>
+              c.text === normQ ||
+              (' ' + c.text + ' ').includes(' ' + normQ + ' ') ||
+              (c.text.length >= 4 && (' ' + normQ + ' ').includes(' ' + c.text + ' '))
+            );
+            if (hit) {
+              ngMatches.push({ el: n, selector: hit.kind + ':' + hit.raw, exact: hit.text === normQ });
+            }
+          }
+          if (ngMatches.length > 0) {
+            ngMatches.sort((a, b) => {
+              const ex = (b.exact ? 1 : 0) - (a.exact ? 1 : 0);
+              if (ex !== 0) return ex;
+              return (isNgDisabled(a.el) ? 1 : 0) - (isNgDisabled(b.el) ? 1 : 0);
+            });
+            return { els: ngMatches.map(m => m.el), matchedSelector: ngMatches[0].selector };
+          }
         }
         return null;
       }
@@ -804,8 +1220,6 @@ export function buildDOMIntrospectionScript(
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       }
 
-      // Resolve cada alvo do grupo; alvos ambíguos (ex.: o mesmo rótulo repetido em outra seção)
-      // são desambiguados pela proximidade ao centroide dos alvos inequívocos (mesmo bloco/seção).
       function resolveGroup(doc, zs) {
         const resolved = [];
         const unresolved = [];
@@ -815,7 +1229,7 @@ export function buildDOMIntrospectionScript(
             unresolved.push(q);
             continue;
           }
-          const outermost = c.els.filter(e => !c.els.some(o => o !== e && o.contains(e)));
+          const outermost = c.els.filter(e => !c.els.some(o => o !== e && composedContains(o, e)));
           resolved.push({ query: q, els: outermost, matchedSelector: c.matchedSelector });
         }
         if (resolved.length === 0) return null;
@@ -844,8 +1258,6 @@ export function buildDOMIntrospectionScript(
         return { members, unresolved };
       }
 
-      // Bloco de campo: um rótulo é unido ao(s) seu(s) controle(s) e um controle ao seu rótulo,
-      // para que o destaque cubra o parâmetro inteiro e não apenas o texto localizado.
       function fieldBlockElements(el, zs) {
         const out = [el];
         const tag = el.tagName;
@@ -853,16 +1265,19 @@ export function buildDOMIntrospectionScript(
           let ctrl = el.control && isVisible(el.control) ? el.control : null;
           if (!ctrl) {
             const forId = el.getAttribute('for');
-            const byId = forId ? el.ownerDocument.getElementById(forId) : null;
+            const rootNode = el.getRootNode ? el.getRootNode() : el.ownerDocument;
+            const byId = forId && rootNode && rootNode.getElementById
+              ? rootNode.getElementById(forId)
+              : (forId ? el.ownerDocument.getElementById(forId) : null);
             if (byId && isVisible(byId)) ctrl = byId;
           }
           if (ctrl) {
             out.push(ctrl);
             return out;
           }
-          const p = el.parentElement;
-          if (p && p !== zs.el && zs.el.contains(p)) {
-            const kids = Array.from(p.children);
+          const p = composedParent(el);
+          if (p && p !== zs.el && composedContains(zs.el, p)) {
+            const kids = Array.from(p.children || []);
             const otherLabels = kids.filter(k => k !== el && k.tagName === 'LABEL');
             if (otherLabels.length === 0) {
               const sibs = kids.filter(k => k !== el && isVisible(k));
@@ -870,7 +1285,7 @@ export function buildDOMIntrospectionScript(
                 out.push(...sibs);
                 return out;
               }
-              const inner = Array.from(p.querySelectorAll(CONTROL_SEL)).filter(isVisible);
+              const inner = queryAllDeep(p, CONTROL_SEL).filter(isVisible);
               if (inner.length > 0 && inner.length <= 6) out.push(...inner);
             }
           }
@@ -878,18 +1293,21 @@ export function buildDOMIntrospectionScript(
           const own = el.labels && el.labels.length ? Array.from(el.labels).find(isVisible) : null;
           if (own) {
             out.push(own);
-          } else if (el.parentElement) {
-            const pTag = el.parentElement.tagName;
-            if ((pTag === 'SPAN' || pTag === 'ORION-CHECKBOX') && isVisible(el.parentElement)) {
-              const checks = el.parentElement.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-              if (checks.length === 1) out.push(el.parentElement);
-            } else {
-              const lbls = Array.from(el.parentElement.children).filter(k => k.tagName === 'LABEL' && isVisible(k));
-              if (lbls.length === 1) out.push(lbls[0]);
+          } else {
+            const p = composedParent(el);
+            if (p) {
+              const pTag = p.tagName;
+              if ((pTag === 'SPAN' || pTag === 'ORION-CHECKBOX') && isVisible(p)) {
+                const checks = queryAllDeep(p, 'input[type="checkbox"], input[type="radio"]');
+                if (checks.length === 1) out.push(p);
+              } else {
+                const lbls = Array.from(p.children || []).filter(k => k.tagName === 'LABEL' && isVisible(k));
+                if (lbls.length === 1) out.push(lbls[0]);
+              }
             }
           }
         } else if ((tag === 'SPAN' || tag === 'ORION-CHECKBOX') && isVisible(el)) {
-          const checks = el.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+          const checks = queryAllDeep(el, 'input[type="checkbox"], input[type="radio"]');
           if (checks.length === 1 && isVisible(checks[0])) out.push(checks[0]);
         }
         return out;
@@ -907,45 +1325,52 @@ export function buildDOMIntrospectionScript(
         return { memberData, union: unionOf(memberData.map(d => d.box)) };
       }
 
-      function searchInDocument(doc, frameOffset) {
+      function searchInDocument(doc, frameOffset, frameChain) {
         const zs = zone === 'content' ? resolveContentRoot(doc) : { el: doc.body, strategy: 'sem-filtro', navs: [] };
 
         if (groupQueries.length > 0) {
           const group = resolveGroup(doc, zs);
-          if (group) return { group, zs, frameOffset };
+          if (group) return { group, zs, frameOffset, frameChain };
         }
 
         for (const rawQuery of queries) {
           const c = findCandidates(doc, rawQuery, zs);
-          if (c) return { el: c.els[0], matchedSelector: c.matchedSelector, zs, frameOffset };
+          if (c) return { el: c.els[0], matchedSelector: c.matchedSelector, zs, frameOffset, frameChain };
         }
         return null;
       }
 
-      // Busca no documento principal
-      let match = searchInDocument(document, { x: 0, y: 0 });
-
-      // Busca em iframes de mesma origem (se não encontrado no documento raiz)
-      if (!match) {
-        const iframes = Array.from(document.querySelectorAll('iframe'));
-        for (const frame of iframes) {
+      function searchFramesRecursively(rootDoc, frameChain, depth) {
+        if (!rootDoc || depth > MAX_FRAME_DEPTH) return null;
+        const iframes = queryAllDeep(rootDoc, 'iframe');
+        for (let i = 0; i < iframes.length; i++) {
+          const frame = iframes[i];
           try {
-            if (frame.contentDocument) {
-              const fr = frame.getBoundingClientRect();
-              const offset = {
-                x: fr.left + (frame.clientLeft || 0),
-                y: fr.top + (frame.clientTop || 0)
-              };
-              match = searchInDocument(frame.contentDocument, offset);
-              if (match) break;
-            }
+            if (!isVisible(frame)) continue;
+            const childDoc = frame.contentDocument;
+            if (!childDoc || !childDoc.body) continue;
+            const nextChain = frameChain.concat([frame]);
+            const offset = computeChainOffsetAndClip(nextChain, targetZoom);
+            if (offset.clip && (offset.clip.width <= 1 || offset.clip.height <= 1)) continue;
+            const hit = searchInDocument(childDoc, offset, nextChain);
+            if (hit) return hit;
+            const nested = searchFramesRecursively(childDoc, nextChain, depth + 1);
+            if (nested) return nested;
           } catch (e) {}
         }
+        return null;
+      }
+
+      // Busca no documento principal; se ausente, desce recursivamente por iframes same-origin (inclusive em Shadow DOM)
+      let match = searchInDocument(document, computeChainOffsetAndClip([], targetZoom), []);
+      if (!match) {
+        match = searchFramesRecursively(document, [], 1);
       }
 
       if (!match) return null;
 
-      const frameOffset = match.frameOffset;
+      const frameChain = match.frameChain || [];
+      let frameOffset = match.frameOffset || computeChainOffsetAndClip(frameChain, targetZoom);
       const zs = match.zs;
       let ctxEl = null;
       let rawBox = null;
@@ -962,8 +1387,7 @@ export function buildDOMIntrospectionScript(
         let meas = measureGroup(match.group, zs, frameOffset);
         if (!meas.union) return null;
 
-        if (shouldScroll && isOutsideViewport(meas.union)) {
-          // Centraliza o membro mais próximo do centro da união e mede tudo de novo no mesmo frame
+        if (shouldScroll && isOutsideViewport(meas.union, frameOffset.clip)) {
           const ucx = meas.union.x + meas.union.width / 2;
           const ucy = meas.union.y + meas.union.height / 2;
           let pivot = meas.memberData[0];
@@ -981,6 +1405,8 @@ export function buildDOMIntrospectionScript(
             pivot.m.el.scrollIntoView(true);
           }
           void pivot.m.el.offsetHeight;
+          // Recalcula a cadeia de iframes pós-scroll para compensar deslocamento dos frames hospedeiros
+          frameOffset = computeChainOffsetAndClip(frameChain, targetZoom);
           meas = measureGroup(match.group, zs, frameOffset);
           if (!meas.union) return null;
         }
@@ -1003,42 +1429,65 @@ export function buildDOMIntrospectionScript(
         const el = match.el;
         if (!el) return null;
 
-        // Garantir que o elemento esteja visível dentro do viewport (scrollIntoViewIfNeeded)
-        const initRect = el.getBoundingClientRect();
-        const partlyOut = initRect.top < 0 || initRect.bottom > vpH || initRect.left < 0 || initRect.right > vpW;
-        const fitsViewport = initRect.width <= vpW && initRect.height <= vpH;
-        const intersectsViewport = initRect.bottom > 0 && initRect.top < vpH && initRect.right > 0 && initRect.left < vpW;
-        // Um contêiner maior que o viewport e já visível não é rolado (centralizá-lo esconderia o seu topo);
-        // a moldura é apenas recortada à porção visível.
+        const initBox = edgeBox(el, frameOffset);
+        const visClip = frameOffset.clip || { x: 0, y: 0, width: vpW, height: vpH };
+        const partlyOut =
+          initBox.y < visClip.y ||
+          initBox.y + initBox.height > visClip.y + visClip.height ||
+          initBox.x < visClip.x ||
+          initBox.x + initBox.width > visClip.x + visClip.width;
+        const fitsViewport = initBox.width <= visClip.width && initBox.height <= visClip.height;
+        const intersectsViewport =
+          initBox.y + initBox.height > visClip.y &&
+          initBox.y < visClip.y + visClip.height &&
+          initBox.x + initBox.width > visClip.x &&
+          initBox.x < visClip.x + visClip.width;
+
         if (shouldScroll && partlyOut && (fitsViewport || !intersectsViewport)) {
           try {
             el.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
           } catch (e) {
             el.scrollIntoView(true);
           }
+          void el.offsetHeight;
+          // Se o próprio iframe hospedeiro ainda estiver fora do viewport principal, traz o iframe para a área visível
+          if (frameChain.length > 0) {
+            for (let fi = 0; fi < frameChain.length; fi++) {
+              const frBox = frameChain[fi].getBoundingClientRect();
+              if (frBox.bottom <= 0 || frBox.top >= vpH || frBox.right <= 0 || frBox.left >= vpW) {
+                try {
+                  frameChain[fi].scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+                } catch (e) {}
+                void frameChain[fi].offsetHeight;
+              }
+            }
+          }
         }
 
-        // Forçar reflow síncrono para estabilizar coordenadas pós-scroll
+        // Recalcula o offset/clipping acumulado da cadeia de iframes APÓS o scroll e reflow
         void el.offsetHeight;
+        frameOffset = computeChainOffsetAndClip(frameChain, targetZoom);
         const rect = el.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return null;
 
+        const s = frameOffset.scale || 1;
+        const ox = frameOffset.rawX != null ? frameOffset.rawX : frameOffset.x;
+        const oy = frameOffset.rawY != null ? frameOffset.rawY : frameOffset.y;
         rawBox = {
-          x: Math.round(rect.left + frameOffset.x),
-          y: Math.round(rect.top + frameOffset.y),
-          width: Math.round(rect.width),
-          height: Math.round(rect.height)
+          x: Math.round(rect.left * s + ox),
+          y: Math.round(rect.top * s + oy),
+          width: Math.round(rect.width * s),
+          height: Math.round(rect.height * s)
         };
 
-        // Extrair irmãos adjacentes visíveis para evitar colisão de rótulos
         for (const sib of [el.previousElementSibling, el.nextElementSibling]) {
           if (sib && isVisible(sib)) {
             const sr = sib.getBoundingClientRect();
             neighborBoxes.push({
-              x: Math.round(sr.left + frameOffset.x),
-              y: Math.round(sr.top + frameOffset.y),
-              width: Math.round(sr.width),
-              height: Math.round(sr.height)
+              x: Math.round(sr.left * s + ox),
+              y: Math.round(sr.top * s + oy),
+              width: Math.round(sr.width * s),
+              height: Math.round(sr.height * s)
             });
           }
         }
@@ -1049,30 +1498,30 @@ export function buildDOMIntrospectionScript(
         tagName = (el.tagName || '').toLowerCase();
       }
 
-      // Recorte à porção visível do viewport (a moldura nunca sai do canvas capturado)
-      const cssBox = clipToViewport(rawBox);
+      // Recorte à porção visível do viewport e dos iframes hospedeiros
+      const cssBox = clipToViewport(rawBox, frameOffset.clip);
       if (!cssBox) return null;
 
       // ---------------------------------------------------------------------
-      // ALVO DA AÇÃO PÓS-CAPTURA (ADR-015 §2.4)
-      // O nó validado na zona recebe um carimbo de atributo único. O executor clica/preenche por esse
-      // carimbo, ou seja, no MESMO nó medido, e nunca refaz a busca por nome (que poderia cair num
-      // item homônimo da navegação lateral).
+      // ALVO DA AÇÃO PÓS-CAPTURA (ADR-015 §2.4 + ADR-030 iframes same-origin / Shadow DOM)
       // ---------------------------------------------------------------------
       function controlOf(el) {
-        if (el.matches(CONTROL_SEL)) return el;
+        if (el.matches && el.matches(CONTROL_SEL)) return el;
         if (el.tagName === 'LABEL') {
           if (el.control && isVisible(el.control)) return el.control;
           const forId = el.getAttribute('for');
-          const byId = forId ? el.ownerDocument.getElementById(forId) : null;
+          const rootNode = el.getRootNode ? el.getRootNode() : el.ownerDocument;
+          const byId = forId && rootNode && rootNode.getElementById
+            ? rootNode.getElementById(forId)
+            : (forId ? el.ownerDocument.getElementById(forId) : null);
           if (byId && isVisible(byId)) return byId;
         }
-        const inner = Array.from(el.querySelectorAll(CONTROL_SEL)).find(isVisible);
+        const inner = queryAllDeep(el, CONTROL_SEL).find(isVisible);
         if (inner) return inner;
         for (const b of fieldBlockElements(el, zs)) {
           if (b === el) continue;
-          if (b.matches(CONTROL_SEL)) return b;
-          const c = Array.from(b.querySelectorAll(CONTROL_SEL)).find(isVisible);
+          if (b.matches && b.matches(CONTROL_SEL)) return b;
+          const c = queryAllDeep(b, CONTROL_SEL).find(isVisible);
           if (c) return c;
         }
         return null;
@@ -1087,18 +1536,16 @@ export function buildDOMIntrospectionScript(
 
         const memberEls = match.group ? match.group.members.map(m => m.el) : [ctxEl];
         const CLICKABLE = 'a, button, [role="button"], input[type="button"], input[type="submit"]';
-        // Grupo: o clique que avança o fluxo é o primeiro membro nativamente clicável (ex.: o botão
-        // de um passo "digite ... e clique em ..."); o preenchimento vai ao primeiro campo do grupo.
         const clickEl = actionMember === 'last'
           ? memberEls[memberEls.length - 1]
-          : memberEls.find(e => e.closest(CLICKABLE)) || memberEls[0];
+          : memberEls.find(e => composedClosest(e, CLICKABLE)) || memberEls[0];
         let fillEl = null;
         for (const e of memberEls) {
           fillEl = controlOf(e);
           if (fillEl) break;
         }
 
-        if (clickEl.ownerDocument === document) {
+        if (clickEl) {
           const token = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1e9).toString(36);
           const stamp = (el, kind) => {
             const attr = 'data-orion-audit-' + kind + '-' + token;
@@ -1110,10 +1557,10 @@ export function buildDOMIntrospectionScript(
             tagName: (el.tagName || '').toLowerCase(),
             text: (el.innerText || el.textContent || el.getAttribute('placeholder') || el.getAttribute('name') || '').trim().slice(0, 80),
             box: edgeBox(el, frameOffset),
-            insideNavZone: !!el.closest(NAV_ZONE)
+            insideNavZone: !!composedClosest(el, NAV_ZONE)
           });
           actionTarget = { clickSelector: stamp(clickEl, 'click'), click: info(clickEl) };
-          if (fillEl && fillEl.ownerDocument === document) {
+          if (fillEl) {
             actionTarget.fillSelector = stamp(fillEl, 'fill');
             actionTarget.fill = info(fillEl);
           }
@@ -1125,26 +1572,31 @@ export function buildDOMIntrospectionScript(
         cssBox.x !== rawBox.x || cssBox.y !== rawBox.y || cssBox.width !== rawBox.width || cssBox.height !== rawBox.height;
 
       const isGroup = !!match.group;
-      const isTopNav = (!isGroup && !!ctxEl.closest('nav, header, .navbar, #navbar')) || cssBox.y < 52;
+      const isTopNav = (!isGroup && !!composedClosest(ctxEl, 'nav, header, .navbar, #navbar')) || cssBox.y < 52;
       const isVerticalSidebar = isGroup
         ? false
-        : !!ctxEl.closest('aside, .sidebar, .nav-stacked, .list-group, .menu-lateral') ||
+        : !!composedClosest(ctxEl, 'aside, .sidebar, .nav-stacked, .list-group, .menu-lateral') ||
           (cssBox.x < 140 && cssBox.width < 240 && cssBox.y >= 60 && cssBox.height <= 48);
-      const isDropdownItem = !isGroup && !!ctxEl.closest('.dropdown-menu, [role="menu"], [role="listbox"]');
-      const isModal = !!ctxEl.closest('.modal, .modal-dialog, [role="dialog"]');
+      const isDropdownItem = !isGroup && !!composedClosest(ctxEl, '.dropdown-menu, [role="menu"], [role="listbox"]');
+      const isModal = !!composedClosest(ctxEl, '.modal, .modal-dialog, [role="dialog"]');
 
-      // ADR-027: Assinatura Semântica Hierárquica (seção, linha de grade, rótulo associado e papel)
+      // ADR-027 + ADR-030: Assinatura Semântica Hierárquica atravessando Open Shadow DOM + bindings Angular
       function extractSemanticSignature(el) {
         const cleanSem = s => String(s || '').replace(/\\s+/g, ' ').trim().slice(0, 120);
         let sectionTitle = '';
         let cur = el;
-        while (cur && cur !== document.body && cur.nodeType === 1) {
+        while (cur && cur.nodeType === 1) {
+          const ownerBody = cur.ownerDocument ? cur.ownerDocument.body : document.body;
+          const ownerDocEl = cur.ownerDocument ? cur.ownerDocument.documentElement : document.documentElement;
+          if (cur === ownerBody || cur === ownerDocEl) break;
           if (cur.tagName === 'FIELDSET') {
-            const leg = cur.querySelector('legend');
+            const leg = queryAllDeep(cur, 'legend').find(isVisible) || cur.querySelector('legend');
             if (leg && isVisible(leg)) { sectionTitle = cleanSem(leg.innerText || leg.textContent); break; }
           }
           if (cur.matches && cur.matches('.panel, .card, .box, .modal-content, .well, section, form')) {
-            const hd = cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend');
+            const hd =
+              cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend') ||
+              (cur.shadowRoot && cur.shadowRoot.querySelector('.panel-heading, .card-header, .box-header, .modal-header .modal-title, h3, h4, h5, legend'));
             if (hd && isVisible(hd)) { sectionTitle = cleanSem(hd.innerText || hd.textContent); break; }
           }
           const prev = cur.previousElementSibling;
@@ -1152,20 +1604,21 @@ export function buildDOMIntrospectionScript(
             sectionTitle = cleanSem(prev.innerText || prev.textContent);
             break;
           }
-          cur = cur.parentElement;
+          cur = composedParent(cur);
         }
-        if (!sectionTitle && el.closest) {
-          const panel = el.closest('.panel, .card, .box, fieldset, .modal-content');
+        if (!sectionTitle) {
+          const panel = composedClosest(el, '.panel, .card, .box, fieldset, .modal-content');
           if (panel) {
-            const h = panel.querySelector('legend, .panel-heading, .card-header, .box-header, .modal-title, h3, h4, h5');
-            if (h && isVisible(h)) sectionTitle = cleanSem(h.innerText || h.textContent);
+            const h = queryAllDeep(panel, 'legend, .panel-heading, .card-header, .box-header, .modal-title, h3, h4, h5').find(isVisible);
+            if (h) sectionTitle = cleanSem(h.innerText || h.textContent);
           }
         }
 
         let rowContext;
-        const tr = el.closest ? el.closest('tr') : null;
-        if (tr && tr.parentElement) {
-          const rows = Array.from(tr.parentElement.children).filter(r => r.tagName === 'TR');
+        const tr = composedClosest(el, 'tr');
+        if (tr && composedParent(tr)) {
+          const pTr = composedParent(tr);
+          const rows = Array.from(pTr.children || []).filter(r => r.tagName === 'TR');
           const rowIndex = Math.max(0, rows.indexOf(tr));
           const cells = Array.from(tr.querySelectorAll('td, th')).map(c => cleanSem(c.innerText || c.textContent)).filter(Boolean);
           if (cells.length > 0) {
@@ -1173,24 +1626,37 @@ export function buildDOMIntrospectionScript(
           }
         }
 
+        const angularBindings = extractAngularBindings(el);
+
         let associatedLabel = '';
-        const lbl = (el.labels && el.labels[0]) || (el.closest && el.closest('label'));
+        const lbl = (el.labels && el.labels[0]) || composedClosest(el, 'label');
         if (lbl) associatedLabel = cleanSem(lbl.innerText || lbl.textContent);
-        if (!associatedLabel && el.parentElement) {
-          const sibLbl = Array.from(el.parentElement.children).find(k => k !== el && (k.tagName === 'LABEL' || k.tagName === 'SPAN') && isVisible(k));
+        const parentEl = composedParent(el);
+        if (!associatedLabel && parentEl) {
+          const sibLbl = Array.from(parentEl.children || []).find(k => k !== el && (k.tagName === 'LABEL' || k.tagName === 'SPAN') && isVisible(k));
           if (sibLbl) associatedLabel = cleanSem(sibLbl.innerText || sibLbl.textContent);
         }
-        if (!associatedLabel) {
+        if (!associatedLabel && el.getAttribute) {
           associatedLabel = cleanSem(
             el.getAttribute('title') ||
             el.getAttribute('data-original-title') ||
             el.getAttribute('placeholder') ||
+            el.getAttribute('aria-label') ||
             el.getAttribute('ng-reflect-name') ||
             ''
           );
         }
+        if (!associatedLabel && angularBindings) {
+          associatedLabel = cleanSem(angularBindings.humanizedModel || angularBindings.humanizedAction || angularBindings.uiSref || '');
+        }
 
-        const txtNorm = cleanSem(el.innerText || el.textContent || associatedLabel).toLowerCase();
+        const txtNorm = cleanSem(
+          el.innerText ||
+          el.textContent ||
+          associatedLabel ||
+          (angularBindings && (angularBindings.humanizedAction || angularBindings.humanizedModel)) ||
+          ''
+        ).toLowerCase();
         let semanticRole = 'form_input';
         if (isTopNav) {
           semanticRole = isDropdownItem ? 'navigation_leaf' : 'navigation_root';
@@ -1198,11 +1664,11 @@ export function buildDOMIntrospectionScript(
           semanticRole = 'entity_creation_button';
         } else if (/\\befetuar\\s+servi[çc]o\\b/.test(txtNorm) || /btnConcluirOutrosServicos/.test(el.id || '')) {
           semanticRole = 'service_execution_trigger';
-        } else if (rowContext && (txtNorm === '+' || el.querySelector('.glyphicon-plus, .fa-plus') || /selecion/i.test(el.id || ''))) {
+        } else if (rowContext && (txtNorm === '+' || queryAllDeep(el, '.glyphicon-plus, .fa-plus').length > 0 || /selecion/i.test(el.id || ''))) {
           semanticRole = 'grid_row_picker';
         } else if (/^finalizar$/i.test(txtNorm)) {
           semanticRole = 'section_confirm_button';
-        } else if (/^(filtrar|pesquisar|buscar)$/i.test(txtNorm) && el.tagName === 'BUTTON') {
+        } else if (/^(filtrar|pesquisar|buscar)$/i.test(txtNorm) && (el.tagName === 'BUTTON' || (angularBindings && angularBindings.ngClick))) {
           semanticRole = 'search_trigger_button';
         } else if (/^(salvar|concluir|gravar|cadastrar|transmitir)$/i.test(txtNorm)) {
           semanticRole = 'form_submit';
@@ -1216,6 +1682,7 @@ export function buildDOMIntrospectionScript(
         if (sectionTitle) sig.sectionTitle = sectionTitle;
         if (rowContext) sig.rowContext = rowContext;
         if (associatedLabel) sig.associatedLabel = associatedLabel;
+        if (angularBindings) sig.angularBindings = angularBindings;
         return sig;
       }
 
@@ -1230,13 +1697,13 @@ export function buildDOMIntrospectionScript(
         },
         context: {
           tagName,
-          role: isGroup ? undefined : ctxEl.getAttribute('role') || undefined,
+          role: isGroup ? undefined : (ctxEl.getAttribute ? ctxEl.getAttribute('role') || undefined : undefined),
           innerText,
           isTopNav,
           isVerticalSidebar,
           isDropdownItem,
           isModal,
-          iframeOffset: frameOffset,
+          iframeOffset: { x: frameOffset.x, y: frameOffset.y },
           neighborBoxes,
           semantic: extractSemanticSignature(ctxEl)
         },
@@ -1248,7 +1715,6 @@ export function buildDOMIntrospectionScript(
       };
 
       if (zone === 'content') {
-        // Medidos no mesmo frame (pós-scroll) do alvo, para auditoria do invariante de zona
         payload.contentRoot = {
           selector: describe(zs.el),
           strategy: zs.strategy,

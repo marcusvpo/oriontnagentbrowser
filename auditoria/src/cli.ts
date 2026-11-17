@@ -16,6 +16,7 @@ import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
 import { writePreTriagedDddReport } from './hardware-pretriage.js';
 import { REVIEW_TAGS, isReviewStatus, type ReviewTag } from './review-taxonomy.js';
 import { seedHumanReviews } from './seed-human-reviews.js';
+import { crawlOrionRouteGraph } from './route-crawler.js';
 import type { AuditRoutineReport, WorkloadType } from './types.js';
 
 const argValue = (args: string[], flag: string): string | null => {
@@ -193,9 +194,11 @@ async function main() {
     // A pré-triagem [DDD] de hardware (--pretriage-only) e o uso sem modo não tocam a rede.
     const pendingMode = args.includes('--reaudit-pending');
     const listOnly = args.includes('--list-only');
+    const isCrawlMap = args.includes('--crawl-map');
     const touchesNetwork =
       !isDryRun &&
       (isLoginOnly ||
+        isCrawlMap ||
         !!targetRoutine ||
         routineList.length > 0 ||
         (pendingMode && !listOnly) ||
@@ -212,6 +215,31 @@ async function main() {
       const client = new AgentBrowserClient({ headless: isHeadless, sessionId: 'login-session' });
       try {
         await loginOrion(client);
+      } finally {
+        await client.close();
+      }
+      return;
+    }
+
+    if (isCrawlMap) {
+      if (isDryRun) throw new Error('Não é possível executar --crawl-map em modo --dry-run');
+      const maxRoutesRaw = parseInt(argValue(args, '--max-routes') || '', 10);
+      const client = new AgentBrowserClient({
+        headless: isHeadless,
+        sessionId: 'crawl-map',
+        statePath: config.sessionFile
+      });
+      try {
+        await client.setViewport(config.viewportWidth, config.viewportHeight);
+        if (!(await ensureAuthenticated(client))) {
+          throw new Error('Falha ao autenticar no Orion TN para mapear o grafo de rotas (--crawl-map).');
+        }
+        await client.setViewport(config.viewportWidth, config.viewportHeight);
+        await client.open(config.appHomeUrl);
+        await client.wait(1800);
+        await crawlOrionRouteGraph(client, {
+          maxRoutes: Number.isFinite(maxRoutesRaw) && maxRoutesRaw > 0 ? maxRoutesRaw : undefined
+        });
       } finally {
         await client.close();
       }
@@ -336,6 +364,7 @@ async function main() {
       console.log('  npm run audit -- --routine D-1.1                                 Executa uma rotina específica');
       console.log('  npm run audit -- --phase 2 --engine manifest                     Runner declarativo antigo da Fase 2');
       console.log('  npm run audit -- --login                                         Autentica e salva sessão mestre');
+      console.log('  npm run audit -- --crawl-map --headless                          Mapeia rotas, abas e seções em modo somente-leitura (orion-route-graph.json)');
       console.log('  npm run audit -- --seed-reviews                                  Cadastra/atualiza as 9 revisões humanas no Supabase e em disco');
       console.log('  npm run audit -- --headed                                        Abre janela visível');
       console.log('  --dry-run-mutations  demarca comandos de gravação sem acioná-los | --no-explore  desliga a exploração pré-bloqueio');

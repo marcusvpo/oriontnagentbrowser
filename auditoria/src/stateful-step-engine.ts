@@ -1,4 +1,4 @@
-import type { AgentBrowserClient } from './browser.js';
+import type { AgentBrowserClient, OrionLastApiResponse, OrionNetMonitorSnapshot } from './browser.js';
 import {
   classifyFirmasStep,
   isReconhecimentoFirmasUrl,
@@ -65,6 +65,10 @@ export interface StatefulPostStepResult {
   adjusted?: boolean;
   note?: string;
   openedTab?: { tabId: string; url: string; title: string };
+  /** Mensagem diagnóstica de validação HTTP 400/422 capturada via XHR/Fetch (ADR-030) */
+  apiValidationMessage?: string;
+  /** Última resposta JSON relevante da API monitorada durante a transição (ADR-030) */
+  lastApiResponse?: OrionLastApiResponse;
 }
 
 export type StatefulAddSubFrame = (
@@ -414,9 +418,18 @@ export async function runStatefulStepPostAction(
   const plan = detectStatefulStepPlan(step, nextStep, { currentUrl: url });
   if (!plan) return { executed: false };
 
+  await client.ensureNetMonitor?.().catch(() => false);
+  const awaitIdleOrWait = async (timeoutMs = 3000, fallbackMs = 1200): Promise<OrionNetMonitorSnapshot | null> => {
+    if (typeof client.waitForNetworkIdle === 'function') {
+      return client.waitForNetworkIdle({ timeoutMs, idleMs: 200, pollMs: 150 }).catch(() => null);
+    }
+    await client.wait(fallbackMs);
+    return null;
+  };
+
   // 1. Fluxo guiado por revisão humana: menu -> item lateral -> link subportal em nova guia (C-CENTRAL-02 passo 4)
   if (plan.kind === 'guided_sidebar_subportal' && plan.postMenuSidebarItem) {
-    await client.wait(1200);
+    await awaitIdleOrWait(2500, 1200);
     const sideRes = await stampByTextAndMeasure(
       client,
       [{ label: plan.postMenuSidebarItem, textMatch: plan.postMenuSidebarItem, inSidebar: true }],
@@ -444,7 +457,7 @@ export async function runStatefulStepPostAction(
     );
 
     await client.click(sideRes.selectors[0].selector);
-    await client.wait(1200);
+    await awaitIdleOrWait(3000, 1200);
 
     let openedTab: StatefulPostStepResult['openedTab'];
     if (plan.postSidebarSubportalLink) {
@@ -494,7 +507,7 @@ export async function runStatefulStepPostAction(
     };
   }
 
-  // 2. Fluxo Mestre-Detalhe universal com DOM Diffing (Antes x Depois)
+  // 2. Fluxo Mestre-Detalhe universal com DOM Diffing (Antes x Depois) + Monitor XHR/Fetch (ADR-030)
   if (plan.kind === 'search_and_pick') {
     const before = await captureDOMStateSnapshot(client);
     const searchSelector = await client.evalJson<string | null>(`
@@ -521,25 +534,55 @@ export async function runStatefulStepPostAction(
     `);
     if (!searchSelector) return { executed: false };
 
+    let baselineTs = (await client.readNetMonitor?.().catch(() => null))?.lastApiResponse?.timestamp ?? 0;
     await client.fill(searchSelector, plan.searchQuery || 'teste');
     await client.wait(250);
     await client.pressKey('Enter');
 
-    const waitReactiveResult = async (timeoutMs = 4000) => {
+    const waitReactiveResult = async (timeoutMs = 5000, sinceTs = baselineTs) => {
       const start = Date.now();
+      let capturedApi: OrionLastApiResponse | undefined;
       while (Date.now() - start < timeoutMs) {
+        const netSnap = typeof client.readNetMonitor === 'function' ? await client.readNetMonitor().catch(() => null) : null;
         const snap = await captureDOMStateSnapshot(client);
         const curDiff = diffDOMStateSnapshots(before, snap);
-        if (curDiff.populatedGridWithPicker || curDiff.hasReactiveChange) {
-          return { snap, curDiff };
+
+        if (netSnap && netSnap.pendingCount > 0) {
+          await client.wait(200);
+          continue;
         }
-        await client.wait(350);
+
+        if (netSnap?.lastApiResponse && netSnap.lastApiResponse.timestamp > sinceTs) {
+          capturedApi = netSnap.lastApiResponse;
+          if (
+            capturedApi.status === 400 ||
+            capturedApi.status === 422 ||
+            (capturedApi.status >= 400 && capturedApi.validationMessage)
+          ) {
+            return { snap, curDiff, lastApiResponse: capturedApi };
+          }
+        }
+
+        if (curDiff.populatedGridWithPicker || curDiff.hasReactiveChange) {
+          return { snap, curDiff, lastApiResponse: capturedApi };
+        }
+
+        if (capturedApi && capturedApi.isEmptyArray) {
+          return { snap, curDiff, lastApiResponse: capturedApi };
+        }
+
+        await client.wait(250);
       }
       const finalSnap = await captureDOMStateSnapshot(client);
-      return { snap: finalSnap, curDiff: diffDOMStateSnapshots(before, finalSnap) };
+      const finalNet = typeof client.readNetMonitor === 'function' ? await client.readNetMonitor().catch(() => null) : null;
+      const finalApi =
+        finalNet?.lastApiResponse && finalNet.lastApiResponse.timestamp > sinceTs
+          ? finalNet.lastApiResponse
+          : capturedApi;
+      return { snap: finalSnap, curDiff: diffDOMStateSnapshots(before, finalSnap), lastApiResponse: finalApi };
     };
 
-    let { snap: after, curDiff: diff } = await waitReactiveResult(3500);
+    let { snap: after, curDiff: diff, lastApiResponse } = await waitReactiveResult(4500, baselineTs);
 
     if (!diff.hasReactiveChange && !diff.populatedGridWithPicker) {
       // Fallback para telas em que o Enter não submete o filtro sem clique no botão Filtrar/Pesquisar
@@ -555,11 +598,21 @@ export async function runStatefulStepPostAction(
         })()
       `);
       if (triggerSel) {
+        baselineTs = (await client.readNetMonitor?.().catch(() => null))?.lastApiResponse?.timestamp ?? baselineTs;
         await client.click(triggerSel).catch(() => undefined);
-        const retry = await waitReactiveResult(3500);
+        const retry = await waitReactiveResult(4500, baselineTs);
         after = retry.snap;
         diff = retry.curDiff;
+        lastApiResponse = retry.lastApiResponse ?? lastApiResponse;
       }
+    }
+
+    const apiValidationMessage =
+      lastApiResponse && lastApiResponse.status >= 400
+        ? `HTTP ${lastApiResponse.status}${lastApiResponse.validationMessage ? `: ${lastApiResponse.validationMessage}` : ''}`
+        : undefined;
+    if (apiValidationMessage) {
+      console.warn(`   ⚠ [Monitor Rede XHR/Fetch] Validação retornada em ${lastApiResponse?.url || 'API'}: ${apiValidationMessage}`);
     }
 
     // Procura picker de linha na nova grade revelada (ex.: #iconSelecionaPessoa0 ou botão '+' / Selecionar na 1ª linha)
@@ -593,9 +646,13 @@ export async function runStatefulStepPostAction(
       return {
         executed: diff.hasReactiveChange,
         adjusted: diff.hasReactiveChange,
-        note: diff.hasReactiveChange
-          ? `DOM Diffing detectou nova resposta na tela após pesquisa (${diff.newSections.join(', ') || 'grade atualizada'}).`
-          : undefined
+        ...(apiValidationMessage ? { apiValidationMessage } : {}),
+        ...(lastApiResponse ? { lastApiResponse } : {}),
+        note: apiValidationMessage
+          ? `Monitor XHR/Fetch capturou validação da API (${apiValidationMessage}).`
+          : diff.hasReactiveChange
+            ? `DOM Diffing detectou nova resposta na tela após pesquisa (${diff.newSections.join(', ') || 'grade atualizada'}).`
+            : undefined
       };
     }
 
@@ -620,7 +677,7 @@ export async function runStatefulStepPostAction(
     }
 
     await client.click(pickerSelector);
-    await client.wait(1200);
+    await awaitIdleOrWait(3000, 1200);
 
     const confirmRes = await stampByTextAndMeasure(
       client,
@@ -641,7 +698,7 @@ export async function runStatefulStepPostAction(
       const fin = confirmRes.selectors.find(s => normalizeText(s.label) === 'finalizar');
       if (fin) {
         await client.click(fin.selector);
-        await client.wait(1200);
+        await awaitIdleOrWait(3000, 1200);
       }
     }
 
@@ -651,6 +708,8 @@ export async function runStatefulStepPostAction(
     return {
       executed: true,
       adjusted: true,
+      ...(apiValidationMessage ? { apiValidationMessage } : {}),
+      ...(lastApiResponse ? { lastApiResponse } : {}),
       note:
         'Fluxo executado ao vivo (Máquina de Estado Universal + DOM Diffing): pesquisa com **"teste" + Enter** -> inclusão do registro na grade (**+**) -> confirmação em **Finalizar** liberando o próximo painel.'
     };
