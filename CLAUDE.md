@@ -1,10 +1,10 @@
 # GUIA DO DESENVOLVEDOR & GUARDIÃO DA MEMÓRIA: CLAUDE CODE (ORION TN)
 
-> **Status Vigente:** BASE V3.2.0 + PIPELINE DE AUDITORIA V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` com Multi-Tags + Passos Externos + Sessão Ativa + Guarda de Menu + GitHub Seguro + Write-Through & Supabase Realtime — ADR-024 + Ambiente de Produtos, Preflight de VPN, Multi-Aba e Reauditoria Contextual — ADR-025 + Revisões Humanas, Zoom 80%, Acesso Pleno e Firmas Interativo — ADR-026 + Grafo Semântico UI, Máquina de Estado Universal com DOM Diffing e RAG Soberano de Revisões Humanas — ADR-027 + Consultor Propositivo de Tela `[ATT]` e Desempate de Menu por Profundidade — ADR-028 + Mineração de Clusters, Equivalências de Menu, Pré-Filtro de Grade Vazia e Console Fase 2 × Fase 3 — ADR-029 + Deep DOM Shadow/Iframes Pós-Scroll, Poda Camada 2B, Bindings Angular, Monitor XHR/Fetch e Crawler de Rotas — ADR-030 + Pipeline Visual Híbrido Set-of-Mark SoM em Memória + Visual Grounding DOM via `agy` na Camada 2C — ADR-031 + Servidor MCP Local `orion-audit`, `chrome-devtools-mcp`, Worker Daemon Realtime e Exportadores Base de Ajuda / Playwright E2E — ADR-032 + Orquestrador Satélite Google Antigravity Python SDK v0.1.23 para Curadoria SoM e Verificação Semântica Multimodal Pós-Lote — ADR-033)  
+> **Status Vigente:** BASE V3.2.0 + PIPELINE DE AUDITORIA V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` com Multi-Tags + Passos Externos + Sessão Ativa + Guarda de Menu + GitHub Seguro + Write-Through & Supabase Realtime — ADR-024 + Ambiente de Produtos, Preflight de VPN, Multi-Aba e Reauditoria Contextual — ADR-025 + Revisões Humanas, Zoom 80%, Acesso Pleno e Firmas Interativo — ADR-026 + Grafo Semântico UI, Máquina de Estado Universal com DOM Diffing e RAG Soberano de Revisões Humanas — ADR-027 + Consultor Propositivo de Tela `[ATT]` e Desempate de Menu por Profundidade — ADR-028 + Mineração de Clusters, Equivalências de Menu, Pré-Filtro de Grade Vazia e Console Fase 2 × Fase 3 — ADR-029 + Deep DOM Shadow/Iframes Pós-Scroll, Poda Camada 2B, Bindings Angular, Monitor XHR/Fetch e Crawler de Rotas — ADR-030 + Pipeline Visual Híbrido Set-of-Mark SoM em Memória + Visual Grounding DOM via `agy` na Camada 2C — ADR-031 + Servidor MCP Local `orion-audit`, `chrome-devtools-mcp`, Worker Daemon Realtime e Exportadores Base de Ajuda / Playwright E2E — ADR-032 + Orquestrador Satélite Google Antigravity Python SDK v0.1.23 para Curadoria SoM e Verificação Semântica Multimodal Pós-Lote — ADR-033 + Super-Contexto Contínuo GitHub → Google Drive (NotebookLM) via `repomix` + Drive API v3 + GitHub Actions em 4 Pacotes < 950.000 Caracteres — ADR-034)  
 > **Papel do Claude Code:** Arquiteto de Software Co-Executor & Guardião da Memória Técnica Integrada  
 > **Parceiro no Workspace:** Google Antigravity 2.0  
 > **Repositório:** Windows 10/11 (`d:\marcu\Videos\OrionTN\OrionTN`), conectado ao remoto privado `https://github.com/marcusvpo/oriontnagentbrowser.git` com `.gitignore` blindado (ADR-023)  
-> **Camada Canônica de Memória:** `.agents/memory/` (`decisions/` ADR-001 a ADR-033; `standards/`)
+> **Camada Canônica de Memória:** `.agents/memory/` (`decisions/` ADR-001 a ADR-034; `standards/`)
 
 ---
 
@@ -222,6 +222,10 @@ O Claude Code **DEVE SEGUIR RIGOROSAMENTE** estas regras em qualquer intervenç�
     - **Zero Acoplamento no Loop do Navegador:** `auditoria/src/` permanece 100% em TypeScript (Node.js v22). O pacote Python em `scripts/antigravity-worker/` atua como ferramenta satélite pós-lote, lendo credenciais exclusivamente de `auditoria/.env` (`config.py`, modelo primário `gemini-4-hydrogen-xhigh` com fallback para `gemini-4-hydrogen-high`).
     - **Curador em Lote de Set-of-Mark (`scripts/antigravity-worker/curate_som_sdk.py` / `npm --prefix auditoria run curate:sdk`):** usa `google.antigravity` com Structured Outputs em Pydantic (`SomTargetDecision`), aplica a trava da ADR-027 (`confidence >= 0.70`, Zona Semântica, Guarda Anti-Busca e Matriz Intenção × Papel), atualiza `human-reviews-cache.json` (Camada 0.1) + `curated-route-synonyms.json` (Camada 0.2) e remove o item curado de `pending-som-queue.json`. Flags: `--limit N`, `--dry-run` e `--verbose`.
     - **Verificador Semântico Multimodal Pós-Lote (`scripts/antigravity-worker/semantic_visual_verifier.py` / `npm --prefix auditoria run verify:semantics`):** inspeciona relatórios `*-revisado.md` com `status: validado_com_ajustes` e passos auto-curados, avalia a moldura carmesim via `SemanticAuditResult` (Pydantic), gera `auditoria/cache/semantic-audit-report.json` e sinaliza para revisão prioritária (`status_governanca = 'revisao_solicitada'`) passos com `visual_confidence < 0.85` ou `semantic_match == False`.
+27. **SUPER-CONTEXTO CONTÍNUO GITHUB → GOOGLE DRIVE (NOTEBOOKLM) VIA `repomix` + DRIVE API v3 + GITHUB ACTIONS (ADR-034):**
+    - **4 pacotes, cada um < 950.000 caracteres** (limite de conversão do Google Docs): `repomix.memory.config.json` (memória, ADRs, padrões, contratos, migrations), `repomix.engine.config.json` (núcleo do motor), `repomix.engine2.config.json` (periferia do motor + `scripts/`) e `repomix.console.config.json` (Console + testes do motor), saídas em `.repomix-output/` (ignorado pelo Git) via `npm run pack:context`. `phase3-manifest.ts` (dados) fica fora. A lista do núcleo vive em dois configs (`include` do 02a, `ignore` do 02b): altere os dois juntos e rode `npm run check:context`.
+    - **Somente `drive.files.update`** (`scripts/upload-to-drive.mjs` / `npm run sync:notebook`): nunca `files.create` (Service Account sem cota → `storageQuotaExceeded`). Os 4 Docs nativos existem antes e são compartilhados como Editor com a Service Account. Pacote > 950.000 caracteres ou ID ausente aborta antes de qualquer upload; `.env` local é opcional (`try/catch` em `process.loadEnvFile`).
+    - **Segredos só por nome:** `GDRIVE_SERVICE_ACCOUNT_KEY` (fallback `GOOGLE_APPLICATION_CREDENTIALS`), `GDRIVE_FILE_ID_MEMORY`, `GDRIVE_FILE_ID_ENGINE`, `GDRIVE_FILE_ID_ENGINE_2`, `GDRIVE_FILE_ID_CONSOLE`. Nunca gravar chave, ID de documento, e-mail da Service Account ou IP interno em código, ADR ou commit. Workflow: `.github/workflows/sync-notebook-context.yml` (`push` na `main` + `workflow_dispatch`).
 
 ---
 
@@ -260,6 +264,7 @@ O Claude Code não precisa adivinhar regras ou duplicar conhecimento. Antes de t
 * [`ADR-031`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-031-pipeline-visual-hibrido-set-of-mark-som-grounding-agy-camada-2c.md): Pipeline visual híbrido Set-of-Mark (SoM) em memória com Sharp + Visual Grounding DOM (`elementFromPoint`) como Camada 2C via Antigravity CLI (`agy` em `Gemini 4 Hydrogen Extra`), `AsyncSemaphore(1)`, modos `--visual-mode live | defer` e curadoria pós-lote (`visual:curate`).
 * [`ADR-032`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-032-servidor-mcp-orion-audit-chrome-devtools-worker-daemon-e-exportadores.md): Servidor MCP local `orion-audit` (7 tools via `stdio` + Pooler PostgreSQL IPv4), `chrome-devtools-mcp`, Worker Daemon Realtime (`worker:daemon`) e exportadores `--export-docs` e `--export-playwright`.
 * [`ADR-033`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-033-antigravity-python-sdk-curator-e-verificador-semantico.md): Orquestrador satélite Google Antigravity Python SDK v0.1.23 (`scripts/antigravity-worker/`) para curadoria Set-of-Mark em lote (`curate_som_sdk.py`) e verificação semântica multimodal pós-lote (`semantic_visual_verifier.py`) com Structured Outputs em Pydantic.
+* [`ADR-034`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/decisions/ADR-034-super-contexto-repomix-google-drive-notebooklm.md): Super-Contexto contínuo GitHub → Google Drive (NotebookLM): 4 pacotes `repomix` < 950.000 caracteres, `scripts/upload-to-drive.mjs` (somente `drive.files.update`), workflow `sync-notebook-context.yml` e secrets `GDRIVE_*` (só nomes).
 
 ### 4.2. Padrões e Especificações (`.agents/memory/standards/`):
 * [`design_system_siplan.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/design_system_siplan.md): Paleta Siplan (Carmesim `#ad0505`, Bordô `#5a0000`), tipografia Oswald/Lato e seletores CSS.
@@ -267,6 +272,7 @@ O Claude Code não precisa adivinhar regras ou duplicar conhecimento. Antes de t
 * [`glossario_siplan.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/glossario_siplan.md): Dicionário de produtos (Orion TN, Caixa, Estoque, Connect, Cartflow, ONR/SAEC), perfil pleno `4tabeliao.scs` e árvore canônica de módulos/telas do Orion TN 6.0.
 * [`permiss_es_oriontn_4tabeliao_scs.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/auditoria/reports/permiss_es_oriontn_4tabeliao_scs.md): Árvore oficial completa de permissões (`[x]` em 100% das funcionalidades) da conta de homologação `4tabeliao.scs`.
 * [`schema_rotinas_v3.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/schema_rotinas_v3.md): Schema canônico YAML para rotinas com e sem vídeo.
+* [`super_contexto_drive_notebooklm.md`](file:///d:/marcu/Videos/OrionTN/OrionTN/.agents/memory/standards/super_contexto_drive_notebooklm.md): Comandos `pack:context`/`check:context`/`sync:notebook`, pacotes e limites, variáveis `GDRIVE_*` e diagnóstico do upload para o Google Drive (ADR-034).
 
 ---
 
@@ -331,3 +337,11 @@ npx --prefix auditoria tsx auditoria/src/run-phase2-master.ts --only=M-16.2,M-16
 python scripts/build_kb.py
 ```
 *(Critério de aceite: 471 rotinas atômicas validadas sem erros).*
+
+### 5. Super-Contexto para o NotebookLM (ADR-034):
+```powershell
+npm run pack:context      # 4 pacotes repomix em .repomix-output/ (ignorado pelo Git)
+npm run check:context     # valida configs e limite de 950.000 caracteres por pacote (offline)
+npm run sync:notebook     # pack + drive.files.update nos 4 Google Docs (exige as variáveis GDRIVE_*)
+```
+*(Critério de aceite: `check:context` com código 0; upload real só no CI ou com `.env` local ignorado pelo Git).*

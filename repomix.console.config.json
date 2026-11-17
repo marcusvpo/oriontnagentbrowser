@@ -1,0 +1,66 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": ".repomix-output/03-console-e-testes.md",
+    "style": "markdown",
+    "headerText": "ORION TN - Super-Contexto (Parte 4/4): Orion Audit Console (React/TanStack, com testes) + suite de testes do motor (auditoria/src/__tests__). Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "fileSummary": true,
+    "directoryStructure": true,
+    "removeComments": false,
+    "removeEmptyLines": true,
+    "showLineNumbers": false
+  },
+  "include": [
+    "Orion Audit Console/package.json",
+    "Orion Audit Console/tsconfig.json",
+    "Orion Audit Console/src/**/*.ts",
+    "Orion Audit Console/src/**/*.tsx",
+    "auditoria/src/__tests__/**/*.ts"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "Orion Audit Console/src/routeTree.gen.ts",
+      "Orion Audit Console/src/.generated/**",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.repomix-output/**",
+      "auditoria/rotinas/**",
+      "auditoria/backup/**",
+      "auditoria/backups/**",
+      "auditoria/cache/**",
+      "auditoria/auth/**",
+      "auditoria/exports/**",
+      "auditoria/design system/**",
+      "kb/**",
+      "rotinas/**",
+      "doc conhecimento final/**",
+      "novas transcricoes/**",
+      "novos contextos/**",
+      "orion-tn-tickets/**",
+      "testes playground/**",
+      "timestamp/**",
+      "transcricoes que estavam faltando/**",
+      "txts brutos/**",
+      "**/*_corrigido.md",
+      "OrionTN.md",
+      "SUPER_PROMPT_BASE_CONHECIMENTO_ORION_REG.md",
+      "**/__pycache__/**",
+      "**/.venv/**",
+      "**/*.pyc",
+      "**/package-lock.json",
+      "**/bun.lock",
+      "**/*.webp",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.ico",
+      "**/*.pdf",
+      "**/*.zip"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

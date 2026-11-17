@@ -1,0 +1,70 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": ".repomix-output/01-memoria-e-contratos.md",
+    "style": "markdown",
+    "headerText": "ORION TN - Super-Contexto (Parte 1/4): Memoria Viva, ADRs, padroes, skills, contratos de tipos e migrations SQL. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "fileSummary": true,
+    "directoryStructure": true,
+    "removeComments": false,
+    "removeEmptyLines": true,
+    "showLineNumbers": false
+  },
+  "include": [
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".mcp.json",
+    "package.json",
+    ".agents/memory/**/*.md",
+    ".agents/skills/**/*.md",
+    "auditoria/package.json",
+    "auditoria/tsconfig.json",
+    "auditoria/src/types.ts",
+    "auditoria/src/manifests/phase3-types.ts",
+    "auditoria/supabase/**/*.sql"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.repomix-output/**",
+      "auditoria/rotinas/**",
+      "auditoria/backup/**",
+      "auditoria/backups/**",
+      "auditoria/cache/**",
+      "auditoria/auth/**",
+      "auditoria/exports/**",
+      "auditoria/design system/**",
+      "kb/**",
+      "rotinas/**",
+      "doc conhecimento final/**",
+      "novas transcricoes/**",
+      "novos contextos/**",
+      "orion-tn-tickets/**",
+      "testes playground/**",
+      "timestamp/**",
+      "transcricoes que estavam faltando/**",
+      "txts brutos/**",
+      "**/*_corrigido.md",
+      "OrionTN.md",
+      "SUPER_PROMPT_BASE_CONHECIMENTO_ORION_REG.md",
+      "**/__pycache__/**",
+      "**/.venv/**",
+      "**/*.pyc",
+      "**/package-lock.json",
+      "**/bun.lock",
+      "**/*.webp",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.ico",
+      "**/*.pdf",
+      "**/*.zip"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

@@ -32,6 +32,11 @@ auditoria/test-output/*.png
 # 5. Prints PNG pesados ficam apenas localmente (versionar *-revisado.md e .webp)
 auditoria/rotinas/**/*.png
 
-# 6. Sistema operacional / editores
+# 6. Super-Contexto (repomix -> Google Drive/NotebookLM, ADR-034): saidas geradas e credenciais
+.repomix-output/
+credentials.json
+service-account*.json
+
+# 7. Sistema operacional / editores
 .DS_Store
 Thumbs.db

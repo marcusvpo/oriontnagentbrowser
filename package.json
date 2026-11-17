@@ -9,6 +9,17 @@
     "dev:mock": "npm --prefix \"Orion Audit Console\" run dev:mock",
     "server": "npm --prefix auditoria run server",
     "audit": "npm --prefix auditoria run audit",
-    "test": "npm --prefix \"Orion Audit Console\" test"
+    "test": "npm --prefix \"Orion Audit Console\" test",
+    "pack:memory": "repomix --config repomix.memory.config.json",
+    "pack:engine": "repomix --config repomix.engine.config.json",
+    "pack:engine2": "repomix --config repomix.engine2.config.json",
+    "pack:console": "repomix --config repomix.console.config.json",
+    "pack:context": "npm run pack:memory && npm run pack:engine && npm run pack:engine2 && npm run pack:console",
+    "check:context": "node scripts/upload-to-drive.mjs --check",
+    "sync:notebook": "npm run pack:context && node scripts/upload-to-drive.mjs"
+  },
+  "devDependencies": {
+    "googleapis": "^190.0.0",
+    "repomix": "^1.19.0"
   }
 }
