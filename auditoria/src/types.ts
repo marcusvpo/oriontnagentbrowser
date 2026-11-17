@@ -10,6 +10,20 @@ export type ActionType = 'click' | 'fill' | 'search' | 'select' | 'check' | 'nav
 export type AnchorPlacement = 'top' | 'bottom' | 'right' | 'left' | 'auto';
 
 /**
+ * Modo de operação da Camada 2C (Set-of-Mark + Visual Grounding via Antigravity CLI `agy` — ADR-031):
+ * - `live`: aciona `agy` (`Gemini 4 Hydrogen Extra`) em tempo real quando as Camadas 0–2A falham (padrão em `--routines` / `--routine`).
+ * - `defer`: não dispara subprocessos `agy` durante lotes grandes (`--phase` / `--reaudit-pending`); grava os overlays SoM
+ *            em `auditoria/cache/pending-som/` para curadoria em bloco pós-lote via `npm --prefix auditoria run visual:curate`.
+ */
+export type VisualAuditMode = 'live' | 'defer';
+
+/** Candidato interativo de entrada para o renderizador efêmero Set-of-Mark (ADR-031). */
+export interface SetOfMarkCandidateInput {
+  id: number;
+  box: BoundingBox;
+}
+
+/**
  * Classificação de carga da rotina para escalonamento no Worker Pool:
  * - `read_only`: Consultas, visualizações e relatórios (alta concorrência: 4 a 6 workers).
  * - `mutation`: Cadastros, alterações, inativações e parametrizações que gravam no banco WildFly/PostgreSQL
@@ -250,10 +264,14 @@ export interface SmartLocatorDivergence {
   /** `target_not_found`: alvo citado no passo que não existe na zona de conteúdo e não pôde ser curado */
   /** `permission_blocked`: o alvo existe, mas a aplicação o marca como bloqueado/oculto para o perfil logado (ADR-017) */
   /** `investigative_reveal`: o alvo só aparece após um gatilho revelador seguro da própria tela (ADR-018) */
+  /** `visual_som_fallback`: Camada 2C Set-of-Mark (SoM) em memória + VLM `agy` + validação DOM (ADR-031) */
+  /** `visual_grounding_fallback`: Camada 2C Visual Grounding `[0..1000]` -> `elementFromPoint` + DOM (ADR-031) */
   resolutionLayer:
     | 'dom_synonym_heuristic'
     | 'a11y_fuzzy_match'
     | 'llm_a11y_fallback'
+    | 'visual_som_fallback'
+    | 'visual_grounding_fallback'
     | 'menu_path_resolution'
     | 'target_not_found'
     | 'permission_blocked'

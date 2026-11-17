@@ -1,8 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
-import type { AnnotationOptions, AnnotationOutput, BoundingBox, Point } from './types.js';
-import { clamp, computeMultiAnnotationLayout, computeOptimalAnnotationLayout } from './dom-geometry.js';
+import type { AnnotationOptions, AnnotationOutput, BoundingBox, Point, SetOfMarkCandidateInput } from './types.js';
+import { clamp, computeMultiAnnotationLayout, computeOptimalAnnotationLayout, calculateRectIntersection as intersectionArea } from './dom-geometry.js';
+
+/** Limite máximo de candidatos interativos numerados no overlay Set-of-Mark (ADR-031). */
+export const MAX_SOM_CANDIDATES = 45;
 
 // Biblioteca de Ícones Vetoriais SVG (Baseados no Guia de Estilos Siplan / SPCM)
 const SVG_ICONS: Record<string, string> = {
@@ -401,4 +404,182 @@ function escapeXml(unsafe: string): string {
       default: return c;
     }
   });
+}
+
+function pointInsideBox(x: number, y: number, b: BoundingBox): boolean {
+  return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;
+}
+
+/**
+ * Calcula a caixa da tag numerada `[id]` de um candidato Set-of-Mark (ADR-031),
+ * garantindo por deslocamento determinístico que a tag nunca cubra o centro `(cx, cy)` do próprio alvo
+ * e minimize colisão com o alvo e com outras tags já posicionadas no mesmo frame.
+ */
+export function computeSetOfMarkTagPlacement(
+  box: BoundingBox,
+  tagSize: { width: number; height: number },
+  imgWidth = 1440,
+  imgHeight = 900,
+  occupiedTags: BoundingBox[] = []
+): BoundingBox {
+  const tw = Math.max(20, Math.round(tagSize.width));
+  const th = Math.max(16, Math.round(tagSize.height));
+  const target: BoundingBox = {
+    x: clamp(Math.round(box.x), 2, Math.max(2, imgWidth - 4)),
+    y: clamp(Math.round(box.y), 2, Math.max(2, imgHeight - 4)),
+    width: Math.max(2, Math.round(box.width)),
+    height: Math.max(2, Math.round(box.height))
+  };
+  const cx = target.x + target.width / 2;
+  const cy = target.y + target.height / 2;
+  const centerGuardBox: BoundingBox = {
+    x: Math.round(cx - 3),
+    y: Math.round(cy - 3),
+    width: 6,
+    height: 6
+  };
+
+  const clampTag = (x: number, y: number): BoundingBox => ({
+    x: clamp(Math.round(x), 2, Math.max(2, imgWidth - tw - 2)),
+    y: clamp(Math.round(y), 2, Math.max(2, imgHeight - th - 2)),
+    width: tw,
+    height: th
+  });
+
+  // Posições candidatas ao redor e nos cantos do alvo (afastadas do centro)
+  const rawPositions: Array<{ x: number; y: number }> = [
+    // 1. Acima à esquerda (externo)
+    { x: target.x, y: target.y - th - 2 },
+    // 2. Abaixo à esquerda (externo)
+    { x: target.x, y: target.y + target.height + 2 },
+    // 3. À esquerda (externo)
+    { x: target.x - tw - 2, y: target.y },
+    // 4. À direita (externo)
+    { x: target.x + target.width + 2, y: target.y },
+    // 5. Acima à direita (externo)
+    { x: target.x + target.width - tw, y: target.y - th - 2 },
+    // 6. Abaixo à direita (externo)
+    { x: target.x + target.width - tw, y: target.y + target.height + 2 },
+    // 7. Deslocamento diagonal superior esquerdo
+    { x: target.x - tw, y: target.y - th },
+    // 8. Deslocamento diagonal inferior direito
+    { x: target.x + target.width, y: target.y + target.height },
+    // 9. Canto interno mais distante do centro (para contêineres grandes que tocam as bordas)
+    {
+      x: cx >= imgWidth / 2 ? target.x + 2 : target.x + target.width - tw - 2,
+      y: cy >= imgHeight / 2 ? target.y + 2 : target.y + target.height - th - 2
+    }
+  ];
+
+  let best: BoundingBox | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (const pos of rawPositions) {
+    const candidate = clampTag(pos.x, pos.y);
+    const coversCenter =
+      pointInsideBox(cx, cy, candidate) || intersectionArea(candidate, centerGuardBox) > 0;
+    const targetOverlap = intersectionArea(candidate, target);
+    const occupiedOverlap = occupiedTags.reduce((sum, occ) => sum + intersectionArea(candidate, occ), 0);
+
+    const score =
+      (coversCenter ? 1_000_000 : 0) +
+      occupiedOverlap * 50 +
+      targetOverlap * 5;
+
+    if (score < bestScore) {
+      bestScore = score;
+      best = candidate;
+      if (score === 0) break;
+    }
+  }
+
+  let chosen = best ?? clampTag(target.x, target.y - th - 2);
+
+  // Garantia determinística final: se por clamping de borda extrema ainda cobrir `(cx, cy)`,
+  // desloca perpendicularmente para fora do centro do elemento.
+  if (pointInsideBox(cx, cy, chosen) || intersectionArea(chosen, centerGuardBox) > 0) {
+    const shiftRight = Math.round(cx + 6);
+    const shiftLeft = Math.round(cx - tw - 6);
+    const shiftDown = Math.round(cy + 6);
+    const shiftUp = Math.round(cy - th - 6);
+    const fallbacks = [
+      clampTag(shiftRight, chosen.y),
+      clampTag(shiftLeft, chosen.y),
+      clampTag(chosen.x, shiftDown),
+      clampTag(chosen.x, shiftUp)
+    ];
+    const safe = fallbacks.find(f => !pointInsideBox(cx, cy, f));
+    if (safe) chosen = safe;
+  }
+
+  return chosen;
+}
+
+/**
+ * Renderizador Set-of-Mark (SoM) Efêmero em Memória (ADR-031):
+ * - Recebe `screenshotBuffer` e até 45 candidatos interativos `{ id, box }`.
+ * - Desenha em buffer de memória (NUNCA grava em disco nem altera `passo-NN.png`) molduras tracejadas
+ *   e tags numeradas de alto contraste `[1]..[N]` sobre a captura `1440×900`, deslocando cada tag
+ *   para não cobrir o centro do próprio alvo.
+ */
+export async function renderSetOfMarkOverlay(
+  screenshotBuffer: Buffer,
+  candidates: Array<SetOfMarkCandidateInput>
+): Promise<Buffer> {
+  if (!Buffer.isBuffer(screenshotBuffer) || screenshotBuffer.length === 0) {
+    throw new Error('renderSetOfMarkOverlay exige um screenshotBuffer PNG válido em memória.');
+  }
+
+  const baseSharp = sharp(screenshotBuffer);
+  const metadata = await baseSharp.metadata();
+  const imgWidth = metadata.width || 1440;
+  const imgHeight = metadata.height || 900;
+
+  const capped = (candidates || []).slice(0, MAX_SOM_CANDIDATES);
+  if (capped.length === 0) {
+    return baseSharp.png().toBuffer();
+  }
+
+  const occupiedTags: BoundingBox[] = [];
+  const rectsSvg: string[] = [];
+  const tagsSvg: string[] = [];
+
+  for (const item of capped) {
+    const id = Number(item.id);
+    if (!Number.isFinite(id)) continue;
+
+    const rx = clamp(Math.round(item.box.x), 1, Math.max(1, imgWidth - 3));
+    const ry = clamp(Math.round(item.box.y), 1, Math.max(1, imgHeight - 3));
+    const rw = clamp(Math.round(item.box.width), 2, Math.max(2, imgWidth - rx - 1));
+    const rh = clamp(Math.round(item.box.height), 2, Math.max(2, imgHeight - ry - 1));
+    const clampedBox: BoundingBox = { x: rx, y: ry, width: rw, height: rh };
+
+    const tagLabel = `[${id}]`;
+    const tagW = Math.max(28, tagLabel.length * 8 + 8);
+    const tagH = 20;
+    const tagBox = computeSetOfMarkTagPlacement(clampedBox, { width: tagW, height: tagH }, imgWidth, imgHeight, occupiedTags);
+    occupiedTags.push(tagBox);
+
+    rectsSvg.push(
+      `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="3" ry="3" fill="#FF0055" fill-opacity="0.06" stroke="#FF0055" stroke-width="2" stroke-dasharray="4,2"/>`
+    );
+    tagsSvg.push(
+      `<g transform="translate(${tagBox.x}, ${tagBox.y})">` +
+        `<rect x="0" y="0" width="${tagBox.width}" height="${tagBox.height}" rx="4" ry="4" fill="#111111" fill-opacity="0.94" stroke="#FFD600" stroke-width="1.8"/>` +
+        `<text x="${(tagBox.width / 2).toFixed(1)}" y="14" text-anchor="middle" font-family="'Oswald', 'Consolas', Arial, sans-serif" font-size="12" font-weight="700" fill="#FFD600">${escapeXml(tagLabel)}</text>` +
+      `</g>`
+    );
+  }
+
+  const somSvg = `
+    <svg width="${imgWidth}" height="${imgHeight}" viewBox="0 0 ${imgWidth} ${imgHeight}" xmlns="http://www.w3.org/2000/svg">
+      ${rectsSvg.join('\n      ')}
+      ${tagsSvg.join('\n      ')}
+    </svg>
+  `.trim();
+
+  return baseSharp
+    .composite([{ input: Buffer.from(somSvg), top: 0, left: 0 }])
+    .png({ compressionLevel: 6 })
+    .toBuffer();
 }

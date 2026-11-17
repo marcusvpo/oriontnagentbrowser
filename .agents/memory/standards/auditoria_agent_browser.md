@@ -602,3 +602,23 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * `cli.ts --crawl-map [--headless] [--max-routes N]` executa `crawlOrionRouteGraph` em modo somente-leitura e grava `auditoria/cache/orion-route-graph.json`.
 * Conectado como pista auxiliar (sem substituir evidência ao vivo) em `chooseMenuItem` (`tail_as_screen_section`), `buildMenuPathMissingEvidence` (`leafElsewhere`) e `att-screen-advisor.ts` (`crossRouteHints` / `pistas_mapa_rotas`).
 * Testes offline em `auditoria/src/__tests__/adr030-deep-dom-angular-net-crawler.test.ts` (169/169 testes em 42 suítes).
+
+---
+
+## 20. Pipeline Visual Híbrido Set-of-Mark (SoM) em Memória + Visual Grounding DOM via `agy` na Camada 2C (ADR-031)
+
+### 20.1. Renderizador Set-of-Mark Efêmero (`annotator.ts`)
+* `renderSetOfMarkOverlay(screenshotBuffer: Buffer, candidates: Array<{ id: number; box: BoundingBox }>): Promise<Buffer>` compõe em **buffer de memória** (sem gravar em disco nem alterar `passo-NN.png`) até 45 candidatos interativos (`MAX_SOM_CANDIDATES = 45`) sobre a captura `1440×900`.
+* `computeSetOfMarkTagPlacement(box, tagSize, imgWidth, imgHeight, occupiedTags)` desloca cada badge `[1]..[N]` para fora do ponto central `(cx, cy)` do próprio elemento e evita sobreposição com tags vizinhas.
+
+### 20.2. Cliente Exclusivo Antigravity CLI (`agy-client.ts`)
+* Provedor único das Camadas 2B e 2C: CLI local `agy` configurado em **`Gemini 4 Hydrogen Extra`** (`--print --model gemini-4-hydrogen-xhigh --effort xhigh --output-format json --disable-slash-commands`), aposentando `OPENAI_API_KEY` e `claude -p`.
+* Prompt enviado obrigatoriamente via **`STDIN`** (`child.stdin`), timeout configurável (`45s` padrão), serialização global via **`agyInferenceSemaphore = new AsyncSemaphore(1)`**, escrita efêmera de imagem em `auditoria/cache/som-worker-${workerId}-${Date.now()}.png` (`withEphemeralSomImage`) com remoção garantida no `finally`, e degradação graciosa (`null`) diante de erro, timeout ou cota.
+
+### 20.3. Sub-camada 2C (`smart-locator.ts`) e Modos `--visual-mode live | defer` (`cli.ts`, `curate-pending-som.ts`)
+* **`live` (padrão em `--routines` / `--routine`):**
+  1. **2C-SoM (`resolveViaSetOfMark2C`):** coleta candidatos interativos visíveis na zona do passo (`collectInteractiveSomCandidates`, carimbando `data-orion-som-id="1..N"`), envia o overlay SoM ao `agy` (`{"tagId": number | null, "confidence": number, "reason": string}`), valida o candidato com `validateVisualCandidateSemantics` (`forbiddenCandidateReason`, Filtro de Zona Semântica e `evaluateSemanticCompatibility` da ADR-027) e mede `getBoundingClientRect()` real via `client.getDOMGeometry` (`resolutionLayer: 'visual_som_fallback'`).
+  2. **2C-Grounding (`resolveViaVisualGrounding2C`):** fallback para Canvas/OOPIF; envia a screenshot limpa `1440×900`, converte `[0..1000]` em pixels via `normalizedPointToViewportPx`, ancora no DOM via `document.elementFromPoint(px, py)` (incluindo Open Shadow DOM e iframes via `buildAnchorVisualPointScript`), aplica `validateVisualCandidateSemantics` e mede `getBoundingClientRect()` real (`resolutionLayer: 'visual_grounding_fallback'`).
+* **`defer` (padrão em `--phase` / `--reaudit-pending`):** não dispara subprocessos `agy` durante lotes; grava overlays em `auditoria/cache/pending-som/<routineId>-passo-<NN>-som.png` e registra metadados em `auditoria/cache/pending-som/pending-som-queue.json` (`enqueuePendingSomForCuration`).
+* **Curadoria Pós-Lote (`curate-pending-som.ts`, `npm --prefix auditoria run visual:curate`):** processa `pending-som-queue.json` em bloco via `agy` (`Gemini 4 Hydrogen Extra`), valida com `validateVisualCandidateSemantics` e grava os mapeamentos aprovados em `human-reviews-cache.json` / `routine_reviews` (`upsertVisualCuratedTargetOverride`, Camada 0.1) e em `curated-route-synonyms.json` (`upsertCuratedRouteSynonym`, Camada 0.2).
+* Testes offline em `auditoria/src/__tests__/visual-som-layer.test.ts` (181/181 testes aprovados em 45 suítes).

@@ -17,7 +17,8 @@ import { writePreTriagedDddReport } from './hardware-pretriage.js';
 import { REVIEW_TAGS, isReviewStatus, type ReviewTag } from './review-taxonomy.js';
 import { seedHumanReviews } from './seed-human-reviews.js';
 import { crawlOrionRouteGraph } from './route-crawler.js';
-import type { AuditRoutineReport, WorkloadType } from './types.js';
+import { resolveVisualAuditMode, AGY_MODEL_LABEL } from './agy-client.js';
+import type { AuditRoutineReport, VisualAuditMode, WorkloadType } from './types.js';
 
 const argValue = (args: string[], flag: string): string | null => {
   const inline = args.find(a => a.startsWith(`${flag}=`));
@@ -43,12 +44,14 @@ async function main() {
   // Auto-seed de registro mock (ADR-021): ligado por padrão; --no-auto-seed desliga
   // Write-through para o Supabase (ADR-022/023): ligado por padrão; --no-sync desliga em testes offline
   const noSync = args.includes('--no-sync') || process.env.ORION_NO_SYNC === 'true';
+  const visualMode: VisualAuditMode = resolveVisualAuditMode(args);
   const executorOptions: ExecutorOptions = {
     dryRunMutations,
     explore: !args.includes('--no-explore'),
     // ADR-025: `ORION_AUTO_SEED=false` desliga no ambiente compartilhado; a flag da CLI sobrepõe o .env
     autoSeed: args.includes('--auto-seed') ? true : args.includes('--no-auto-seed') ? false : config.autoSeedDefault,
-    syncToSupabase: !noSync
+    syncToSupabase: !noSync,
+    visualMode
   };
 
   const phaseArg = argValue(args, '--phase');
@@ -67,6 +70,9 @@ async function main() {
   );
   console.log(
     `  Sync Supabase em Tempo Real: ${noSync ? 'DESLIGADO (--no-sync)' : 'ATIVO (Write-Through por rotina)'}`
+  );
+  console.log(
+    `  Camada Visual 2B/2C (ADR-031): modo "${visualMode}" (${visualMode === 'live' ? `tempo real via agy [${AGY_MODEL_LABEL}]` : 'enfileira em auditoria/cache/pending-som/ para visual:curate'})`
   );
 
   /** Executa um lote de rotinas do KB no Worker Pool, com reinício de estado por rotina. */
@@ -371,6 +377,7 @@ async function main() {
       console.log('  --phase 3 --pretriage-only  gera apenas os 7 relatórios [DDD] de hardware (sem navegador)');
       console.log('  --no-auto-seed      não cria registro mock quando a grade está vazia (ADR-021); --auto-seed liga (sobrepõe ORION_AUTO_SEED)');
       console.log('  --reaudit-pending   reaudita as rotinas pendentes/bloqueadas das Fases 2 e 3, sem as de hardware (ADR-025); --list-only só lista');
+      console.log('  --visual-mode       modo da Camada 2B/2C: "live" (padrão em --routines/--routine) ou "defer" (padrão em --phase/--reaudit-pending)');
       console.log('  --no-sync           desliga sincronização automática com o Supabase (apenas testes offline)');
     }
   } catch (err: any) {

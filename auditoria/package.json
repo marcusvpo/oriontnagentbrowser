@@ -8,6 +8,7 @@
     "supabase:migrate": "tsx src/migrate-supabase.ts",
     "supabase:sync": "tsx src/sync-supabase.ts",
     "audit": "tsx src/cli.ts",
+    "visual:curate": "tsx src/curate-pending-som.ts",
     "test": "tsx --test \"src/__tests__/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "test:annotator": "tsx src/test-annotator.ts",

@@ -74,6 +74,7 @@ import type {
   RoutineBlockInfo,
   RoutineStep,
   StepZonePolicy,
+  VisualAuditMode,
   WorkloadType
 } from './types.js';
 
@@ -170,6 +171,11 @@ export interface ExecutorOptions {
    * reaproveita curas e rotas comprovadas como dica de busca e grava o `historico_reauditoria`. Default: ligada.
    */
   priorAudit?: boolean;
+  /**
+   * Modo de operação da Camada 2B/2C (`live` | `defer` — ADR-031):
+   * `live` invoca `agy` em tempo real; `defer` salva os overlays SoM em `auditoria/cache/pending-som/`.
+   */
+  visualMode?: VisualAuditMode;
 }
 
 const framePrintName = (padStep: string, letter: string) => (letter === 'a' ? `passo-${padStep}.png` : `passo-${padStep}-${letter}.png`);
@@ -943,7 +949,9 @@ export async function executeRoutineAudit(
         // Alvo implícito vem de um rótulo real da tela: nunca é curado para outro nome (Evidência Estrita)
         allowHealing: !isOptionsOnly && !implicit,
         priorHints: hintsForStep(prior, step.stepNumber),
-        priorMenuChains: chainsForStep(prior, step.stepNumber)
+        priorMenuChains: chainsForStep(prior, step.stepNumber),
+        visualMode: options.visualMode ?? 'live',
+        workerSessionId
       };
       if (prior.block?.stepNumber === step.stepNumber) {
         console.log(`   [Reauditoria] ↺ Checkpoint: este é o passo em que a rotina parou no ambiente anterior${prior.block.tipo ? ` (${prior.block.tipo})` : ''}; verificando se agora é superado.`);

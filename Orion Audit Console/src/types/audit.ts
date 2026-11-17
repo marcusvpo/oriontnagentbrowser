@@ -38,7 +38,7 @@ export interface SmartLocatorDivergence {
   actualElementText: string;
   actualRole?: string;
   matchedRef?: string;
-  resolutionLayer: 'dom_synonym_heuristic' | 'a11y_fuzzy_match' | 'llm_a11y_fallback' | 'menu_path_resolution' | 'target_not_found' | 'permission_blocked' | 'investigative_reveal';
+  resolutionLayer: 'dom_synonym_heuristic' | 'a11y_fuzzy_match' | 'llm_a11y_fallback' | 'visual_som_fallback' | 'visual_grounding_fallback' | 'menu_path_resolution' | 'target_not_found' | 'permission_blocked' | 'investigative_reveal';
   confidence: number; // 0..1
   reason: string;
   detectedAt: string; // ISO

@@ -1,7 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { config } from './config.js';
+
 /**
- * Sinônimos contextuais por rota (`location.hash`) descobertos pelo Raio-X das telas `[ATT]` (ADR-029, Cluster C).
+ * Sinônimos contextuais por rota (`location.hash`) descobertos pelo Raio-X das telas `[ATT]` (ADR-029, Cluster C)
+ * e enriquecidos pela curadoria visual Set-of-Mark pós-lote (`visual:curate`, ADR-031).
  *
- * Módulo PURO. Cada entrada diz: na tela de rota X, o rótulo que o manual cita (`documented`) é, por função
+ * Módulo PURO na comparação, com leitura opcional de sinônimos curados em `auditoria/cache/curated-route-synonyms.json`.
+ * Cada entrada diz: na tela de rota X, o rótulo que o manual cita (`documented`) é, por função
  * semântica, o controle/aba que a tela real chama de `real`. Evidência de cada entrada: o campo/aba reais foram
  * lidos ao vivo (`diagnostico_tela_att` ou sondagem de leitura) e o tipo do controle é compatível.
  *
@@ -22,6 +28,56 @@ export interface RouteLabelSynonym {
   kind: RouteSynonymKind;
   /** Por que a equivalência é inequívoca dentro da tela */
   evidence: string;
+}
+
+const CURATED_ROUTE_SYNONYMS_FILE = () =>
+  path.join(config.rootDir, 'auditoria', 'cache', 'curated-route-synonyms.json');
+
+let curatedRouteSynonymsCache: RouteLabelSynonym[] | null = null;
+
+export function getCuratedRouteSynonyms(): RouteLabelSynonym[] {
+  if (curatedRouteSynonymsCache) return curatedRouteSynonymsCache;
+  const file = CURATED_ROUTE_SYNONYMS_FILE();
+  if (fs.existsSync(file)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (Array.isArray(parsed)) {
+        curatedRouteSynonymsCache = parsed;
+        return curatedRouteSynonymsCache;
+      }
+    } catch {}
+  }
+  curatedRouteSynonymsCache = [];
+  return curatedRouteSynonymsCache;
+}
+
+/**
+ * Persiste idempotentemente um sinônimo contextual por rota aprovado pela curadoria visual (`visual:curate`, ADR-031).
+ */
+export function upsertCuratedRouteSynonym(entry: RouteLabelSynonym): RouteLabelSynonym[] {
+  const normRoute = routeKey(entry.route);
+  const normDoc = normalize(entry.documented);
+  if (!normRoute || !normDoc || !Array.isArray(entry.real) || entry.real.length === 0) {
+    return getCuratedRouteSynonyms();
+  }
+  const current = [...getCuratedRouteSynonyms()];
+  const existingIdx = current.findIndex(
+    s => routeKey(s.route) === normRoute && normalize(s.documented) === normDoc
+  );
+  const normalizedEntry: RouteLabelSynonym = {
+    ...entry,
+    route: normRoute
+  };
+  if (existingIdx >= 0) {
+    current[existingIdx] = normalizedEntry;
+  } else {
+    current.push(normalizedEntry);
+  }
+  curatedRouteSynonymsCache = current;
+  const file = CURATED_ROUTE_SYNONYMS_FILE();
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(current, null, 2), 'utf8');
+  return current;
 }
 
 export const ROUTE_LABEL_SYNONYMS: RouteLabelSynonym[] = [
@@ -65,10 +121,12 @@ export function routeSynonymsFor(hash: string | undefined | null, documented: st
   const key = routeKey(hash);
   if (!key) return [];
   const want = normalize(documented.replace(/\*\*/g, ''));
-  return ROUTE_LABEL_SYNONYMS.filter(s => s.route === key && normalize(s.documented) === want);
+  const combined = [...ROUTE_LABEL_SYNONYMS, ...getCuratedRouteSynonyms()];
+  return combined.filter(s => s.route === key && normalize(s.documented) === want);
 }
 
 /** Rótulos reais que a tabela espera numa rota (para a mineração conferir contra o Raio-X). */
 export function routeSynonymRoutes(): string[] {
-  return Array.from(new Set(ROUTE_LABEL_SYNONYMS.map(s => s.route)));
+  const combined = [...ROUTE_LABEL_SYNONYMS, ...getCuratedRouteSynonyms()];
+  return Array.from(new Set(combined.map(s => s.route)));
 }

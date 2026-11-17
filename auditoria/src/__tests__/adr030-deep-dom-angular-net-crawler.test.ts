@@ -624,39 +624,32 @@ describe('ADR-030 Parte A.2 — Poda Semântica e Ranqueamento na Camada 2B', ()
   });
 
   it('resolveViaLLMOnAccessibilityTree valida novamente compatibilidade sobre o @ref retornado pelo LLM', async () => {
-    const prevKey = process.env.OPENAI_API_KEY;
-    process.env.OPENAI_API_KEY = 'test-key';
-    try {
-      const step = stepOf(5, 'Selecione **Autenticidade**.', ['Autenticidade'], 'select');
-      const nodes: ParsedA11yNode[] = [
-        { ref: '@e10', role: 'combobox', name: 'Cidade', rawLine: 'combobox "Cidade"' },
-        { ref: '@e11', role: 'combobox', name: 'Tipo de Reconhecimento', rawLine: 'combobox "Tipo de Reconhecimento"', sectionTitle: 'Ato' }
-      ];
+    const step = stepOf(5, 'Selecione **Autenticidade**.', ['Autenticidade'], 'select');
+    const nodes: ParsedA11yNode[] = [
+      { ref: '@e10', role: 'combobox', name: 'Cidade', rawLine: 'combobox "Cidade"' },
+      { ref: '@e11', role: 'combobox', name: 'Tipo de Reconhecimento', rawLine: 'combobox "Tipo de Reconhecimento"', sectionTitle: 'Ato' }
+    ];
 
-      // LLM retorna @e10 (que já foi podado fora por weight === 0!)
-      const rejectedFetch = (async () =>
-        new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ref: '@e10', confidence: 0.9, reason: 'teste' }) } }] }), {
-          status: 200
-        })) as unknown as typeof fetch;
-      assert.equal(await resolveViaLLMOnAccessibilityTree(step, nodes, rejectedFetch), null);
+    // LLM retorna @e10 (que já foi podado fora por weight === 0!)
+    const rejectedFetch = (async () =>
+      new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ref: '@e10', confidence: 0.9, reason: 'teste' }) } }] }), {
+        status: 200
+      })) as unknown as typeof fetch;
+    assert.equal(await resolveViaLLMOnAccessibilityTree(step, nodes, rejectedFetch), null);
 
-      // LLM retorna @e11 (válido e presente na lista podada)
-      let sentBody = '';
-      const acceptedFetch = (async (_url: any, init: any) => {
-        sentBody = String(init?.body || '');
-        return new Response(
-          JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ref: '@e11', confidence: 0.85, reason: 'equivalente' }) } }] }),
-          { status: 200 }
-        );
-      }) as unknown as typeof fetch;
-      const hit = await resolveViaLLMOnAccessibilityTree(step, nodes, acceptedFetch);
-      assert.ok(hit);
-      assert.equal(hit!.node.ref, '@e11');
-      assert.match(sentBody, /\{Ato\}/, 'prompt compacto deve incluir {sectionTitle}');
-    } finally {
-      if (prevKey === undefined) delete process.env.OPENAI_API_KEY;
-      else process.env.OPENAI_API_KEY = prevKey;
-    }
+    // LLM retorna @e11 (válido e presente na lista podada)
+    let sentBody = '';
+    const acceptedFetch = (async (_url: any, init: any) => {
+      sentBody = String(init?.body || '');
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ref: '@e11', confidence: 0.85, reason: 'equivalente' }) } }] }),
+        { status: 200 }
+      );
+    }) as unknown as typeof fetch;
+    const hit = await resolveViaLLMOnAccessibilityTree(step, nodes, acceptedFetch);
+    assert.ok(hit);
+    assert.equal(hit!.node.ref, '@e11');
+    assert.match(sentBody, /\{Ato\}/, 'prompt compacto deve incluir {sectionTitle}');
   });
 });
 

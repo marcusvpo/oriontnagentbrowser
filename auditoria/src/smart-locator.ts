@@ -1,22 +1,39 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { AgentBrowserClient } from './browser.js';
 import { resolveAndNavigateMenuPath } from './menu-path.js';
 import { forbiddenCandidateReason, forbiddenMeasuredReason, synonymMatchesNode } from './navigation-guard.js';
 import { isGenericContainerMatch } from './evidence.js';
 import { isFullAccessSession, probePermissionBlockedTargets, readSessionIdentity } from './rbac.js';
-import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
+import { clamp, NAV_ZONE_SELECTOR } from './dom-geometry.js';
+import { MAX_SOM_CANDIDATES, renderSetOfMarkOverlay } from './annotator.js';
 import { resolveGridActions } from './icon-action-resolver.js';
 import { evaluateSemanticCompatibility } from './semantic-compatibility.js';
 import { getHumanTargetSuggestionsForStep } from './human-review-rag.js';
 import { routeSynonymsFor } from './route-synonyms.js';
+import { ACTIVE_MODAL_SELECTOR } from './modal-scope.js';
+import { config } from './config.js';
+import {
+  AsyncSemaphore,
+  invokeAgyJson,
+  invokeAgyVisionBufferJson,
+  parseStrictJsonFromAgyOutput,
+  type AgyTransportFn
+} from './agy-client.js';
 import type {
+  ActionType,
+  BoundingBox,
+  DOMAngularBindings,
   DOMCallout,
   DOMResolvedGeometry,
   DOMSemanticSignature,
+  Point,
   RoutineStep,
   SemanticRole,
   SmartLocatorDivergence,
   SmartLocatorResult,
-  StepZonePolicy
+  StepZonePolicy,
+  VisualAuditMode
 } from './types.js';
 
 export interface ParsedA11yNode {
@@ -832,24 +849,45 @@ export function pruneAndPrioritizeNodesForLLM(
 }
 
 /**
- * Sub-camada 2B: Fallback estruturado de chamada única ao LLM sobre a Árvore de Acessibilidade compacta.
- * Só é acionado se a Sub-camada 2A não atingir confiança >= 0.68 e houver chave de API configurada.
+ * Adapta um runner de teste (tanto `AgyTransportFn` quanto um mock de `fetch` legado `(url, init) => Promise<Response>`)
+ * para `AgyTransportFn`, permitindo que suítes de testes rodem 100% offline sem processos externos.
+ */
+function adaptCustomTransport(
+  customRunnerOrFetch?: AgyTransportFn | typeof fetch
+): AgyTransportFn | undefined {
+  if (!customRunnerOrFetch) return undefined;
+  return async req =>
+    (customRunnerOrFetch as any)(req, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: req.prompt,
+        imagePath: req.imagePath,
+        model: req.model,
+        effort: req.effort
+      })
+    });
+}
+
+/**
+ * Sub-camada 2B (ADR-030 / ADR-031): Fallback estruturado de chamada única ao Antigravity CLI (`agy`)
+ * configurado em `Gemini 4 Hydrogen Extra` sobre a Árvore de Acessibilidade compacta podada (máx. 40 nós).
+ * Zero APIs externas (`OPENAI_API_KEY` e `claude -p` aposentados).
  */
 export async function resolveViaLLMOnAccessibilityTree(
   step: RoutineStep,
   nodes: ParsedA11yNode[],
-  fetchImpl: typeof fetch = fetch
+  customRunnerOrFetch?: AgyTransportFn | typeof fetch
 ): Promise<{ node: ParsedA11yNode; documentedTarget: string; confidence: number; reason: string } | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
   const pruned = pruneAndPrioritizeNodesForLLM(step, nodes, 40);
-  if (!apiKey || pruned.length === 0) return null;
+  if (pruned.length === 0) return null;
 
   const compactTree = pruned
     .map(n => `${n.ref} [${n.role}] "${n.name}"${n.sectionTitle ? ` {${n.sectionTitle}}` : ''}`)
     .join('\n');
 
   const prompt = [
-    `Você é o módulo SmartLocator de auto-cura de seletores do ERP Orion TN.`,
+    `Você é o módulo SmartLocator (Camada 2B) de auto-cura de seletores do ERP Orion TN.`,
     `Passo documentado no manual: "${step.rawText}"`,
     `Alvos procurados: ${JSON.stringify(step.targets)}`,
     `Elementos interativos presentes na tela atual (Accessibility Tree):`,
@@ -859,28 +897,11 @@ export async function resolveViaLLMOnAccessibilityTree(
   ].join('\n');
 
   try {
-    const response = await fetchImpl('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        temperature: 0,
-        max_tokens: 120,
-        response_format: { type: 'json_object' },
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    if (!response.ok) return null;
-    const data = (await response.json()) as any;
-    const rawJson = data?.choices?.[0]?.message?.content;
-    if (!rawJson) return null;
-
-    const parsed = JSON.parse(rawJson);
-    if (!parsed.ref || typeof parsed.confidence !== 'number' || parsed.confidence < 0.65) {
+    const parsed = await invokeAgyJson<{ ref?: string | null; confidence?: number; reason?: string }>(
+      { prompt },
+      adaptCustomTransport(customRunnerOrFetch)
+    );
+    if (!parsed || !parsed.ref || typeof parsed.confidence !== 'number' || parsed.confidence < 0.65) {
       return null;
     }
 
@@ -910,11 +931,877 @@ export async function resolveViaLLMOnAccessibilityTree(
       node: matchedNode,
       documentedTarget: step.targets[0] || step.rawText,
       confidence: Number(parsed.confidence.toFixed(2)),
-      reason: String(parsed.reason || 'Equivalência semântica identificada via LLM na Árvore de Acessibilidade')
+      reason: String(parsed.reason || 'Equivalência semântica identificada via agy (Gemini 4 Hydrogen Extra) na Árvore de Acessibilidade')
     };
   } catch {
     return null;
   }
+}
+
+// =========================================================================
+// CAMADA 2C (ADR-031): Set-of-Mark (SoM) em Memória + Visual Grounding DOM
+// =========================================================================
+
+export interface SomInteractiveCandidate {
+  id: number;
+  box: BoundingBox;
+  tagName: string;
+  role: string;
+  name: string;
+  innerText?: string;
+  selector: string;
+  sectionTitle?: string;
+  rowContext?: DOMSemanticSignature['rowContext'];
+  associatedLabel?: string;
+  semanticRole?: SemanticRole;
+  inNavbar?: boolean;
+  angularBindings?: DOMAngularBindings;
+}
+
+export interface SomVlmDecision {
+  tagId: number | null;
+  confidence: number;
+  reason: string;
+}
+
+export interface VisualGroundingDecision {
+  x: number | null;
+  y: number | null;
+  confidence: number;
+  reason: string;
+}
+
+export interface PendingSomQueueItem {
+  id: string;
+  routineId: string;
+  stepNumber: number;
+  rawText: string;
+  targets: string[];
+  actionType: ActionType;
+  zonePolicy: StepZonePolicy;
+  routeHash: string;
+  somImagePath: string;
+  cleanImagePath?: string;
+  candidates: SomInteractiveCandidate[];
+  createdAt: string;
+  status: 'pending' | 'curated' | 'rejected';
+  curationDecision?: {
+    tagId: number | null;
+    matchedName?: string;
+    confidence: number;
+    reason: string;
+    curatedAt: string;
+  };
+}
+
+export const PENDING_SOM_DIR = () => path.join(config.rootDir, 'auditoria', 'cache', 'pending-som');
+export const PENDING_SOM_QUEUE_FILE = () => path.join(PENDING_SOM_DIR(), 'pending-som-queue.json');
+
+const pendingQueueMutex = new AsyncSemaphore(1);
+
+/**
+ * Parseia estritamente a resposta JSON da Sub-camada 2C-SoM (`{"tagId": number | null, "confidence": number, "reason": string}`).
+ */
+export function parseSomVlmResponse(rawInput: unknown): SomVlmDecision | null {
+  const parsed = parseStrictJsonFromAgyOutput<Record<string, any>>(rawInput);
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const rawTag = parsed.tagId !== undefined ? parsed.tagId : parsed.tag_id;
+  let tagId: number | null = null;
+  if (typeof rawTag === 'number' && Number.isFinite(rawTag)) {
+    tagId = Math.trunc(rawTag);
+  } else if (typeof rawTag === 'string') {
+    const m = rawTag.match(/\d+/);
+    if (m) tagId = parseInt(m[0], 10);
+  }
+  if (tagId !== null && tagId <= 0) tagId = null;
+
+  const conf = Number(parsed.confidence);
+  if (!Number.isFinite(conf)) return null;
+
+  return {
+    tagId,
+    confidence: clamp(Number(conf.toFixed(2)), 0, 1),
+    reason: String(parsed.reason || '').trim() || 'Inferência visual Set-of-Mark (Camada 2C-SoM)'
+  };
+}
+
+/**
+ * Parseia estritamente a resposta JSON da Sub-camada 2C-Grounding
+ * (`{"x": number | null, "y": number | null, "confidence": number, "reason": string}`, coordenadas normalizadas `[0..1000]`).
+ */
+export function parseVisualGroundingResponse(rawInput: unknown): VisualGroundingDecision | null {
+  const parsed = parseStrictJsonFromAgyOutput<Record<string, any>>(rawInput);
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  let x: number | null = null;
+  let y: number | null = null;
+
+  if (typeof parsed.x === 'number' && typeof parsed.y === 'number' && Number.isFinite(parsed.x) && Number.isFinite(parsed.y)) {
+    x = parsed.x;
+    y = parsed.y;
+  } else if (Array.isArray(parsed.point) && parsed.point.length >= 2) {
+    const px = Number(parsed.point[0]);
+    const py = Number(parsed.point[1]);
+    if (Number.isFinite(px) && Number.isFinite(py)) {
+      x = px;
+      y = py;
+    }
+  } else if (Array.isArray(parsed.box_2d) && parsed.box_2d.length === 4) {
+    // Formato [ymin, xmin, ymax, xmax] normalizado 0..1000
+    const [ymin, xmin, ymax, xmax] = parsed.box_2d.map(Number);
+    if ([ymin, xmin, ymax, xmax].every(Number.isFinite)) {
+      x = (xmin + xmax) / 2;
+      y = (ymin + ymax) / 2;
+    }
+  }
+
+  const conf = Number(parsed.confidence);
+  if (!Number.isFinite(conf)) return null;
+
+  if (x !== null && y !== null) {
+    if (x < 0 || x > 1000 || y < 0 || y > 1000) {
+      return null;
+    }
+  }
+
+  return {
+    x,
+    y,
+    confidence: clamp(Number(conf.toFixed(2)), 0, 1),
+    reason: String(parsed.reason || '').trim() || 'Inferência de coordenadas Visual Grounding (Camada 2C-Grounding)'
+  };
+}
+
+/**
+ * Converte coordenadas visuais normalizadas `[0..1000]` para pixels físicos do viewport (`1440×900`).
+ */
+export function normalizedPointToViewportPx(
+  normX: number,
+  normY: number,
+  viewportWidth = 1440,
+  viewportHeight = 900
+): Point {
+  const px = clamp(Math.round((clamp(normX, 0, 1000) / 1000) * viewportWidth), 0, Math.max(0, viewportWidth - 1));
+  const py = clamp(Math.round((clamp(normY, 0, 1000) / 1000) * viewportHeight), 0, Math.max(0, viewportHeight - 1));
+  return { x: px, y: py };
+}
+
+/**
+ * Valida se o candidato selecionado pela VLM (2C-SoM ou 2C-Grounding) respeita:
+ * 1. A Guarda de Navegação (`forbiddenCandidateReason`, ADR-024/ADR-026);
+ * 2. O Filtro de Zona Semântica (`zonePolicy === 'content'` veta `inNavbar` / `navigation_*`, ADR-015);
+ * 3. A Matriz de Compatibilidade Semântica Intenção × Papel (`evaluateSemanticCompatibility`, ADR-027).
+ */
+export function validateVisualCandidateSemantics(
+  step: RoutineStep,
+  candidate: Pick<
+    SomInteractiveCandidate,
+    'name' | 'role' | 'inNavbar' | 'sectionTitle' | 'rowContext' | 'associatedLabel' | 'semanticRole'
+  >,
+  zonePolicy?: StepZonePolicy
+): { allowed: boolean; reason?: string } {
+  const effectiveZone = zonePolicy ?? step.zone ?? inferStepZone(step.rawText, step.actionType);
+  const candidateName = cleanA11yNodeName(candidate.name || candidate.associatedLabel || '');
+
+  const navForbidden = forbiddenCandidateReason(step, {
+    name: candidateName,
+    role: candidate.role,
+    inNavbar: candidate.inNavbar
+  });
+  if (navForbidden) {
+    return { allowed: false, reason: navForbidden };
+  }
+
+  const isNavNode = Boolean(
+    candidate.inNavbar ||
+      candidate.semanticRole === 'navigation_root' ||
+      candidate.semanticRole === 'navigation_leaf'
+  );
+  if (effectiveZone === 'content' && isNavNode) {
+    return {
+      allowed: false,
+      reason: 'Elemento pertence à zona de navegação lateral/superior, vedada em passo de zona "content" (ADR-015)'
+    };
+  }
+
+  const targets = step.targets.length > 0 ? step.targets : [step.rawText];
+  let anyCompatible = false;
+  let lastCompatReason = 'Incompatibilidade semântica Intenção × Papel (ADR-027)';
+
+  for (const docTarget of targets) {
+    const compat = evaluateSemanticCompatibility(step, docTarget, {
+      name: candidateName,
+      role: candidate.role,
+      inNavbar: candidate.inNavbar,
+      sectionTitle: candidate.sectionTitle,
+      rowContext: candidate.rowContext,
+      associatedLabel: candidate.associatedLabel,
+      semanticRole: candidate.semanticRole
+    });
+    if (compat.compatible && compat.weight > 0) {
+      anyCompatible = true;
+      break;
+    }
+    if (compat.reason) lastCompatReason = compat.reason;
+  }
+
+  if (!anyCompatible) {
+    return { allowed: false, reason: lastCompatReason };
+  }
+
+  return { allowed: true };
+}
+
+/**
+ * Filtra e limita a lista de candidatos interativos para o Set-of-Mark (máx. 45 na zona do passo).
+ */
+export function filterSomCandidatesForStep(
+  step: RoutineStep,
+  candidates: SomInteractiveCandidate[],
+  maxCandidates = MAX_SOM_CANDIDATES
+): SomInteractiveCandidate[] {
+  const zonePolicy = step.zone ?? inferStepZone(step.rawText, step.actionType);
+  const filtered: SomInteractiveCandidate[] = [];
+
+  for (const c of candidates) {
+    if (c.box.width <= 1 || c.box.height <= 1) continue;
+    const check = validateVisualCandidateSemantics(step, c, zonePolicy);
+    if (!check.allowed) continue;
+    filtered.push(c);
+    if (filtered.length >= maxCandidates) break;
+  }
+
+  return filtered;
+}
+
+/**
+ * Gera o script injetável via STDIN que coleta até `maxCandidates` (45) candidatos interativos visíveis
+ * na zona do passo (atravessando Open Shadow DOM e iframes same-origin até profundidade 6),
+ * carimba `data-orion-som-id="1..N"` e extrai coordenadas CSS reais e assinatura semântica.
+ */
+export function buildCollectSomCandidatesScript(
+  zonePolicy: StepZonePolicy,
+  maxCandidates = MAX_SOM_CANDIDATES,
+  fallbackZoom = config.browserZoom || 0.8
+): string {
+  const effectiveZone = zonePolicy === 'content' ? 'content' : 'any';
+  return `
+    (() => {
+      const MAX_DEPTH = 6;
+      const MAX_ITEMS = ${JSON.stringify(Math.min(MAX_SOM_CANDIDATES, Math.max(1, maxCandidates)))};
+      const ZONE = ${JSON.stringify(effectiveZone)};
+      const NAV_ZONE = ${JSON.stringify(NAV_ZONE_SELECTOR)};
+      const ACTIVE_MODAL = ${JSON.stringify(ACTIVE_MODAL_SELECTOR)};
+      const FALLBACK_ZOOM = ${JSON.stringify(fallbackZoom)};
+      const INTERACTIVE = 'button, a, input:not([type="hidden"]), select, textarea, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="checkbox"], [role="radio"], [role="combobox"], [ng-click], [ui-sref], .btn, orion-checkbox';
+
+      const clean = t => String(t == null ? '' : t).replace(/[\\uE000-\\uF8FF\\u200B-\\u200D\\uFEFF]/g, '').replace(/\\u00A0/g, ' ').replace(/\\s+/g, ' ').trim();
+      const composedParent = node => {
+        if (!node) return null;
+        if (node.parentElement) return node.parentElement;
+        const root = node.getRootNode ? node.getRootNode() : null;
+        return root && root.host ? root.host : null;
+      };
+      const composedClosest = (node, selector) => {
+        let cur = node;
+        while (cur) {
+          if (cur.nodeType === 1 && cur.matches && cur.matches(selector)) return cur;
+          cur = composedParent(cur);
+        }
+        return null;
+      };
+      const queryAllDeep = (root, selector, depth) => {
+        const d = depth || 0;
+        const out = [];
+        const seen = new Set();
+        if (!root || d > MAX_DEPTH) return out;
+        const add = el => {
+          if (el && !seen.has(el)) {
+            seen.add(el);
+            out.push(el);
+          }
+        };
+        if (root.querySelectorAll) {
+          try {
+            const direct = root.querySelectorAll(selector);
+            for (let i = 0; i < direct.length; i++) add(direct[i]);
+          } catch (e) {}
+        }
+        if (d === 0 && root.shadowRoot) {
+          const own = queryAllDeep(root.shadowRoot, selector, d + 1);
+          for (let j = 0; j < own.length; j++) add(own[j]);
+        }
+        if (d < MAX_DEPTH && root.querySelectorAll) {
+          try {
+            const all = root.querySelectorAll('*');
+            for (let i = 0; i < all.length; i++) {
+              const host = all[i];
+              if (host && host.shadowRoot) {
+                const inner = queryAllDeep(host.shadowRoot, selector, d + 1);
+                for (let j = 0; j < inner.length; j++) add(inner[j]);
+              }
+            }
+          } catch (e) {}
+        }
+        return out;
+      };
+      const vis = e => {
+        if (!e || !e.getBoundingClientRect) return false;
+        if (composedClosest(e, '.ng-hide, .ngx-orion-hide')) return false;
+        const win = (e.ownerDocument && e.ownerDocument.defaultView) || window;
+        const r = e.getBoundingClientRect();
+        const s = win.getComputedStyle(e);
+        return r.width > 2 && r.height > 2 && s.display !== 'none' && s.visibility !== 'hidden' && parseFloat(s.opacity || '1') > 0.05;
+      };
+      const humanizeNg = (expr, mode) => {
+        const raw = String(expr || '').trim();
+        if (!raw) return '';
+        const core = mode === 'action' ? raw.split('(')[0] : raw.split('|')[0];
+        const segs = core.split('.').map(s => s.trim()).filter(Boolean);
+        const filtered = segs.filter((s, i) => i > 0 || !/^(vm|ctrl|\\$ctrl|\\$scope|model|filtro|form|entidade|item|dados|dto)$/i.test(s));
+        const target = (filtered.length > 0 ? filtered : segs).join(' ');
+        return target.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/\\s+/g, ' ').trim().toLowerCase();
+      };
+      const sectionOf = el => {
+        let cur = el;
+        while (cur && cur.nodeType === 1) {
+          const body = cur.ownerDocument ? cur.ownerDocument.body : document.body;
+          if (cur === body) break;
+          if (cur.tagName === 'FIELDSET') {
+            const leg = queryAllDeep(cur, 'legend').find(vis);
+            if (leg) return clean(leg.innerText || leg.textContent);
+          }
+          if (cur.matches && cur.matches('.panel, .card, .box, .modal-content, .well, section')) {
+            const hd = cur.querySelector(':scope > .panel-heading, :scope > .card-header, :scope > .box-header, :scope > .modal-header .modal-title, :scope > h3, :scope > h4, :scope > h5, :scope > legend');
+            if (hd && vis(hd)) return clean(hd.innerText || hd.textContent);
+          }
+          cur = composedParent(cur);
+        }
+        return undefined;
+      };
+      const rowOf = el => {
+        const tr = composedClosest(el, 'tr');
+        const pTr = tr ? composedParent(tr) : null;
+        if (!tr || !pTr) return undefined;
+        const rows = Array.from(pTr.children || []).filter(r => r.tagName === 'TR');
+        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => clean(c.innerText || c.textContent)).filter(Boolean);
+        return cells.length > 0 ? { rowIndex: Math.max(0, rows.indexOf(tr)), firstColText: cells[0], secondColText: cells[1] } : undefined;
+      };
+      const inferRole = (el, text, inNav, rowCtx) => {
+        const t = (text || '').toLowerCase();
+        const tag = (el.tagName || '').toLowerCase();
+        if (inNav) return composedClosest(el, '.dropdown-menu, .sub-menu') ? 'navigation_leaf' : 'navigation_root';
+        if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+          return /pesquis|filtr|busca/i.test(t) ? 'search_filter_input' : 'form_input';
+        }
+        if (/novo\\s+cart[aã]o/i.test(t)) return 'entity_creation_button';
+        if (rowCtx && (t === '+' || /adicionar|selecionar|incluir/i.test(t))) return 'grid_row_picker';
+        if (/^(salvar|gravar|concluir|confirmar|cadastrar)$/i.test(t)) return 'form_submit';
+        if (/^(cancelar|limpar|voltar|fechar)$/i.test(t)) return 'form_cancel';
+        if (/^(filtrar|pesquisar|buscar|consultar|listar)$/i.test(t)) return 'search_trigger_button';
+        return 'service_execution_trigger';
+      };
+
+      const vpW = window.innerWidth || 1440;
+      const vpH = window.innerHeight || 900;
+      const modals = queryAllDeep(document, ACTIVE_MODAL).filter(vis);
+      const topModal = modals.length > 0 ? modals[modals.length - 1] : null;
+      const searchRoot = topModal || document;
+
+      for (const old of queryAllDeep(document, '[data-orion-som-id]')) {
+        old.removeAttribute('data-orion-som-id');
+      }
+
+      const rawElements = queryAllDeep(searchRoot, INTERACTIVE).filter(vis);
+      const out = [];
+      const rowActionDedup = new Set();
+      let nextId = 1;
+
+      for (const el of rawElements) {
+        if (nextId > MAX_ITEMS) break;
+        const inNavbar = Boolean(composedClosest(el, NAV_ZONE));
+        if (ZONE === 'content' && inNavbar && !topModal) continue;
+
+        const r = el.getBoundingClientRect();
+        const x1 = Math.max(0, Math.round(r.left));
+        const y1 = Math.max(0, Math.round(r.top));
+        const x2 = Math.min(vpW, Math.round(r.right));
+        const y2 = Math.min(vpH, Math.round(r.bottom));
+        if (x2 - x1 < 4 || y2 - y1 < 4) continue;
+        // Ignora contêineres gigantes
+        if ((x2 - x1) * (y2 - y1) > vpW * vpH * 0.35) continue;
+
+        const innerText = clean(el.innerText || el.textContent || '');
+        const ngModel = clean(el.getAttribute('ng-model') || el.getAttribute('data-ng-model') || '');
+        const ngClick = clean(el.getAttribute('ng-click') || el.getAttribute('data-ng-click') || '');
+        const uiSref = clean(el.getAttribute('ui-sref') || '');
+        const humanizedModel = humanizeNg(ngModel, 'model');
+        const humanizedAction = humanizeNg(ngClick, 'action');
+        const iconEl = el.querySelector ? el.querySelector('i[class], span[class*="fa-"], span[class*="glyphicon-"], svg') : null;
+        const iconCls = iconEl ? clean(iconEl.getAttribute('class') || iconEl.tagName) : '';
+        const attrLabel = clean(
+          el.getAttribute('title') ||
+          el.getAttribute('data-original-title') ||
+          el.getAttribute('aria-label') ||
+          el.getAttribute('placeholder') ||
+          el.getAttribute('value') ||
+          humanizedAction ||
+          humanizedModel ||
+          iconCls ||
+          ''
+        );
+        const displayName = innerText || attrLabel || (el.tagName || 'control').toLowerCase();
+        const sectionTitle = sectionOf(el);
+        const rowContext = rowOf(el);
+
+        // Deduplica ações repetidas em linhas subsequentes de tabela
+        if (rowContext && rowContext.rowIndex > 0) {
+          const rowKey = (el.tagName || '') + '|' + displayName.toLowerCase() + '|' + (sectionTitle || '');
+          if (rowActionDedup.has(rowKey)) continue;
+          rowActionDedup.add(rowKey);
+        }
+
+        const id = nextId++;
+        el.setAttribute('data-orion-som-id', String(id));
+        const tag = (el.tagName || 'div').toLowerCase();
+        const role = clean(el.getAttribute('role') || (tag === 'a' ? 'link' : tag === 'input' || tag === 'textarea' ? 'textbox' : tag === 'select' ? 'combobox' : 'button')).toLowerCase();
+        const semanticRole = inferRole(el, displayName, inNavbar, rowContext);
+
+        out.push({
+          id,
+          box: { x: x1, y: y1, width: x2 - x1, height: y2 - y1 },
+          tagName: tag,
+          role,
+          name: displayName.slice(0, 90),
+          innerText: innerText ? innerText.slice(0, 90) : undefined,
+          selector: '[data-orion-som-id="' + id + '"]',
+          sectionTitle,
+          rowContext,
+          associatedLabel: attrLabel || undefined,
+          semanticRole,
+          inNavbar,
+          angularBindings: (ngModel || ngClick || uiSref)
+            ? {
+                ...(ngModel ? { ngModel, humanizedModel } : {}),
+                ...(ngClick ? { ngClick, humanizedAction } : {}),
+                ...(uiSref ? { uiSref } : {})
+              }
+            : undefined
+        });
+      }
+
+      return JSON.stringify(out);
+    })()
+  `;
+}
+
+/**
+ * Coleta até 45 candidatos interativos visíveis na zona do passo e aplica pré-filtragem semântica (ADR-031).
+ */
+export async function collectInteractiveSomCandidates(
+  client: AgentBrowserClient,
+  step: RoutineStep,
+  zonePolicy: StepZonePolicy,
+  maxCandidates = MAX_SOM_CANDIDATES
+): Promise<SomInteractiveCandidate[]> {
+  try {
+    const raw = await client.evalJson<SomInteractiveCandidate[]>(
+      buildCollectSomCandidatesScript(zonePolicy, maxCandidates)
+    );
+    return filterSomCandidatesForStep(step, raw || [], maxCandidates);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Script injetável via STDIN para ancorar coordenadas `(px, py)` no DOM real via `document.elementFromPoint(px, py)`,
+ * com descida recursiva em Open Shadow DOM (`shadowRoot.elementFromPoint`) e iframes same-origin,
+ * carimbando `data-orion-grounding-target="1"` no controle interativo encontrado (ADR-031).
+ */
+export function buildAnchorVisualPointScript(px: number, py: number): string {
+  return `
+    (() => {
+      const MAX_DEPTH = 6;
+      const NAV_ZONE = ${JSON.stringify(NAV_ZONE_SELECTOR)};
+      const INTERACTIVE = 'button, a, input:not([type="hidden"]), select, textarea, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="checkbox"], [role="radio"], [role="combobox"], [ng-click], [ui-sref], .btn, orion-checkbox';
+      const clean = t => String(t == null ? '' : t).replace(/[\\uE000-\\uF8FF\\u200B-\\u200D\\uFEFF]/g, '').replace(/\\u00A0/g, ' ').replace(/\\s+/g, ' ').trim();
+      const composedParent = node => {
+        if (!node) return null;
+        if (node.parentElement) return node.parentElement;
+        const root = node.getRootNode ? node.getRootNode() : null;
+        return root && root.host ? root.host : null;
+      };
+      const composedClosest = (node, selector) => {
+        let cur = node;
+        while (cur) {
+          if (cur.nodeType === 1 && cur.matches && cur.matches(selector)) return cur;
+          cur = composedParent(cur);
+        }
+        return null;
+      };
+
+      const deepHitAt = (docOrRoot, x, y, depth) => {
+        if (!docOrRoot || !docOrRoot.elementFromPoint || depth > MAX_DEPTH) return null;
+        let hit = docOrRoot.elementFromPoint(x, y);
+        while (hit && depth < MAX_DEPTH) {
+          if (hit.shadowRoot && hit.shadowRoot.elementFromPoint) {
+            const inner = hit.shadowRoot.elementFromPoint(x, y);
+            if (!inner || inner === hit) break;
+            hit = inner;
+            depth++;
+            continue;
+          }
+          if (hit.tagName === 'IFRAME' && hit.contentDocument) {
+            try {
+              const fr = hit.getBoundingClientRect();
+              const scaleX = hit.offsetWidth > 0 ? fr.width / hit.offsetWidth : 1;
+              const scaleY = hit.offsetHeight > 0 ? fr.height / hit.offsetHeight : 1;
+              const localX = (x - fr.left - (hit.clientLeft || 0)) / (scaleX || 1);
+              const localY = (y - fr.top - (hit.clientTop || 0)) / (scaleY || 1);
+              const frameHit = deepHitAt(hit.contentDocument, localX, localY, depth + 1);
+              if (frameHit) return frameHit;
+            } catch (e) {}
+          }
+          break;
+        }
+        return hit;
+      };
+
+      for (const old of document.querySelectorAll('[data-orion-grounding-target]')) {
+        old.removeAttribute('data-orion-grounding-target');
+      }
+
+      const rawHit = deepHitAt(document, ${JSON.stringify(px)}, ${JSON.stringify(py)}, 0);
+      if (!rawHit) return JSON.stringify(null);
+
+      const target = composedClosest(rawHit, INTERACTIVE) || rawHit;
+      if (!target || target === document.body || target === document.documentElement) {
+        return JSON.stringify(null);
+      }
+
+      target.setAttribute('data-orion-grounding-target', '1');
+      const r = target.getBoundingClientRect();
+      const inNavbar = Boolean(composedClosest(target, NAV_ZONE));
+      const innerText = clean(target.innerText || target.textContent || '');
+      const associatedLabel = clean(
+        target.getAttribute('title') ||
+        target.getAttribute('data-original-title') ||
+        target.getAttribute('aria-label') ||
+        target.getAttribute('placeholder') ||
+        target.getAttribute('ng-click') ||
+        target.getAttribute('ng-model') ||
+        ''
+      ) || undefined;
+      const tag = (target.tagName || 'div').toLowerCase();
+      const role = clean(target.getAttribute('role') || (tag === 'a' ? 'link' : tag === 'input' ? 'textbox' : 'button')).toLowerCase();
+      const name = innerText || associatedLabel || tag;
+
+      return JSON.stringify({
+        id: 1,
+        box: { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) },
+        tagName: tag,
+        role,
+        name: name.slice(0, 90),
+        innerText: innerText ? innerText.slice(0, 90) : undefined,
+        selector: '[data-orion-grounding-target="1"]',
+        associatedLabel,
+        inNavbar
+      });
+    })()
+  `;
+}
+
+/**
+ * Executa a Sub-camada 2C-SoM (Preferencial):
+ * 1. Renderiza o overlay Set-of-Mark `[1]..[N]` em memória via Sharp (`renderSetOfMarkOverlay`);
+ * 2. Invoca `agy` (`Gemini 4 Hydrogen Extra`) esperando `{"tagId": number | null, "confidence": number, "reason": string}`;
+ * 3. Aplica o veto semântico pós-VLM (`validateVisualCandidateSemantics` — ADR-027 + Zona + Guarda de Navegação);
+ * 4. Mede o `getBoundingClientRect()` real no DOM via `client.getDOMGeometry`.
+ */
+export async function resolveViaSetOfMark2C(
+  client: AgentBrowserClient,
+  step: RoutineStep,
+  screenshotBuffer: Buffer,
+  candidates: SomInteractiveCandidate[],
+  options: {
+    zonePolicy?: StepZonePolicy;
+    workerId?: string;
+    customVlmRunner?: AgyTransportFn | typeof fetch;
+  } = {}
+): Promise<{
+  candidate: SomInteractiveCandidate;
+  geometry: DOMResolvedGeometry;
+  documentedTarget: string;
+  confidence: number;
+  reason: string;
+} | null> {
+  const zonePolicy = options.zonePolicy ?? step.zone ?? inferStepZone(step.rawText, step.actionType);
+  const validCandidates = filterSomCandidatesForStep(step, candidates, MAX_SOM_CANDIDATES);
+  if (validCandidates.length === 0) return null;
+
+  const somBuffer = await renderSetOfMarkOverlay(
+    screenshotBuffer,
+    validCandidates.map(c => ({ id: c.id, box: c.box }))
+  );
+
+  const candidateLegend = validCandidates
+    .map(
+      c =>
+        `[${c.id}] <${c.tagName} role="${c.role}"> "${c.name}"${c.sectionTitle ? ` {seção: ${c.sectionTitle}}` : ''}${c.associatedLabel && c.associatedLabel !== c.name ? ` (hint: ${c.associatedLabel})` : ''}`
+    )
+    .join('\n');
+
+  const prompt = [
+    `Você é o módulo visual Set-of-Mark (Camada 2C-SoM) do auditor do ERP Orion TN.`,
+    `Analise a imagem anexa com as tags numeradas [1]..[${validCandidates.length}] sobre a tela 1440x900.`,
+    `Passo documentado no manual: "${step.rawText}"`,
+    `Alvos procurados: ${JSON.stringify(step.targets)}`,
+    `Legenda dos candidatos interativos numerados na zona do passo:`,
+    candidateLegend,
+    `Responda ESTRITAMENTE um objeto JSON válido no formato:`,
+    `{"tagId": number | null, "confidence": 0.0, "reason": "justificativa visual curta"}`,
+    `(use "tagId": null e "confidence": 0 se nenhum candidato corresponder com segurança ao passo).`
+  ].join('\n');
+
+  const rawDecision = await invokeAgyVisionBufferJson<Record<string, unknown>>(
+    {
+      prompt,
+      imageBuffer: somBuffer,
+      workerId: options.workerId || 'single'
+    },
+    adaptCustomTransport(options.customVlmRunner)
+  );
+
+  const decision = parseSomVlmResponse(rawDecision);
+  if (!decision || decision.tagId === null || decision.confidence < 0.68) {
+    return null;
+  }
+
+  // Busca candidato na lista original ou filtrada e aplica o veto semântico explícito pós-VLM (ADR-027)
+  const rawChosen = candidates.find(c => c.id === decision.tagId) ?? validCandidates.find(c => c.id === decision.tagId);
+  if (!rawChosen) return null;
+
+  const semanticCheck = validateVisualCandidateSemantics(step, rawChosen, zonePolicy);
+  if (!semanticCheck.allowed) {
+    console.log(
+      `   ⛔ [Veto Semântico Pós-VLM 2C-SoM] Tag [${rawChosen.id}] "${rawChosen.name}" rejeitada: ${semanticCheck.reason}`
+    );
+    return null;
+  }
+
+  const queries = [rawChosen.selector, ...(rawChosen.innerText ? [rawChosen.innerText] : [])];
+  const geometry = await client.getDOMGeometry(queries, { scrollIntoView: true, zone: zonePolicy });
+  if (!geometry || isGenericContainerMatch(geometry)) return null;
+
+  const measuredForbidden = forbiddenMeasuredReason(step, geometry.context);
+  if (measuredForbidden) return null;
+
+  if (geometry.context.semantic) {
+    const postDomCheck = validateVisualCandidateSemantics(
+      step,
+      {
+        name: geometry.context.innerText || rawChosen.name,
+        role: geometry.context.role || rawChosen.role,
+        inNavbar: geometry.context.isTopNav || geometry.context.isVerticalSidebar,
+        sectionTitle: geometry.context.semantic.sectionTitle,
+        rowContext: geometry.context.semantic.rowContext,
+        associatedLabel: geometry.context.semantic.associatedLabel,
+        semanticRole: geometry.context.semantic.semanticRole
+      },
+      zonePolicy
+    );
+    if (!postDomCheck.allowed) return null;
+  }
+
+  return {
+    candidate: rawChosen,
+    geometry,
+    documentedTarget: step.targets[0] || step.rawText,
+    confidence: decision.confidence,
+    reason: decision.reason
+  };
+}
+
+/**
+ * Executa a Sub-camada 2C-Grounding (Fallback para Canvas / OOPIF / Toolbars sem candidato SoM):
+ * 1. Envia a screenshot limpa `1440×900` ao `agy` (`Gemini 4 Hydrogen Extra`);
+ * 2. Recebe coordenadas normalizadas `[0..1000]`, converte para pixels `(px, py)` no viewport `1440×900`;
+ * 3. Ancora via `document.elementFromPoint(px, py)` (incluindo Open Shadow DOM e iframes);
+ * 4. Valida com `validateVisualCandidateSemantics` e mede `getBoundingClientRect()` real no DOM.
+ */
+export async function resolveViaVisualGrounding2C(
+  client: AgentBrowserClient,
+  step: RoutineStep,
+  cleanScreenshotBuffer: Buffer,
+  options: {
+    zonePolicy?: StepZonePolicy;
+    workerId?: string;
+    customVlmRunner?: AgyTransportFn | typeof fetch;
+  } = {}
+): Promise<{
+  candidate: SomInteractiveCandidate;
+  geometry: DOMResolvedGeometry;
+  pointPx: Point;
+  documentedTarget: string;
+  confidence: number;
+  reason: string;
+} | null> {
+  const zonePolicy = options.zonePolicy ?? step.zone ?? inferStepZone(step.rawText, step.actionType);
+
+  const prompt = [
+    `Você é o módulo de Visual Grounding (Camada 2C-Grounding) do auditor do ERP Orion TN.`,
+    `Analise a captura limpa 1440x900 anexa e localize o controle visual correspondente ao passo.`,
+    `Passo documentado no manual: "${step.rawText}"`,
+    `Alvos procurados: ${JSON.stringify(step.targets)}`,
+    `Devolva as coordenadas normalizadas [0..1000] do centro do elemento (onde 0,0 é o canto superior esquerdo e 1000,1000 é o canto inferior direito).`,
+    `Responda ESTRITAMENTE um objeto JSON válido no formato:`,
+    `{"x": number | null, "y": number | null, "confidence": 0.0, "reason": "descrição visual do controle"}`,
+    `(use "x": null, "y": null e "confidence": 0 se o controle não estiver visível na tela).`
+  ].join('\n');
+
+  const rawDecision = await invokeAgyVisionBufferJson<Record<string, unknown>>(
+    {
+      prompt,
+      imageBuffer: cleanScreenshotBuffer,
+      workerId: options.workerId || 'single'
+    },
+    adaptCustomTransport(options.customVlmRunner)
+  );
+
+  const decision = parseVisualGroundingResponse(rawDecision);
+  if (!decision || decision.x === null || decision.y === null || decision.confidence < 0.68) {
+    return null;
+  }
+
+  const pointPx = normalizedPointToViewportPx(decision.x, decision.y, 1440, 900);
+  const anchored = await client
+    .evalJson<SomInteractiveCandidate | null>(buildAnchorVisualPointScript(pointPx.x, pointPx.y))
+    .catch(() => null);
+  if (!anchored) return null;
+
+  const semanticCheck = validateVisualCandidateSemantics(step, anchored, zonePolicy);
+  if (!semanticCheck.allowed) {
+    console.log(
+      `   ⛔ [Veto Semântico Pós-VLM 2C-Grounding] Ponto (${pointPx.x}, ${pointPx.y}) -> "${anchored.name}" rejeitado: ${semanticCheck.reason}`
+    );
+    return null;
+  }
+
+  const geometry = await client.getDOMGeometry([anchored.selector], { scrollIntoView: true, zone: zonePolicy });
+  if (!geometry || isGenericContainerMatch(geometry)) return null;
+
+  const measuredForbidden = forbiddenMeasuredReason(step, geometry.context);
+  if (measuredForbidden) return null;
+
+  if (geometry.context.semantic) {
+    const postDomCheck = validateVisualCandidateSemantics(
+      step,
+      {
+        name: geometry.context.innerText || anchored.name,
+        role: geometry.context.role || anchored.role,
+        inNavbar: geometry.context.isTopNav || geometry.context.isVerticalSidebar,
+        sectionTitle: geometry.context.semantic.sectionTitle,
+        rowContext: geometry.context.semantic.rowContext,
+        associatedLabel: geometry.context.semantic.associatedLabel,
+        semanticRole: geometry.context.semantic.semanticRole
+      },
+      zonePolicy
+    );
+    if (!postDomCheck.allowed) return null;
+  }
+
+  return {
+    candidate: anchored,
+    geometry,
+    pointPx,
+    documentedTarget: step.targets[0] || step.rawText,
+    confidence: decision.confidence,
+    reason: decision.reason
+  };
+}
+
+/**
+ * Lê a fila de overlays Set-of-Mark pendentes (`auditoria/cache/pending-som/pending-som-queue.json`).
+ */
+export function readPendingSomQueue(): PendingSomQueueItem[] {
+  const file = PENDING_SOM_QUEUE_FILE();
+  if (!fs.existsSync(file)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Grava a fila de overlays Set-of-Mark pendentes (`auditoria/cache/pending-som/pending-som-queue.json`).
+ */
+export async function writePendingSomQueue(items: PendingSomQueueItem[]): Promise<void> {
+  const file = PENDING_SOM_QUEUE_FILE();
+  await fs.promises.mkdir(path.dirname(file), { recursive: true });
+  await fs.promises.writeFile(file, JSON.stringify(items, null, 2), 'utf8');
+}
+
+/**
+ * Modo `defer` (ADR-031): salva o overlay SoM pendente em
+ * `auditoria/cache/pending-som/<routineId>-passo-<NN>-som.png` e registra os metadados/candidatos em
+ * `auditoria/cache/pending-som/pending-som-queue.json` sem invocar subprocessos `agy` durante o lote.
+ */
+export async function enqueuePendingSomForCuration(input: {
+  routineId: string;
+  step: RoutineStep;
+  zonePolicy: StepZonePolicy;
+  routeHash: string;
+  screenshotBuffer: Buffer;
+  candidates: SomInteractiveCandidate[];
+}): Promise<PendingSomQueueItem> {
+  const padStep = String(input.step.stepNumber).padStart(2, '0');
+  const safeRoutine = String(input.routineId || 'UNKNOWN').replace(/[^a-zA-Z0-9._-]/g, '-');
+  const itemId = `${safeRoutine}-passo-${padStep}`;
+  const dir = PENDING_SOM_DIR();
+  await fs.promises.mkdir(dir, { recursive: true });
+
+  const somFileName = `${safeRoutine}-passo-${padStep}-som.png`;
+  const somImagePath = path.join(dir, somFileName);
+  const somBuffer = await renderSetOfMarkOverlay(
+    input.screenshotBuffer,
+    input.candidates.map(c => ({ id: c.id, box: c.box }))
+  );
+  await fs.promises.writeFile(somImagePath, somBuffer);
+
+  const item: PendingSomQueueItem = {
+    id: itemId,
+    routineId: input.routineId,
+    stepNumber: input.step.stepNumber,
+    rawText: input.step.rawText,
+    targets: [...input.step.targets],
+    actionType: input.step.actionType,
+    zonePolicy: input.zonePolicy,
+    routeHash: input.routeHash,
+    somImagePath: path.relative(config.rootDir, somImagePath).replace(/\\/g, '/'),
+    candidates: input.candidates,
+    createdAt: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  await pendingQueueMutex.runExclusive(async () => {
+    const queue = readPendingSomQueue();
+    const idx = queue.findIndex(q => q.id === itemId);
+    if (idx >= 0) {
+      queue[idx] = item;
+    } else {
+      queue.push(item);
+    }
+    await writePendingSomQueue(queue);
+  });
+
+  console.log(
+    `   ⏸ [Camada 2C Defer] Overlay SoM (${input.candidates.length} candidatos) enfileirado em ${item.somImagePath} para curadoria pós-lote (visual:curate).`
+  );
+  return item;
 }
 
 export interface SmartLocateOptions {
@@ -932,6 +1819,10 @@ export interface SmartLocateOptions {
   priorHints?: Array<{ documented: string; actual: string; layer: SmartLocatorDivergence['resolutionLayer']; confidence: number }>;
   /** Rotas de menu reais já comprovadas para este passo (ADR-025), repassadas à Camada 0 */
   priorMenuChains?: string[][];
+  /** Modo de operação da Camada 2B/2C (`live` | `defer` — ADR-031). Default: `live` */
+  visualMode?: VisualAuditMode;
+  /** Identificador do worker atual para isolamento de imagens efêmeras `som-worker-${workerId}-${ts}.png` */
+  workerSessionId?: string;
 }
 
 /**
@@ -1280,8 +2171,10 @@ export async function locateAndCaptureWithSelfHealing(
     }
   }
 
-  // Sub-camada 2B: Fallback LLM Estruturado de Chamada Única (se 2A não produzir candidatos)
-  if (!healedCandidate && ranked.length === 0 && a11yNodes.length > 0) {
+  const visualMode: VisualAuditMode = options.visualMode ?? 'live';
+
+  // Sub-camada 2B: Fallback LLM Estruturado de Chamada Única no `agy` (somente em modo `live` quando 2A falhar)
+  if (!healedCandidate && visualMode === 'live' && ranked.length === 0 && a11yNodes.length > 0) {
     const llmCandidate = await resolveViaLLMOnAccessibilityTree(step, a11yNodes);
     if (llmCandidate) {
       const geometry = await resolveHealedGeometry(client, llmCandidate.node, zonePolicy);
@@ -1331,8 +2224,128 @@ export async function locateAndCaptureWithSelfHealing(
     };
   }
 
-  // Caso não encontrado em nenhuma camada: captura frame real do bloqueio (ADR-010)
+  // =========================================================================
+  // CAMADA 2C (ADR-031): Set-of-Mark (SoM) em Memória + Visual Grounding DOM
+  // =========================================================================
   await client.screenshot(rawScreenshotPath);
+  let screenshotBuffer: Buffer | null = null;
+  try {
+    screenshotBuffer = await fs.promises.readFile(rawScreenshotPath);
+  } catch {
+    screenshotBuffer = null;
+  }
+
+  if (screenshotBuffer && screenshotBuffer.length > 0) {
+    const somCandidates = await collectInteractiveSomCandidates(client, step, zonePolicy, MAX_SOM_CANDIDATES);
+
+    if (visualMode === 'defer') {
+      const routeHash =
+        (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
+      if (somCandidates.length > 0) {
+        await enqueuePendingSomForCuration({
+          routineId: step.routineId || 'UNKNOWN',
+          step,
+          zonePolicy,
+          routeHash,
+          screenshotBuffer,
+          candidates: somCandidates
+        }).catch(() => undefined);
+      }
+    } else {
+      // Modo `live`: 1º tenta 2C-SoM (preferencial), 2º tenta 2C-Grounding (fallback para Canvas/OOPIF)
+      const somResolved =
+        somCandidates.length > 0
+          ? await resolveViaSetOfMark2C(client, step, screenshotBuffer, somCandidates, {
+              zonePolicy,
+              workerId: options.workerSessionId || 'single'
+            })
+          : null;
+
+      if (somResolved) {
+        const { candidate, geometry, documentedTarget, confidence, reason } = somResolved;
+        const actualText = (geometry.context.innerText || candidate.innerText || candidate.name || documentedTarget).trim();
+        const hasRealDomText = Boolean((geometry.context.innerText || candidate.innerText || '').trim());
+        console.log(
+          `   👁 [Camada 2C-SoM] Alvo resolvido via Set-of-Mark [Tag ${candidate.id}]: "${documentedTarget}" -> "${actualText}" (conf: ${Math.round(confidence * 100)}%)`
+        );
+        await client.screenshot(rawScreenshotPath);
+        const divergence: SmartLocatorDivergence = {
+          stepNumber: step.stepNumber,
+          documentedTarget,
+          actualElementText: actualText,
+          actualRole: candidate.role,
+          matchedRef: `som:${candidate.id}`,
+          resolutionLayer: 'visual_som_fallback',
+          confidence,
+          reason,
+          detectedAt: new Date().toISOString(),
+          evidence: {
+            source: 'dom-measured',
+            matchedSelector: geometry.matchedSelector,
+            elementText: geometry.context.innerText || actualText,
+            box: geometry.cssBox
+          },
+          textChange:
+            hasRealDomText && normalizeText(actualText) !== normalizeText(documentedTarget)
+              ? { from: `**${documentedTarget}**`, to: `**${actualText}**` }
+              : undefined
+        };
+        return {
+          found: true,
+          healed: true,
+          geometry,
+          matchedTargetName: actualText,
+          matchedRef: `som:${candidate.id}`,
+          divergence
+        };
+      }
+
+      const groundingResolved = await resolveViaVisualGrounding2C(client, step, screenshotBuffer, {
+        zonePolicy,
+        workerId: options.workerSessionId || 'single'
+      });
+
+      if (groundingResolved) {
+        const { candidate, geometry, pointPx, documentedTarget, confidence, reason } = groundingResolved;
+        const actualText = (geometry.context.innerText || candidate.innerText || candidate.name || documentedTarget).trim();
+        const hasRealDomText = Boolean((geometry.context.innerText || candidate.innerText || '').trim());
+        console.log(
+          `   🎯 [Camada 2C-Grounding] Alvo ancorado em (${pointPx.x}, ${pointPx.y}): "${documentedTarget}" -> "${actualText}" (conf: ${Math.round(confidence * 100)}%)`
+        );
+        await client.screenshot(rawScreenshotPath);
+        const divergence: SmartLocatorDivergence = {
+          stepNumber: step.stepNumber,
+          documentedTarget,
+          actualElementText: actualText,
+          actualRole: candidate.role,
+          matchedRef: `grounding:${pointPx.x},${pointPx.y}`,
+          resolutionLayer: 'visual_grounding_fallback',
+          confidence,
+          reason,
+          detectedAt: new Date().toISOString(),
+          evidence: {
+            source: 'dom-measured',
+            matchedSelector: geometry.matchedSelector,
+            elementText: geometry.context.innerText || actualText,
+            box: geometry.cssBox
+          },
+          textChange:
+            hasRealDomText && normalizeText(actualText) !== normalizeText(documentedTarget)
+              ? { from: `**${documentedTarget}**`, to: `**${actualText}**` }
+              : undefined
+        };
+        return {
+          found: true,
+          healed: true,
+          geometry,
+          matchedTargetName: actualText,
+          matchedRef: `grounding:${pointPx.x},${pointPx.y}`,
+          divergence
+        };
+      }
+    }
+  }
+
   return {
     found: false,
     healed: false,

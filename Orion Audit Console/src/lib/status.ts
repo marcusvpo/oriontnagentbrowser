@@ -141,7 +141,7 @@ export const MODULO_LABEL: Record<string, string> = {
 };
 export const SECOES = ["R", "V", "M", "D", "C"] as const;
 export const SECAO_LABEL: Record<string, string> = { R: "Rotina", V: "Vídeo", M: "Manual", D: "Dica", C: "Contingência" };
-export const CAMADA_LABEL: Record<string, string> = { dom_synonym_heuristic: "Sinônimo DOM", a11y_fuzzy_match: "Fuzzy a11y", llm_a11y_fallback: "Fallback LLM", menu_path_resolution: "Rota de menu", target_not_found: "Alvo não localizado", permission_blocked: "Bloqueado para o perfil", investigative_reveal: "Exploração investigativa" };
+export const CAMADA_LABEL: Record<string, string> = { dom_synonym_heuristic: "Sinônimo DOM", a11y_fuzzy_match: "Fuzzy a11y", llm_a11y_fallback: "Fallback LLM", visual_som_fallback: "Visual SoM (2C)", visual_grounding_fallback: "Visual Grounding (2C)", menu_path_resolution: "Rota de menu", target_not_found: "Alvo não localizado", permission_blocked: "Bloqueado para o perfil", investigative_reveal: "Exploração investigativa" };
 
 export function confidenceTone(c: number): BadgeStatus {
   return c >= 0.85 ? "passed" : c >= 0.7 ? "warning" : "failed";

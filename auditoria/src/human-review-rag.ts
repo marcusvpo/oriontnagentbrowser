@@ -601,3 +601,86 @@ export function getHumanTargetSuggestionsForStep(
   }
   return out;
 }
+
+/**
+ * Grava um mapeamento aprovado pela curadoria visual Set-of-Mark (`visual:curate`, ADR-031)
+ * diretamente no cache local `human-reviews-cache.json` (Camada 0.1 RAG) e, opcionalmente,
+ * na tabela `routine_reviews` do Supabase.
+ */
+export async function upsertVisualCuratedTargetOverride(input: {
+  routineId: string;
+  stepNumber: number;
+  documented: string;
+  actual: string;
+  preferredZone?: StepZonePolicy;
+  reason: string;
+  syncToSupabase?: boolean;
+}): Promise<HumanReviewKnowledgeBase> {
+  const kb = getCachedHumanReviewsKnowledge();
+  const revId = `rev-som-${input.routineId.toLowerCase().replace(/[^a-z0-9]/g, '-')}-p${input.stepNumber}`;
+  const motivo = `Curadoria Visual Set-of-Mark (ADR-031) no passo ${input.stepNumber}: '${input.documented}' -> '${input.actual}' (${input.reason}).`;
+
+  const existingRevIdx = kb.reviews.findIndex(r => r.id === revId);
+  const record: HumanReviewRecord = {
+    id: revId,
+    routineId: input.routineId,
+    revisor: 'Curadoria Visual SoM (ADR-031)',
+    categoria: 'atualizacao_editorial',
+    passos: [input.stepNumber],
+    motivo,
+    status: 'aberta',
+    versao: existingRevIdx >= 0 ? kb.reviews[existingRevIdx].versao + 1 : 1,
+    atualizadoEm: new Date().toISOString()
+  };
+
+  if (existingRevIdx >= 0) {
+    kb.reviews[existingRevIdx] = record;
+  } else {
+    kb.reviews.push(record);
+  }
+
+  const routineReviews = kb.reviews.filter(r => r.routineId === input.routineId);
+  const guidance = buildGuidanceForRoutine(input.routineId, routineReviews);
+  const alreadyHasOverride = guidance.targetOverrides.some(
+    ov =>
+      (ov.stepNumber === undefined || ov.stepNumber === input.stepNumber) &&
+      normRag(ov.documented) === normRag(input.documented) &&
+      normRag(ov.actual) === normRag(input.actual)
+  );
+  if (!alreadyHasOverride) {
+    guidance.targetOverrides.push({
+      stepNumber: input.stepNumber,
+      documented: input.documented,
+      actual: input.actual,
+      preferredZone: input.preferredZone
+    });
+  }
+  kb.byRoutine[input.routineId] = guidance;
+  kb.crossRoutine = buildCrossRoutineGraph(kb.byRoutine);
+  kb.loadedAt = new Date().toISOString();
+  writeHumanReviewsCacheToDisk(kb);
+
+  if (input.syncToSupabase !== false && isSupabaseConfigured()) {
+    try {
+      const supabase = getSupabaseAdmin();
+      await supabase.from('routine_reviews').upsert(
+        {
+          id: record.id,
+          routine_id: record.routineId,
+          revisor: record.revisor,
+          categoria: record.categoria,
+          passos: record.passos,
+          motivo: record.motivo,
+          status: record.status,
+          versao: record.versao,
+          atualizado_em: record.atualizadoEm
+        },
+        { onConflict: 'id' }
+      );
+    } catch {
+      // fallback gracioso offline
+    }
+  }
+
+  return kb;
+}

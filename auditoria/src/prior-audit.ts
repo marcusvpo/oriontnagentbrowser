@@ -25,6 +25,8 @@ const HINTABLE_LAYERS = new Set<SmartLocatorDivergence['resolutionLayer']>([
   'dom_synonym_heuristic',
   'a11y_fuzzy_match',
   'llm_a11y_fallback',
+  'visual_som_fallback',
+  'visual_grounding_fallback',
   'investigative_reveal'
 ]);
 /** Confiança mínima de uma cura anterior para virar dica (a mesma régua da Auto-Cura, `smart-locator.ts`). */
