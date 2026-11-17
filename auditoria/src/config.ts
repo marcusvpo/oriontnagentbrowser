@@ -42,6 +42,8 @@ export interface AuditorConfig {
   viewportWidth: number;
   viewportHeight: number;
   deviceScaleFactor: number;
+  /** Zoom CSS aplicado no documento (0.8 = 80%, área útil equivalente a 1800x1125 mantendo PNG 1440x900) */
+  browserZoom: number;
   maxWriteConcurrency: number;
   maxReadConcurrency: number;
   timeoutMs: number;
@@ -69,6 +71,7 @@ export const config: AuditorConfig = {
   viewportWidth: parseInt(process.env.BROWSER_VIEWPORT_WIDTH || '1440', 10),
   viewportHeight: parseInt(process.env.BROWSER_VIEWPORT_HEIGHT || '900', 10),
   deviceScaleFactor: 1, // Trava obrigatória de DPR 1.0 (ADR-009)
+  browserZoom: parseFloat(process.env.BROWSER_ZOOM || '0.8') || 0.8,
   // Golden Rule 8: rotinas `mutation` passam por um semáforo de 1 (evita deadlocks no WildFly/PostgreSQL)
   maxWriteConcurrency: 1,
   maxReadConcurrency: 4, // Concorrência para consultas

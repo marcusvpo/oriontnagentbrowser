@@ -2,7 +2,7 @@ import type { AgentBrowserClient } from './browser.js';
 import { resolveAndNavigateMenuPath } from './menu-path.js';
 import { forbiddenCandidateReason, forbiddenMeasuredReason, synonymMatchesNode } from './navigation-guard.js';
 import { isGenericContainerMatch } from './evidence.js';
-import { probePermissionBlockedTargets } from './rbac.js';
+import { isFullAccessSession, probePermissionBlockedTargets, readSessionIdentity } from './rbac.js';
 import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
 import { resolveGridActions } from './icon-action-resolver.js';
 import type {
@@ -54,6 +54,11 @@ export async function collectVisibleLabelNodes(client: AgentBrowserClient): Prom
       for (const el of document.querySelectorAll('label, legend, th')) {
         if (vis(el) && !el.closest(NAV)) add(el.innerText || el.textContent);
       }
+      for (const el of document.querySelectorAll('span, orion-checkbox')) {
+        if (!vis(el) || el.closest(NAV)) continue;
+        const checks = el.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+        if (checks.length === 1) add(el.innerText || el.textContent);
+      }
       for (const el of document.querySelectorAll('input[placeholder], textarea[placeholder]')) {
         if (vis(el) && !el.closest(NAV)) add(el.getAttribute('placeholder'));
       }
@@ -91,7 +96,10 @@ const ORION_UI_SYNONYMS: Record<string, string[]> = {
   buscar: ['pesquisar', 'localizar', 'filtrar', 'consultar'],
   localizar: ['pesquisar', 'buscar', 'filtrar'],
   parametrizacoes: ['configurações', 'parâmetros', 'geral'],
-  usuarios: ['colaboradores', 'operadores', 'prepostos', 'usuários']
+  usuarios: ['colaboradores', 'operadores', 'prepostos', 'usuários'],
+  'grupo firmas': ['escrevente de firmas'],
+  impressao: ['imprimir', 'impressão'],
+  imprimir: ['impressão', 'imprimir']
 };
 
 /**
@@ -138,11 +146,13 @@ export function computeDiceSimilarity(a: string, b: string): number {
 }
 
 // Intenção de navegação explícita: o alvo legítimo ESTÁ numa zona de navegação.
+const HARD_NAV_INTENT_PATTERN =
+  /\b(menu|menus|submenu|barra superior|barra de navegacao|painel lateral|menu lateral|navbar|sidebar)\b/;
 const NAV_INTENT_PATTERN =
   /\b(menu|menus|submenu|aba|abas|barra superior|barra de navegacao|painel lateral|menu lateral|navbar|sidebar)\b/;
-// Verbos inequívocos de parametrização/preenchimento de formulário.
+// Verbos inequívocos de parametrização/preenchimento de formulário (imperativo e infinitivo).
 const STRICT_FORM_VERB_PATTERN =
-  /\b(defina|preencha|configure|informe|digite|ajuste|parametrize|marque|desmarque|insira|vincule|associe)\b/;
+  /\b(defin[ae]|definir|preench[ae]|preencher|configur[ae]|configurar|inform[ae]|informar|digit[ae]|digite|ajust[ae]|ajustar|parametriz[ae]|parametrizar|marqu[ae]|marcar|desmarqu[ae]|desmarcar|insir[ae]|inserir|vincul[ae]|vincular|associ[ae]|associar)\b/;
 // Verbos que tanto operam um campo quanto escolhem um item de navegação.
 const AMBIGUOUS_FORM_VERB_PATTERN = /\b(selecione|escolha|localize|consulte|filtre|pesquise)\b/;
 
@@ -153,7 +163,8 @@ export function hasNavigationIntent(text: string): boolean {
 
 /**
  * Filtro de Zona Semântica (ADR-015) — decide, a partir do texto do passo, onde o alvo pode estar:
- * - Menção explícita a menu/aba/barra/painel lateral -> `any` (o alvo é navegação).
+ * - Menção explícita a menu/barra/painel lateral -> `any` (o alvo é navegação).
+ * - Citação a "aba" combinada com verbo estrito de formulário ("marcar", "preencher"...) -> `content-preferred`.
  * - Verbos de parametrização ("Defina", "Preencha", "Configure"...) ou ação `fill`/`search` -> `content`
  *   (estrito: `aside`, `.sidebar`, `nav` e abas ficam fora da busca).
  * - Verbos ambíguos ("Selecione", "Escolha"...) ou ação `select`/`check` -> `content-preferred`.
@@ -161,7 +172,13 @@ export function hasNavigationIntent(text: string): boolean {
  */
 export function inferStepZone(text: string, actionType?: string): StepZonePolicy {
   const norm = normalizeText(text);
-  if (NAV_INTENT_PATTERN.test(norm)) return 'any';
+  if (HARD_NAV_INTENT_PATTERN.test(norm)) return 'any';
+  if (NAV_INTENT_PATTERN.test(norm)) {
+    if (STRICT_FORM_VERB_PATTERN.test(norm) || actionType === 'fill' || actionType === 'search') {
+      return 'content-preferred';
+    }
+    return 'any';
+  }
   if (STRICT_FORM_VERB_PATTERN.test(norm)) return 'content';
   if (actionType === 'fill' || actionType === 'search') return 'content';
   if (AMBIGUOUS_FORM_VERB_PATTERN.test(norm)) return 'content-preferred';
@@ -258,6 +275,11 @@ interface A11ySemanticCandidate {
  * Retorna TODOS os candidatos com confiança >= 0.68, do melhor para o pior (um por nó), para que a
  * camada de zona possa descartar um item de navegação e seguir para o próximo candidato de conteúdo.
  */
+const hasWholePhrase = (haystack: string, phrase: string): boolean =>
+  Boolean(haystack && phrase && (haystack === phrase || ` ${haystack} `.includes(` ${phrase} `)));
+
+const singleWordTokens = (norm: string): string[] => norm.split(' ').filter(w => w.length >= 3);
+
 export function rankSemanticCandidatesInA11y(
   targets: string[],
   nodes: ParsedA11yNode[],
@@ -269,10 +291,10 @@ export function rankSemanticCandidatesInA11y(
     const normDoc = normalizeText(docTarget);
     if (!normDoc) continue;
 
-    // Coletar sinônimos conhecidos do dicionário Orion TN
+    // Coletar sinônimos conhecidos do dicionário Orion TN (exige palavra/frase inteira)
     const synonyms = new Set<string>();
     for (const [key, synList] of Object.entries(ORION_UI_SYNONYMS)) {
-      if (normDoc === key || normDoc.includes(key)) {
+      if (hasWholePhrase(normDoc, key)) {
         for (const s of synList) synonyms.add(normalizeText(s));
       }
     }
@@ -280,28 +302,32 @@ export function rankSemanticCandidatesInA11y(
     for (const node of nodes) {
       const normNode = normalizeText(node.name);
       if (!normNode) continue;
-      // ADR-024: campo de texto nunca é item de menu e a barra de pesquisa global (CTRL + B) só é alvo se o passo a cita
+      // ADR-024 + ADR-026: bloqueia campo em passo de navegação, CTRL + B, "Novo cartão +" sem "cartão" e colapso em navbar
       if (step && forbiddenCandidateReason(step, { name: node.name, role: node.role })) continue;
 
       let score = 0;
       let reason = '';
 
-      if (node.role === 'label') {
-        // Rótulo visível (ADR-018): o dicionário de sinônimos é de comandos e não vale aqui. Um rótulo
-        // só é candidato se um nome contiver o outro por palavras inteiras (campo renomeado).
-        const whole = (hay: string, needle: string) => ` ${hay} `.includes(` ${needle} `);
-        if (!whole(normDoc, normNode) && !whole(normNode, normDoc)) continue;
+      if (Array.from(synonyms).some(s => synonymMatchesNode(s, normNode))) {
+        // ADR-024: palavra inteira ou igualdade exata; vale também para rótulos de checkboxes (ex.: Escrevente de Firmas)
+        score = node.role === 'label' ? 0.9 : 0.92;
+        reason = `Sinônimo canônico Orion TN ('${docTarget}' -> '${node.name}')`;
+      } else if (node.role === 'label') {
+        // Rótulo visível sem sinônimo: exige inclusão por palavra/frase inteira (campo renomeado)
+        if (!hasWholePhrase(normDoc, normNode) && !hasWholePhrase(normNode, normDoc)) continue;
         score = Math.min(0.95, computeDiceSimilarity(normDoc, normNode) + 0.2);
         reason = `Rótulo visível na tela equivalente por inclusão de nome (${Math.round(score * 100)}%)`;
-      } else if (Array.from(synonyms).some(s => synonymMatchesNode(s, normNode))) {
-        // ADR-024: palavra inteira ou igualdade exata; o símbolo `+` não casa por substring ("CTRL + B")
-        // 1. Equivalência direta via Dicionário de Sinônimos Orion TN
-        score = 0.92;
-        reason = `Sinônimo canônico Orion TN ('${docTarget}' -> '${node.name}')`;
       } else {
-        // 2. Similaridade léxica Sørensen–Dice + inclusão de radicais
+        // 2. Similaridade léxica Sørensen–Dice + inclusão SOMENTE por palavra/frase inteira (nunca intra-palavra: "Autenticidade" != "Cidade")
         const dice = computeDiceSimilarity(normDoc, normNode);
-        const tokenOverlap = normNode.includes(normDoc) || normDoc.includes(normNode) ? 0.2 : 0;
+        const wordsDoc = singleWordTokens(normDoc);
+        const wordsNode = singleWordTokens(normNode);
+        const bothSingleWord = wordsDoc.length === 1 && wordsNode.length === 1;
+        if (bothSingleWord && wordsDoc[0] !== wordsNode[0] && dice < 0.75) {
+          continue;
+        }
+        const tokenOverlap =
+          hasWholePhrase(normNode, normDoc) || hasWholePhrase(normDoc, normNode) ? 0.2 : 0;
         score = Math.min(0.95, dice + tokenOverlap);
         reason = `Similaridade semântica na árvore de acessibilidade (${Math.round(score * 100)}%)`;
       }
@@ -601,7 +627,11 @@ export async function locateAndCaptureWithSelfHealing(
   // CAMADA 0: Navegação Encadeada por Segmentos com Auto-Cura de Rota (ADR-016)
   // Um caminho de menu `A > B > C` é percorrido na árvore de navegação real antes de qualquer busca textual.
   // =========================================================================
-  const viaMenuPath = await resolveAndNavigateMenuPath(client, step, rawScreenshotPath, options.priorMenuChains);
+  const fullAccess =
+    isFullAccessSession() || isFullAccessSession(await readSessionIdentity(client).catch(() => null));
+  const viaMenuPath = await resolveAndNavigateMenuPath(client, step, rawScreenshotPath, options.priorMenuChains, {
+    ignoreDisabledBlocks: fullAccess
+  });
   if (viaMenuPath && (viaMenuPath.found || viaMenuPath.permissionBlocked)) return viaMenuPath;
   // ADR-024: caminho de menu inexistente na árvore real (ou cascata que não abriu). O passo ainda pode ser
   // medido por correspondência EXATA no DOM (Camada 1), mas nunca é "curado" por similaridade/sinônimo.

@@ -50,6 +50,10 @@ export interface MenuPathMatch {
   viaPriorAudit?: boolean;
 }
 
+const MENU_LEAF_SYNONYMS: Record<string, string[]> = {
+  'balcao de firmas': ['reconhecimento de firmas']
+};
+
 const NAV_TREE_ROOT_SELECTOR = '.navbar ul.nav, nav ul.nav, #navbar ul.nav';
 const LEAF_MIN_SIMILARITY = 0.8;
 const MAX_GAP_BETWEEN_BOLD_SEGMENTS = 40;
@@ -130,18 +134,22 @@ export function buildMenuTreeScript(): string {
       window.__orionMenuStamps = [];
       const token = 'm' + Date.now().toString(36) + Math.floor(Math.random() * 1e9).toString(36);
       const clean = t => (t || '').replace(/\\s+/g, ' ').trim();
-      const blocked = li => /(^|\\s)(disabled|ngx-orion-hide)(\\s|$)/.test(typeof li.className === 'string' ? li.className : '');
+      const hiddenByApp = li =>
+        /(^|\\s)ngx-orion-hide(\\s|$)/.test(typeof li.className === 'string' ? li.className : '') ||
+        li.style?.display === 'none';
+      const blocked = li => /(^|\\s)disabled(\\s|$)/.test(typeof li.className === 'string' ? li.className : '');
       const items = [];
 
       const walk = (ul, chain, selectors, inheritedDisabled, inheritedTitle) => {
         for (const li of Array.from(ul.children)) {
           if (li.tagName !== 'LI') continue;
+          if (hiddenByApp(li)) continue;
           const a = Array.from(li.children).find(c => c.tagName === 'A');
           const sub = Array.from(li.children).find(c => c.tagName === 'UL');
           const ownBlocked = blocked(li);
           const disabled = inheritedDisabled || ownBlocked;
           const blockTitle = ownBlocked
-            ? (clean(li.getAttribute('title')) || (/ngx-orion-hide/.test(li.className) ? 'Item oculto pela aplicação para o perfil logado' : 'Item desabilitado pela aplicação'))
+            ? (clean(li.getAttribute('title')) || 'Item desabilitado pela aplicação')
             : inheritedTitle;
           let nextChain = chain;
           let nextSelectors = selectors;
@@ -190,12 +198,18 @@ const sameChain = (a: string[], b: string[]) =>
  *   bloqueia em vez de adivinhar a tela).
  * - Se a folha só existe em itens bloqueados para o perfil, o resultado também é `blocked`.
  */
-export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[], priorChains: string[][] = []): MenuPathMatch | null {
+export function chooseMenuItem(
+  paths: DocumentedMenuPath[],
+  items: MenuTreeItem[],
+  priorChains: string[][] = [],
+  options: { ignoreDisabledBlocks?: boolean } = {}
+): MenuPathMatch | null {
   const eligible = items.filter(i => i.chain.length >= 2);
   const usable = eligible.filter(i => !i.disabled);
 
   for (const documented of paths) {
-    const exact = eligible.find(i => sameChain(i.chain, documented.segments));
+    const pool = options.ignoreDisabledBlocks ? usable : eligible;
+    const exact = pool.find(i => sameChain(i.chain, documented.segments));
     if (exact) {
       return exact.disabled
         ? { item: exact, documented, exact: true, blocked: true, confidence: 1, reason: exact.blockTitle || 'Item bloqueado para o perfil logado' }
@@ -212,7 +226,10 @@ export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[
     const leaf = hit.chain[hit.chain.length - 1];
     for (const documented of paths) {
       const docLeaf = documented.segments[documented.segments.length - 1];
-      const similarity = normalizeText(leaf) === normalizeText(docLeaf) ? 1 : computeDiceSimilarity(leaf, docLeaf);
+      const normLeaf = normalizeText(leaf);
+      const normDocLeaf = normalizeText(docLeaf);
+      const canonicalHit = (MENU_LEAF_SYNONYMS[normDocLeaf] || []).map(normalizeText).includes(normLeaf);
+      const similarity = normLeaf === normDocLeaf ? 1 : canonicalHit ? 0.92 : computeDiceSimilarity(leaf, docLeaf);
       if (similarity < LEAF_MIN_SIMILARITY) continue;
       return {
         item: hit,
@@ -227,14 +244,25 @@ export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[
 
   const scoreLeaf = (pool: MenuTreeItem[], documented: DocumentedMenuPath) => {
     const docLeaf = documented.segments[documented.segments.length - 1];
+    const normDocLeaf = normalizeText(docLeaf);
+    const docLeafSynonyms = (MENU_LEAF_SYNONYMS[normDocLeaf] || []).map(normalizeText);
     const docAncestors = documented.segments.slice(0, -1).map(normalizeText);
     const scored = pool
       .map(item => {
         const leaf = item.chain[item.chain.length - 1];
-        const leafSimilarity = normalizeText(leaf) === normalizeText(docLeaf) ? 1 : computeDiceSimilarity(leaf, docLeaf);
+        const normLeaf = normalizeText(leaf);
+        const exactLeaf = normLeaf === normDocLeaf;
+        const canonicalSynonym = !exactLeaf && docLeafSynonyms.includes(normLeaf);
+        const leafSimilarity = exactLeaf ? 1 : canonicalSynonym ? 0.92 : computeDiceSimilarity(leaf, docLeaf);
         const ancestors = item.chain.slice(0, -1).map(normalizeText);
         const shared = docAncestors.filter(seg => ancestors.includes(seg)).length;
-        return { item, leafSimilarity, shared, score: leafSimilarity * 10 + shared - (item.hasChildren ? 0.5 : 0) };
+        return {
+          item,
+          leafSimilarity,
+          canonicalSynonym,
+          shared,
+          score: leafSimilarity * 10 + shared - (item.hasChildren ? 0.5 : 0)
+        };
       })
       .filter(s => s.leafSimilarity >= LEAF_MIN_SIMILARITY)
       .sort((a, b) => b.score - a.score);
@@ -252,28 +280,33 @@ export function chooseMenuItem(paths: DocumentedMenuPath[], items: MenuTreeItem[
       0.95,
       best.leafSimilarity * 0.8 + (docAncestors.length ? (0.15 * best.shared) / docAncestors.length : 0)
     );
+    const docLeaf = documented.segments[documented.segments.length - 1];
     return {
       item: best.item,
       documented,
       exact: false,
       confidence: Number(confidence.toFixed(2)),
-      reason: `Item "${best.item.chain[best.item.chain.length - 1]}" localizado na árvore de navegação em outra rota (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`
+      reason: best.canonicalSynonym
+        ? `Equivalência canônica de menu: "${docLeaf}" -> "${best.item.chain[best.item.chain.length - 1]}" (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`
+        : `Item "${best.item.chain[best.item.chain.length - 1]}" localizado na árvore de navegação em outra rota (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`
     };
   }
 
   // Nenhuma folha acessível: a folha documentada existe, mas só em itens bloqueados para o perfil?
-  for (const documented of paths) {
-    const { scored } = scoreLeaf(eligible.filter(i => i.disabled), documented);
-    if (scored.length > 0) {
-      const best = scored[0];
-      return {
-        item: best.item,
-        documented,
-        exact: false,
-        blocked: true,
-        confidence: Number(Math.min(0.95, best.leafSimilarity * 0.8).toFixed(2)),
-        reason: best.item.blockTitle || 'Item bloqueado para o perfil logado'
-      };
+  if (!options.ignoreDisabledBlocks) {
+    for (const documented of paths) {
+      const { scored } = scoreLeaf(eligible.filter(i => i.disabled), documented);
+      if (scored.length > 0) {
+        const best = scored[0];
+        return {
+          item: best.item,
+          documented,
+          exact: false,
+          blocked: true,
+          confidence: Number(Math.min(0.95, best.leafSimilarity * 0.8).toFixed(2)),
+          reason: best.item.blockTitle || 'Item bloqueado para o perfil logado'
+        };
+      }
     }
   }
   return null;
@@ -447,6 +480,48 @@ async function openCascadeWithPointer(client: AgentBrowserClient, selectors: str
   return null;
 }
 
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Expande o `sourceText` do caminho resolvido para englobar alternativas `"ou **Y**"` / `"(ou **Y**)"`
+ * inexistentes na árvore de navegação real, permitindo removê-las no texto revisado (ADR-026).
+ */
+export function expandMenuOrAlternativeSpan(
+  rawText: string,
+  paths: DocumentedMenuPath[],
+  matchedDoc: DocumentedMenuPath,
+  items: MenuTreeItem[]
+): { span: string; removedAlternatives: string[] } {
+  let span = matchedDoc.sourceText;
+  const removedAlternatives: string[] = [];
+  if (paths.length < 2 || !rawText.includes(span)) return { span, removedAlternatives };
+
+  const usable = items.filter(i => !i.disabled);
+  const siblings = paths.filter(p => p !== matchedDoc && p.sourceText !== matchedDoc.sourceText && rawText.includes(p.sourceText));
+
+  for (const sib of siblings) {
+    const siblingExists = usable.some(i => sameChain(i.chain, sib.segments));
+    if (siblingExists) continue;
+    const eSpan = escapeRegExp(span);
+    const eSib = escapeRegExp(sib.sourceText);
+    const patterns = [
+      new RegExp(`${eSpan}\\s*\\(\\s*ou\\s+${eSib}\\s*\\)`, 'i'),
+      new RegExp(`${eSpan}\\s+(?:ou|/)\\s+${eSib}`, 'i'),
+      new RegExp(`${eSib}\\s*\\(\\s*ou\\s+${eSpan}\\s*\\)`, 'i'),
+      new RegExp(`${eSib}\\s+(?:ou|/)\\s+${eSpan}`, 'i')
+    ];
+    for (const re of patterns) {
+      const m = rawText.match(re);
+      if (m) {
+        span = m[0];
+        removedAlternatives.push(sib.segments.join(' > '));
+        break;
+      }
+    }
+  }
+  return { span, removedAlternatives };
+}
+
 /**
  * Resolve um passo de caminho de menu de ponta a ponta. Retorna `null` quando o passo não cita
  * caminho de menu ou quando nenhuma folha da árvore corresponde (o chamador segue o fluxo normal).
@@ -455,7 +530,8 @@ export async function resolveAndNavigateMenuPath(
   client: AgentBrowserClient,
   step: RoutineStep,
   rawScreenshotPath: string,
-  priorChains: string[][] = []
+  priorChains: string[][] = [],
+  options: { ignoreDisabledBlocks?: boolean } = {}
 ): Promise<SmartLocatorResult | null> {
   const paths = extractMenuPaths(step);
   if (paths.length === 0) return null;
@@ -468,7 +544,7 @@ export async function resolveAndNavigateMenuPath(
     console.warn(`   ⚠ [Rota de Menu] ${detail}; o caminho "${documentedLabel}" não pôde ser verificado.`);
     return { found: false, healed: false, geometry: null, matchedTargetName: documentedLabel, menuPathOpenFailed: detail };
   }
-  const match = chooseMenuItem(paths, items, priorChains);
+  const match = chooseMenuItem(paths, items, priorChains, options);
   if (!match) {
     // ADR-024: caminho inexistente na árvore real NÃO é curado para outro elemento (muito menos para um campo
     // de texto): o passo carrega a evidência lida da árvore e a rotina vira `[ATT]`.
@@ -574,27 +650,36 @@ export async function resolveAndNavigateMenuPath(
   const leafSelector = selectors[selectors.length - 1];
   console.log(`   [Rota de Menu] Cascata aberta com o ponteiro na folha; ${members.length} níveis medidos no mesmo frame.`);
 
-  if (match.exact) {
-    return { found: true, healed: false, geometry, matchedTargetName: realPath };
-  }
-
   // Preserva a forma do manual: um único negrito com o caminho, ou um negrito por segmento
   const singleBold = /^\*\*[^*]+\*\*$/.test(match.documented.sourceText);
   const realMarkup = singleBold ? `**${realPath}**` : chain.map(s => `**${s}**`).join(' > ');
   const leafBox = members[members.length - 1].cssBox;
+  const { span: fromSpan, removedAlternatives } = expandMenuOrAlternativeSpan(
+    step.rawText,
+    paths,
+    match.documented,
+    items
+  );
+  const strippedAlternative = removedAlternatives.length > 0 && fromSpan !== match.documented.sourceText;
+
+  if (match.exact && !strippedAlternative) {
+    return { found: true, healed: false, geometry, matchedTargetName: realPath };
+  }
 
   const divergence: SmartLocatorDivergence = {
     stepNumber: step.stepNumber,
-    documentedTarget: documentedPath,
+    documentedTarget: strippedAlternative ? `${documentedPath} ou ${removedAlternatives.join(' ou ')}` : documentedPath,
     actualElementText: realPath,
     actualRole: 'menuitem',
     resolutionLayer: 'menu_path_resolution',
-    confidence: match.confidence,
-    reason: match.reason,
+    confidence: match.exact ? 1 : match.confidence,
+    reason: strippedAlternative && match.exact
+      ? `Alternativa de menu inexistente (${removedAlternatives.join(', ')}) removida após comprovar "${realPath}" na árvore real`
+      : match.reason,
     detectedAt: new Date().toISOString(),
     // Evidência (ADR-017): cada segmento do caminho real foi lido da árvore de navegação e medido na print
     evidence: { source: 'menu-tree', matchedSelector: leafSelector, elementText: realPath, box: leafBox },
-    textChange: { from: match.documented.sourceText, to: realMarkup }
+    textChange: { from: fromSpan, to: realMarkup }
   };
 
   return {
@@ -603,7 +688,7 @@ export async function resolveAndNavigateMenuPath(
     geometry,
     matchedTargetName: realPath,
     divergence,
-    validatedText: step.rawText.replace(match.documented.sourceText, realMarkup),
+    validatedText: step.rawText.replace(fromSpan, realMarkup),
     priorHint: match.viaPriorAudit ? { documented: documentedPath, actual: realPath, layer: 'menu_path_resolution' } : undefined
   };
 }

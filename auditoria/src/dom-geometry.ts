@@ -535,6 +535,8 @@ export interface DOMIntrospectionOptions {
    * que a ação que avança o fluxo é o clique na folha, não no menu de topo.
    */
   actionMember?: 'first-clickable' | 'last';
+  /** Zoom CSS ativo no documento (ex.: 0.8 para 80%) */
+  zoom?: number;
 }
 
 /**
@@ -558,9 +560,24 @@ export function buildDOMIntrospectionScript(
   const scrollIntoView = options.scrollIntoView ?? true;
   const zone: SemanticZone = options.zone ?? 'any';
   const actionMember = options.actionMember ?? 'first-clickable';
+  const zoomFactor = options.zoom ?? 0.8;
 
   return `
     (() => {
+      const targetZoom = ${JSON.stringify(zoomFactor)};
+      if (Number.isFinite(targetZoom) && targetZoom > 0 && Math.abs(targetZoom - 1) >= 0.001) {
+        const zStr = String(targetZoom);
+        if (document.documentElement && document.documentElement.style.zoom !== zStr) {
+          document.documentElement.style.zoom = zStr;
+          void document.documentElement.offsetHeight;
+        }
+        if (document.head && !document.getElementById('orion-audit-zoom')) {
+          const st = document.createElement('style');
+          st.id = 'orion-audit-zoom';
+          st.textContent = 'html { zoom: ' + zStr + ' !important; }';
+          document.head.appendChild(st);
+        }
+      }
       const queries = ${JSON.stringify(targetList)};
       const groupQueries = ${JSON.stringify(groupList)};
       const zone = ${JSON.stringify(zone)};
@@ -862,9 +879,18 @@ export function buildDOMIntrospectionScript(
           if (own) {
             out.push(own);
           } else if (el.parentElement) {
-            const lbls = Array.from(el.parentElement.children).filter(k => k.tagName === 'LABEL' && isVisible(k));
-            if (lbls.length === 1) out.push(lbls[0]);
+            const pTag = el.parentElement.tagName;
+            if ((pTag === 'SPAN' || pTag === 'ORION-CHECKBOX') && isVisible(el.parentElement)) {
+              const checks = el.parentElement.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+              if (checks.length === 1) out.push(el.parentElement);
+            } else {
+              const lbls = Array.from(el.parentElement.children).filter(k => k.tagName === 'LABEL' && isVisible(k));
+              if (lbls.length === 1) out.push(lbls[0]);
+            }
           }
+        } else if ((tag === 'SPAN' || tag === 'ORION-CHECKBOX') && isVisible(el)) {
+          const checks = el.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+          if (checks.length === 1 && isVisible(checks[0])) out.push(checks[0]);
         }
         return out;
       }

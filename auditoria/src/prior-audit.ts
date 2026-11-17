@@ -171,7 +171,14 @@ export function parsePriorAudit(routineId: string, markdown: string | null, tele
       domEvidence: asStr(e?.evidencia_dom)
     }));
 
-    if (Array.isArray(ui.historico_reauditoria)) ctx.history = ui.historico_reauditoria as ReauditHistoryEntry[];
+    if (Array.isArray(ui.historico_reauditoria)) {
+      ctx.history = (ui.historico_reauditoria as any[]).map(h => ({
+        ...h,
+        tags_anteriores: Array.isArray(h?.tags_anteriores) ? h.tags_anteriores : [],
+        tags_atuais: Array.isArray(h?.tags_atuais) ? h.tags_atuais : [],
+        curas_reaproveitadas: Array.isArray(h?.curas_reaproveitadas) ? h.curas_reaproveitadas : []
+      })) as ReauditHistoryEntry[];
+    }
 
     if (isBlockingReviewStatus(ctx.status)) {
       ctx.block = {

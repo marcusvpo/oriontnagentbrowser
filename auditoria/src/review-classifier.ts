@@ -17,6 +17,7 @@
 import { buildDependencyGraph, consumerEntity, detectExternalObject, entityTokens, findObjectProviders, findProviders, type ProviderMatch } from './kb-dependency-graph.js';
 import { hasNoData, isEmptyMessage } from './empty-state.js';
 import { ENVIRONMENT_BLOCK_TYPE, REVIEW_TAGS } from './review-taxonomy.js';
+import { MANUAL_OUTDATED_BLOCK_TYPE } from './rbac.js';
 import type { EmptyStateEvidence, ParsedRoutine, ReviewStatus, RoutineBlockInfo } from './types.js';
 
 export const EMPTY_DATA_BLOCK_TYPE = 'Dependência de Dados no Banco de Homologação (Grade Vazia)';
@@ -124,8 +125,20 @@ export function classifyBlock(input: ClassifyInput): Classification {
   // 5. Caminho de menu ausente: rota desatualizada, nunca dependência
   if (input.blockedStepHasMenuPath) return { status: 'atualizacao_editorial', block };
 
-  // 8. Gravação omitida pela Trava de Mutação
+  // 8. Gravação omitida pela Trava de Mutação: se a grade já tem registros, não é dependência de banco ([DDD]),
+  //    mas sim validação editorial parcial / ajuste de UI sob dry-run ([ATT], ex.: M-40.0).
   if (block.kind === 'dry_run_dependent') {
+    if (state && !state.emptyGrid && state.headers.length > 0) {
+      return {
+        status: 'atualizacao_editorial',
+        block: {
+          ...block,
+          tipo: MANUAL_OUTDATED_BLOCK_TYPE,
+          motivo:
+            `${block.motivo} Como a grade já possui registros carregados, o comportamento observado após o dry-run decorre de diferença editorial/UI e não de falta de dados.`
+        }
+      };
+    }
     return { status: 'dependencia_dados_banco', block: { ...block, tipo: block.tipo || DRY_RUN_DATA_BLOCK_TYPE } };
   }
 

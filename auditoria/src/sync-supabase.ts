@@ -777,17 +777,28 @@ export async function syncSingleRoutineToSupabase(
   let existingGovStatus: string | null = null;
   let existingStepMediaByNumber: Map<number, any> | undefined;
 
-  if (preserveGov || skipMedia) {
-    const [{ data: existingRow }, { data: existingSteps }] = await Promise.all([
+  if (preserveGov || skipMedia || !options.statusGovernancaOverride) {
+    const [{ data: existingRow }, { data: existingSteps }, { data: openReviews }] = await Promise.all([
       preserveGov
         ? supabase.from('routines').select('status_governanca').eq('id', routineId).maybeSingle()
         : Promise.resolve({ data: null }),
       skipMedia
         ? supabase.from('routine_steps').select('step_number, media').eq('routine_id', routineId)
         : Promise.resolve({ data: null }),
+      !options.statusGovernancaOverride
+        ? supabase
+            .from('routine_reviews')
+            .select('id')
+            .eq('routine_id', routineId)
+            .in('status', ['aberta', 'em_andamento'])
+            .limit(1)
+        : Promise.resolve({ data: null }),
     ]);
     if (existingRow?.status_governanca) {
       existingGovStatus = existingRow.status_governanca;
+    }
+    if (Array.isArray(openReviews) && openReviews.length > 0) {
+      existingGovStatus = 'revisao_solicitada';
     }
     if (Array.isArray(existingSteps) && existingSteps.length > 0) {
       existingStepMediaByNumber = new Map<number, any>();

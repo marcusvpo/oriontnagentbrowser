@@ -1,19 +1,23 @@
 ---
 id: M-16.2
-titulo: 'Parametrizar Captura e Digitalização'
+titulo: Parametrizar Captura e Digitalização
 modulo: config
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-15'
+  data_execucao: 2026-11-15
   status: atualizacao_editorial
   carga: mutation
-  worker_id: 'worker-1'
-  versao_homologacao: 'WildFly 22 / Orion 06.04.01'
-  tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+  worker_id: worker-1
+  versao_homologacao: WildFly 22 / Orion 06.04.01
+  tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 4tabeliao.scs
   sessao_perfil_pleno: true
+  status_governanca: revisao_solicitada
+  governanca_revisor: Marcus (Revisor)
+  governanca_atualizado_em: 2026-11-17T02:13:55.647Z
+  governanca_comentario: No passo 2, demarcar apenas o item 'Captura e digitalização' no menu lateral esquerdo sem ocluir o texto. No passo 3, demarcar os campos reais do painel central ('Cor para digitalização do DUT', 'Dpi's para digitalização do DUT', 'Mostrar configurações do scanner'), nunca a coluna inteira da sidebar.
 ---
 
 > [!CAUTION]

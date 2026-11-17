@@ -15,6 +15,7 @@ import { selectPendingRoutineIds } from './hardware-registry.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
 import { writePreTriagedDddReport } from './hardware-pretriage.js';
 import { REVIEW_TAGS, isReviewStatus, type ReviewTag } from './review-taxonomy.js';
+import { seedHumanReviews } from './seed-human-reviews.js';
 import type { AuditRoutineReport, WorkloadType } from './types.js';
 
 const argValue = (args: string[], flag: string): string | null => {
@@ -35,6 +36,7 @@ async function main() {
   const isHeaded = args.includes('--headed');
   const isHeadless = args.includes('--headless') || (!isHeaded && config.headless);
   const isLoginOnly = args.includes('--login');
+  const isSeedReviews = args.includes('--seed-reviews');
   // Trava Segura de Mutação (ADR-018): comandos de gravação são demarcados, mas não acionados
   const dryRunMutations = args.includes('--dry-run-mutations') || process.env.ORION_DRY_RUN_MUTATIONS === 'true';
   // Auto-seed de registro mock (ADR-021): ligado por padrão; --no-auto-seed desliga
@@ -200,6 +202,11 @@ async function main() {
         (targetPhase !== null && !args.includes('--pretriage-only')));
     if (touchesNetwork) await preflightOrionReachability();
 
+    if (isSeedReviews) {
+      await seedHumanReviews();
+      return;
+    }
+
     if (isLoginOnly) {
       if (isDryRun) throw new Error('Não é possível executar --login em modo --dry-run');
       const client = new AgentBrowserClient({ headless: isHeadless, sessionId: 'login-session' });
@@ -329,6 +336,7 @@ async function main() {
       console.log('  npm run audit -- --routine D-1.1                                 Executa uma rotina específica');
       console.log('  npm run audit -- --phase 2 --engine manifest                     Runner declarativo antigo da Fase 2');
       console.log('  npm run audit -- --login                                         Autentica e salva sessão mestre');
+      console.log('  npm run audit -- --seed-reviews                                  Cadastra/atualiza as 9 revisões humanas no Supabase e em disco');
       console.log('  npm run audit -- --headed                                        Abre janela visível');
       console.log('  --dry-run-mutations  demarca comandos de gravação sem acioná-los | --no-explore  desliga a exploração pré-bloqueio');
       console.log('  --phase 3 --pretriage-only  gera apenas os 7 relatórios [DDD] de hardware (sem navegador)');

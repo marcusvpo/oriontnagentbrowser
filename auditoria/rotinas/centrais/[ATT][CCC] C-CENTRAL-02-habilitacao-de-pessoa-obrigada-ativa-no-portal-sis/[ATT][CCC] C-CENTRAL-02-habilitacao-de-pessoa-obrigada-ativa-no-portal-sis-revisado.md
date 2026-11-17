@@ -1,46 +1,56 @@
 ---
 id: C-CENTRAL-02
-titulo: 'Habilitação de Pessoa Obrigada Ativa no Portal SISCOAF para Envio de Comunicações'
+titulo: Habilitação de Pessoa Obrigada Ativa no Portal SISCOAF para Envio de Comunicações
 modulo: centrais
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: 2026-11-16
   status: atualizacao_editorial
-  review_tags: ['ATT', 'CCC']
+  review_tags:
+    - ATT
+    - CCC
   carga: mutation
-  worker_id: 'worker-3'
-  versao_homologacao: 'WildFly 22 / Orion 06.04.01'
-  ambiente: 'Produtos (homologacao interna Siplan)'
-  tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+  worker_id: worker-3
+  versao_homologacao: WildFly 22 / Orion 06.04.01
+  ambiente: Produtos (homologacao interna Siplan)
+  tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
   etapas_externas:
     - passo: 1
-      portal: 'SISCOAF'
+      portal: SISCOAF
     - passo: 2
-      portal: 'SISCOAF'
+      portal: SISCOAF
     - passo: 3
-      portal: 'SISCOAF'
+      portal: SISCOAF
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: 'marcus'
+  sessao_usuario: marcus
   sessao_perfil_pleno: true
   historico_reauditoria:
-    - data: '2026-11-16'
-      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
-      ambiente_atual: 'Produtos (homologacao interna Siplan)'
-      status_anterior: 'atualizacao_editorial'
-      tags_anteriores: ['ATT', 'CCC']
-      status_atual: 'atualizacao_editorial'
-      tags_atuais: ['ATT', 'CCC']
+    - data: 2026-11-16
+      ambiente_anterior: não registrado (anterior ao ADR-025)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+        - CCC
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+        - CCC
       bloqueio_superado: false
       bloqueio_anterior:
         passo: 4
-        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
         motivo: 'No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Comunicação COAF" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de impressão'
       bloqueio_atual:
         passo: 4
-        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+  status_governanca: revisao_solicitada
+  governanca_revisor: Marcus (Revisor)
+  governanca_atualizado_em: 2026-11-17T02:13:49.655Z
+  governanca_comentario: Passos 1 a 3 ocorrem fora do Orion TN (diretamente no portal oficial do SISCOAF com e-CPF) e devem ser sinalizados como Etapa Externa [CCC] sem print falsa da home. No Orion TN (a partir do passo 4), o caminho atualizado é 'Configurações > Parametrizações > Comunicações' (menu lateral) > bloco 'Coaf' > clicar em 'Clique aqui para acessar a tela de configuração no Orion Coaf', que abre em nova guia a tela com os campos 'CPF/CNPJ', 'E-mail', 'Tipo do certificado' e botão 'Cadastrar'.
 ---
 
 > [!CAUTION]

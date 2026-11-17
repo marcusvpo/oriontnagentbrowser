@@ -1,36 +1,51 @@
 ---
 id: C-ACESSO-03
-titulo: 'Redefinição de Senha e Reset de Autenticação em Dois Fatores (2FA) por Perda de Dispositivo'
+titulo: Redefinição de Senha e Reset de Autenticação em Dois Fatores (2FA) por Perda de Dispositivo
 modulo: acesso
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-15'
+  data_execucao: 2026-11-15
   status: atualizacao_editorial
   carga: mutation
-  worker_id: 'worker-1'
-  versao_homologacao: 'WildFly 22 / Orion 06.04.01'
-  tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+  worker_id: worker-1
+  versao_homologacao: WildFly 22 / Orion 06.04.01
+  tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
   prints_geradas: 4
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 4tabeliao.scs
   sessao_perfil_pleno: true
   rbac:
-    perfil_exigido: ['Administrador', 'Tabelião Titular']
-    origem_requisito: 'passo 1'
+    perfil_exigido:
+      - Administrador
+      - Tabelião Titular
+    origem_requisito: passo 1
     estado: satisfied
     atendido: true
-    perfil_pleno_comprovado_por: 'Perfil de acesso - Gerência webFirmas'
-    sessao_usuario: '4tabeliao.scs'
-    sessao_cargo: 'TABELIAO'
-    sessao_perfis: ['Perfil de acesso - Gerência webCaixa', 'Perfil de acesso - Gerência webEstoque', 'Perfil de acesso - Gerência webGed', 'Perfil de acesso - Gerência webLivros', 'Perfil de acesso - Gerência webPro', 'Perfil de acesso - Gerência webFirmas']
+    perfil_pleno_comprovado_por: Perfil de acesso - Gerência webFirmas
+    sessao_usuario: 4tabeliao.scs
+    sessao_cargo: TABELIAO
+    sessao_perfis:
+      - Perfil de acesso - Gerência webCaixa
+      - Perfil de acesso - Gerência webEstoque
+      - Perfil de acesso - Gerência webGed
+      - Perfil de acesso - Gerência webLivros
+      - Perfil de acesso - Gerência webPro
+      - Perfil de acesso - Gerência webFirmas
   exploracao_investigativa:
     - passo: 4
-      alvos_ausentes: ['Geral', 'Redefinir Senha Manualmente', 'Exigir troca no próximo logon']
+      alvos_ausentes:
+        - Geral
+        - Redefinir Senha Manualmente
+        - Exigir troca no próximo logon
       alvos_revelados: []
       resultado: gatilhos_esgotados
       gatilhos_na_tela: 0
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
+  status_governanca: revisao_solicitada
+  governanca_revisor: Marcus (Revisor)
+  governanca_atualizado_em: 2026-11-17T02:13:54.455Z
+  governanca_comentario: "A ausência dos botões de redefinição de senha e reset de 2FA na tela 'Alteração de usuário' não é falta de permissão da conta, mas atualização do sistema: 'Alterar senha', 'Autenticação em dois fatores' e 'Cadastrar biometria' ficam no menu superior direito 'Olá, [username]'."
 ---
 
 > [!CAUTION]

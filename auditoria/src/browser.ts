@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { BoundingBox, DOMActionNode, DOMResolvedGeometry, SemanticZone, StepZonePolicy } from './types.js';
 import { buildDOMIntrospectionScript, parseDOMGeometryResponse, NAV_ZONE_SELECTOR } from './dom-geometry.js';
+import { config } from './config.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -83,6 +84,7 @@ export interface AgentBrowserOptions {
   sessionId?: string;
   statePath?: string;
   deviceScaleFactor?: number;
+  zoom?: number;
 }
 
 export class AgentBrowserClient {
@@ -90,17 +92,20 @@ export class AgentBrowserClient {
   private sessionId?: string;
   private statePath?: string;
   private deviceScaleFactor: number;
+  private browserZoom: number;
 
   constructor(options: boolean | AgentBrowserOptions = false) {
     if (typeof options === 'boolean') {
       this.headless = options;
       this.deviceScaleFactor = 1;
       this.sessionId = 'auditoria-session';
+      this.browserZoom = config.browserZoom;
     } else {
       this.headless = options.headless ?? false;
       this.sessionId = options.sessionId || 'auditoria-session';
       this.statePath = options.statePath;
       this.deviceScaleFactor = options.deviceScaleFactor ?? 1;
+      this.browserZoom = options.zoom ?? config.browserZoom;
     }
   }
 
@@ -171,8 +176,40 @@ export class AgentBrowserClient {
     }
   }
 
+  /**
+   * Aplica o zoom CSS configurado (padrão 0.8 = 80%) mantendo o viewport físico 1440x900 @ DPR 1.0,
+   * para exibir seções inferiores completas sem quebrar getBoundingClientRect() nem os 8 invariantes.
+   */
+  async applyZoom(zoom = this.browserZoom): Promise<void> {
+    const safeZoom = Number.isFinite(zoom) && zoom > 0 ? zoom : 0.8;
+    if (Math.abs(safeZoom - 1) < 0.001) return;
+    try {
+      await this.eval(`
+        (() => {
+          const z = ${JSON.stringify(String(safeZoom))};
+          if (document.documentElement && document.documentElement.style.zoom !== z) {
+            document.documentElement.style.zoom = z;
+          }
+          if (document.head && !document.getElementById('orion-audit-zoom')) {
+            const st = document.createElement('style');
+            st.id = 'orion-audit-zoom';
+            st.textContent = 'html { zoom: ' + z + ' !important; }';
+            document.head.appendChild(st);
+          }
+          return true;
+        })()
+      `);
+    } catch {
+      // Página transitória (ex.: about:blank ou ainda inicializando)
+    }
+  }
+
   async open(url: string): Promise<string> {
-    return this.run(['open', url]);
+    const out = await this.run(['open', url]);
+    if (url !== 'about:blank') {
+      await this.applyZoom();
+    }
+    return out;
   }
 
   // ---------------------------------------------------------------------------
@@ -283,6 +320,7 @@ export class AgentBrowserClient {
       await this.wait(500);
     }
     await this.ensureViewport(1440, 900);
+    await this.applyZoom();
     let url = fresh.url;
     let title = fresh.title;
     try {
@@ -353,6 +391,7 @@ export class AgentBrowserClient {
         break;
       }
     }
+    await this.applyZoom();
     return corrected;
   }
 
@@ -370,12 +409,16 @@ export class AgentBrowserClient {
   }
 
   async setViewport(width = 1440, height = 900): Promise<string> {
-    return this.run(['set', 'viewport', String(width), String(height)]);
+    const out = await this.run(['set', 'viewport', String(width), String(height)]);
+    await this.applyZoom();
+    return out;
   }
 
   async jumpHash(hashRoute: string): Promise<string> {
     const cleanHash = hashRoute.startsWith('#') ? hashRoute : `#${hashRoute}`;
-    return this.eval(`window.location.hash = '${cleanHash}'`);
+    const out = await this.eval(`window.location.hash = '${cleanHash}'`);
+    await this.applyZoom();
+    return out;
   }
 
   async snapshotInteractive(): Promise<string> {
@@ -427,7 +470,8 @@ export class AgentBrowserClient {
         scrollIntoView,
         zone,
         groupTargets,
-        actionMember: options.actionMember
+        actionMember: options.actionMember,
+        zoom: this.browserZoom
       });
       const geometry = parseDOMGeometryResponse(await this.eval(script));
       if (geometry) geometry.zonePolicy = zonePolicy;

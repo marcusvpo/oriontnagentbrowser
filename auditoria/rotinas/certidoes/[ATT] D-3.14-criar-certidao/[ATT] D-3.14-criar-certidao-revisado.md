@@ -1,20 +1,25 @@
 ---
 id: D-3.14
-titulo: 'Criar Certidão'
+titulo: Criar Certidão
 modulo: certidoes
 secao: D
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: 2026-11-16
   status: atualizacao_editorial
-  review_tags: ['ATT']
+  review_tags:
+    - ATT
   carga: mutation
-  worker_id: 'worker-1'
-  versao_homologacao: 'WildFly 22 / Orion 06.04.01'
-  tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+  worker_id: worker-1
+  versao_homologacao: WildFly 22 / Orion 06.04.01
+  tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 4tabeliao.scs
   sessao_perfil_pleno: true
+  status_governanca: revisao_solicitada
+  governanca_revisor: Marcus (Revisor)
+  governanca_atualizado_em: 2026-11-17T02:13:50.634Z
+  governanca_comentario: "No passo 1 ('Notas > Certidões > Novo Pedido de Certidão'), o agente curou erroneamente para o campo de busca global ('Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B') em vez de abrir o menu 'Notas' no cabeçalho, o que quebrou o passo 2 ('Identificação do Solicitante'). No menu Notas atual, as opções reais são 'Certidões e serviços' e 'Certidões e serviços em aberto'."
 ---
 
 > [!CAUTION]

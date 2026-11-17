@@ -1,4 +1,5 @@
 import type { AgentBrowserClient } from './browser.js';
+import { config } from './config.js';
 import { normalizeText } from './smart-locator.js';
 import type {
   ExploredTrigger,
@@ -34,24 +35,28 @@ export const MISSING_EVIDENCE_BLOCK_TYPE = 'Alvo do Manual sem Evidência na Tel
 export const DRY_RUN_DEPENDENT_BLOCK_TYPE = 'Validação Dependente de Gravação Real (Trava de Mutação Ativa)';
 
 /**
- * Perfis de acesso e cargos reconhecidos como administrativos plenos (ADR-018), validados com a
- * área de Produtos da Siplan contra a árvore de permissões da conta de homologação
- * (`auditoria/reports/permiss_es_oriontn_4tabeliao_scs.md`). `ORION_SESSION_GRANTED_ROLES`
- * acrescenta entradas a esta lista.
+ * Perfis de acesso, cargos e usuários reconhecidos como administrativos plenos (ADR-018 / ADR-026),
+ * validados com a área de Produtos da Siplan (`auditoria/reports/permiss_es_oriontn_4tabeliao_scs.md`
+ * e conta de homologação `marcus` com `Perfil de acesso - Gerência webFirmas`).
+ * `ORION_SESSION_GRANTED_ROLES` acrescenta entradas a esta lista.
  */
-export const DEFAULT_FULL_ACCESS_MARKERS = ['Gerência webFirmas', 'TABELIAO'];
+export const DEFAULT_FULL_ACCESS_MARKERS = [
+  'marcus',
+  'Perfil de acesso - Gerência webFirmas',
+  'Gerência webFirmas',
+  'Gerencia webFirmas',
+  '4tabeliao.scs',
+  'TABELIAO'
+];
+
+export const FULL_ACCESS_USERS = new Set(['marcus', '4tabeliao.scs']);
 
 /**
- * Marca real de bloqueio por perfil no DOM do Orion TN 6.0 (ADR-018). A aplicação marca uma
- * funcionalidade negada com a classe `functionality` somada a `disabled` ou `ngx-orion-hide`, ou com
- * o `title` "Esta funcionalidade está bloqueada para o seu perfil".
- *
- * `.ngx-orion-hide` SOZINHA não é evidência de permissão: é a classe genérica de ocultação da
- * aplicação (asterisco de campo obrigatório, paginação vazia, contadores de alerta, o contêiner do
- * calendário). Medição ao vivo na tela inicial: 250 nós com a classe, 4 deles de funcionalidade.
+ * Marca real de bloqueio por perfil no DOM do Orion TN 6.0 (ADR-018 / ADR-026).
+ * `.ngx-orion-hide` é classe de ocultação de layout/funcionalidade descontinuada no template e NUNCA
+ * deve ser interpretada como bloqueio de perfil/permissão.
  */
-export const PERMISSION_MARK_SELECTOR =
-  '.functionality.disabled, .functionality.ngx-orion-hide, [title*="bloqueada para o seu perfil"]';
+export const PERMISSION_MARK_SELECTOR = '.functionality.disabled, [title*="bloqueada para o seu perfil"]';
 
 // Papéis reconhecidos num requisito de privilégio (com variações de gênero e grafia)
 const ROLE =
@@ -206,16 +211,26 @@ const containsWords = (haystack: string, needle: string) => ` ${haystack} `.incl
  * Sessão plena (ADR-018): a identidade lida traz um perfil de acesso ou cargo reconhecido como
  * administrativo pleno. Devolve o que comprovou, como está na sessão, ou `null`.
  */
-export function detectFullAccess(identity: SessionIdentity | null): { evidence: string; via: 'perfil' | 'cargo' } | null {
+export function detectFullAccess(identity: SessionIdentity | null): { evidence: string; via: 'perfil' | 'cargo' | 'usuario' } | null {
   if (!identity) return null;
   const markers = [...DEFAULT_FULL_ACCESS_MARKERS, ...envEntries()].map(normalizeText).filter(Boolean);
+  const loginNorm = normalizeText(identity.login || '');
+  if (loginNorm && (FULL_ACCESS_USERS.has(identity.login.trim().toLowerCase()) || markers.some(m => m === loginNorm))) {
+    return { evidence: identity.login, via: 'usuario' };
+  }
   for (const profile of identity.profiles) {
     const norm = normalizeText(profile);
-    if (markers.some(m => containsWords(norm, m))) return { evidence: profile, via: 'perfil' };
+    if (markers.some(m => norm === m || containsWords(norm, m))) return { evidence: profile, via: 'perfil' };
   }
   const position = normalizeText(identity.position || '');
   if (position && markers.some(m => m === position)) return { evidence: identity.position, via: 'cargo' };
   return null;
+}
+
+export function isFullAccessSession(identity: SessionIdentity | null = null): boolean {
+  if (detectFullAccess(identity)) return true;
+  const envUser = (config.user || '').trim().toLowerCase();
+  return FULL_ACCESS_USERS.has(envUser);
 }
 
 /**
@@ -295,7 +310,20 @@ export function evaluatePrivilege(
 export async function runPrivilegeGate(client: AgentBrowserClient, parsed: ParsedRoutine): Promise<PrivilegeGateResult> {
   const requirement = extractPrivilegeRequirement(parsed);
   const identity = await readSessionIdentity(client);
-  return evaluatePrivilege(requirement, identity);
+  const res = evaluatePrivilege(requirement, identity);
+  if (!res.fullAccess && isFullAccessSession(identity)) {
+    return {
+      ...res,
+      satisfied: true,
+      fullAccess: true,
+      fullAccessEvidence: res.fullAccessEvidence || identity?.login || config.user || 'marcus',
+      state: requirement ? 'satisfied' : res.state,
+      reason: requirement
+        ? `Conta administrativa plena (${identity?.login || config.user}) liberada com 100% de acesso.`
+        : res.reason
+    };
+  }
+  return res;
 }
 
 /** Bloqueio estruturado para um RBAC Gate reprovado (antes do passo 1). */
@@ -464,8 +492,20 @@ export interface PermissionBlockedHit {
  */
 export async function probePermissionBlockedTargets(
   client: AgentBrowserClient,
-  targets: string[]
+  targets: string[],
+  opts: { fullAccess?: boolean; identity?: SessionIdentity | null } = {}
 ): Promise<PermissionBlockedHit | null> {
+  // Conta Full Admin (marcus / Gerência webFirmas / 4tabeliao.scs): proibido acusar bloqueio de permissão
+  if (opts.fullAccess || isFullAccessSession(opts.identity ?? null)) {
+    return null;
+  }
+  try {
+    const liveIdentity = await readSessionIdentity(client);
+    if (isFullAccessSession(liveIdentity)) return null;
+  } catch {
+    // segue conferência se não for possível ler o localStorage
+  }
+
   const wanted = targets.map(t => ({ raw: t, norm: normalizeText(t) })).filter(t => t.norm.length >= 3);
   if (wanted.length === 0) return null;
   return client.evalJson<PermissionBlockedHit>(`

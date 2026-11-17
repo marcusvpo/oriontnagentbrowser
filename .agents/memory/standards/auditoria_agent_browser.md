@@ -491,3 +491,29 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 ### 14.6. Testes offline
 
 `src/__tests__/adr025-prior-audit-multitab.test.ts` (37 testes, incluindo a validade sintática do script injetado): parser do contexto anterior com fixtures no formato real, `historico_reauditoria` (YAML + seção), `parseTabList`, afinidade do sub-portal, `chooseMenuItem` com rota comprovada (empate real, rota inexistente, guarda da ADR-024, item bloqueado), Camada 0.5 com cliente falso, preflight (host mascarado) e seleção sem hardware.
+
+---
+
+## 15. Revisões Humanas, Zoom 80%, Fim do Falso RBAC e Fluxo Interativo de Firmas (ADR-026)
+
+### 15.1. Seed de revisões humanas e preservação de governança (`seed-human-reviews.ts`, `sync-supabase.ts`, `cli.ts`)
+* `cli.ts --seed-reviews` executa `seedHumanReviews()` (sem preflight de VPN), persistindo de forma idempotente as revisões de `"Marcus (Revisor)"` em `routine_reviews`, `routine_review_versions`, `governance_events`, `routines` (`status_governanca = 'revisao_solicitada'`) e em disco (`persistRoutineGovernanceToDisk`).
+* `syncSingleRoutineToSupabase(..., { preserveExistingGovernance: true })` (padrão no `executor.ts`) consulta revisões abertas (`aberta`/`em_andamento`) antes do upsert de `routines`, preservando `revisao_solicitada` após reauditorias.
+
+### 15.2. Zoom 80% com paridade 1:1 DOM-PNG (`config.ts`, `browser.ts`, `dom-geometry.ts`)
+* `config.browserZoom` padrão `0.8` (`ORION_BROWSER_ZOOM`), injetado em `html { zoom: 0.8 !important; }` durante navegação, resets, troca de abas e extração DOM, mantendo viewport físico `1440x900 @ DPR 1.0`.
+* Como `getBoundingClientRect()` e `elementFromPoint()` no Blink já operam no espaço escalado `0..1440 x 0..900`, todas as coordenadas casam 1:1 com o buffer PNG, exibindo seções inferiores completas (`Nomes para reconhecimento`, `Imprimir`, `Tomador`/`Pagamento`/`Termo`/`Cancelar`/`Concluir`) com 0 discrepâncias nos 8 invariantes.
+
+### 15.3. Fim do falso bloqueio RBAC e `.ngx-orion-hide` (`rbac.ts`, `menu-path.ts`)
+* `FULL_ACCESS_USERS` e `DEFAULT_FULL_ACCESS_MARKERS` incluem `marcus`, `4tabeliao.scs`, `TABELIAO` e `Perfil de acesso - Gerência webFirmas`; `probePermissionBlockedTargets` retorna `null` em sessão plena.
+* `.functionality.ngx-orion-hide` saiu de `PERMISSION_MARK_SELECTOR` (menus ocultos são rotas obsoletas, nunca falta de privilégio); `buildMenuTreeScript()` ignora `<li>` com `.ngx-orion-hide` ou `display: none`; `chooseMenuItem` aceita `{ ignoreDisabledBlocks }` e `MENU_LEAF_SYNONYMS` (`'balcao de firmas' -> ['reconhecimento de firmas']`).
+
+### 15.4. Blindagem semântica e limpeza `"X ou Y"` (`navigation-guard.ts`, `smart-locator.ts`, `dom-geometry.ts`, `menu-path.ts`)
+* `forbiddenCandidateReason` bloqueia `"Novo cartão +"` quando o passo não cita cartão e `isNavbarOnlyTargetForbidden` veta itens `inNavbar` (`isTopNav`) em passos de formulário ou alvos compostos (`"Grupo Firmas"` != `"Firmas"`).
+* `rankSemanticCandidatesInA11y` usa comparação por palavra/frase inteira (`"Autenticidade"` != `"Cidade"`), coleta checkboxes em `<span>`/`<orion-checkbox>` (`collectVisibleLabelNodes` + `fieldBlockElements`, resolvendo `"Grupo Firmas"` -> `"Escrevente de Firmas"` com idempotência de marcação) e `inferStepZone` usa `'content-preferred'` para `aba` + verbo estrito de formulário.
+* `expandMenuOrAlternativeSpan` remove alternativas `"X ou Y"` inexistentes no texto revisado quando `X` é comprovado na árvore real (`R-1.1` passo 1), preservando a Trava de Evidência.
+
+### 15.5. Fluxo interativo de Firmas e `M-40.0` sob dry-run (`firmas-interactive.ts`, `executor.ts`, `review-classifier.ts`, `prior-audit.ts`)
+* `firmas-interactive.ts` conduz `#/pedidoFirmas/cadastrar` (`search_person` com `"teste" + Enter`, `+` em `Nomes encontrados` em `passo-NN-b`, `Nomes para reconhecimento` + `Finalizar` em `passo-NN-c`, `review_card`, `sga_order`, `add_service` em `Serviços realizados` / `Efetuar Serviço`, `act_and_print` e `finish_order` com `--dry-run-mutations`).
+* Em grades populadas após `--dry-run-mutations`, a ausência de `Limpar` no formulário aberto é convertida em ajuste editorial/UI (`validado_com_ajustes`), e `prior-audit.ts`/`report.ts` normalizam entradas históricas sem `curas_reaproveitadas`.
+* Testes offline em `src/__tests__/adr026-zoom-rbac-firmas-locator.test.ts` (`npm --prefix auditoria test`: 104/104 aprovados).

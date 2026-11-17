@@ -54,9 +54,21 @@ export function isStrictNavigationStep(step: Pick<RoutineStep, 'rawText' | 'targ
   return MENU_ACCESS_RE.test(normalize(step.rawText));
 }
 
+/** Botão exclusivo de criação de novo cartão — proibido quando o passo não trata de cartão. */
+const NOVO_CARTAO_RE = /\bnovo cartao\b/;
+
+/** Verbos inequívocos de formulário/parametrização (em modo imperativo ou infinitivo). */
+const FORM_VERB_RE =
+  /\b(defin[ae]|definir|preench[ae]|preencher|configur[ae]|configurar|inform[ae]|informar|digit[ae]|digitar|ajust[ae]|ajustar|parametriz[ae]|parametrizar|marqu[ae]|marcar|desmarqu[ae]|desmarcar|insir[ae]|inserir|vincul[ae]|vincular|associ[ae]|associar)\b/;
+
 /** O texto do passo cita a barra de pesquisa global (única hipótese em que ela pode ser alvo). */
 export function stepNamesGlobalSearch(step: Pick<RoutineStep, 'rawText' | 'targets'>): boolean {
   return NAMES_GLOBAL_SEARCH_RE.test(normalize([step.rawText, ...step.targets].join(' ')));
+}
+
+/** O passo cita cartão de assinatura/ficha (única hipótese em que "Novo cartão +" é alvo legítimo). */
+export function stepMentionsCartao(step: Pick<RoutineStep, 'rawText' | 'targets'>): boolean {
+  return /\bcartao\b/.test(normalize([step.rawText, ...step.targets].join(' ')));
 }
 
 /** O nome/placeholder do nó é o da barra de pesquisa global do Orion TN. */
@@ -68,6 +80,33 @@ export interface GuardNode {
   name?: string;
   role?: string;
   tagName?: string;
+  /** Verdadeiro quando o elemento medido está na barra superior (`header` / `.navbar`). */
+  inNavbar?: boolean;
+}
+
+/**
+ * Em passos de formulário/parametrização (ou com alvo composto como "Grupo Firmas"), impede que
+ * o alvo colapse para um item simples da barra superior (`navbar`, ex.: "Firmas").
+ */
+export function isNavbarOnlyTargetForbidden(
+  step: Pick<RoutineStep, 'rawText' | 'targets'>,
+  node: GuardNode
+): string | null {
+  if (!node.inNavbar) return null;
+  if (isStrictNavigationStep(step)) return null;
+  const raw = normalize(step.rawText);
+  if (/\b(menu|submenu|menus|navbar|barra superior|barra de navegacao)\b/.test(raw)) return null;
+  const normName = normalize(node.name ?? '');
+  if (!normName) return null;
+
+  const hasCompoundTarget = step.targets.some(t => {
+    const nt = normalize(t);
+    return nt.split(' ').filter(Boolean).length >= 2 && nt !== normName;
+  });
+  if (FORM_VERB_RE.test(raw) || hasCompoundTarget) {
+    return `item da barra superior (${node.name || 'navbar'}) não é alvo de formulário/parametrização`;
+  }
+  return null;
 }
 
 /**
@@ -85,13 +124,23 @@ export function forbiddenCandidateReason(step: Pick<RoutineStep, 'rawText' | 'ta
   if (isGlobalSearchName(node.name) && !stepNamesGlobalSearch(step)) {
     return 'barra de pesquisa global (CTRL + B) não é alvo deste passo';
   }
+  if (NOVO_CARTAO_RE.test(normalize(node.name ?? '')) && !stepMentionsCartao(step)) {
+    return 'botão "Novo cartão +" destina-se exclusivamente ao cadastro de novo cartão e não corresponde ao serviço/ação deste passo';
+  }
+  const navbarReason = isNavbarOnlyTargetForbidden(step, node);
+  if (navbarReason) return navbarReason;
   return null;
 }
 
-/** Variante para a geometria já medida no DOM (`context.tagName`/`role`/`innerText`). */
+/** Variante para a geometria já medida no DOM (`context.tagName`/`role`/`innerText`/`isTopNav`). */
 export function forbiddenMeasuredReason(step: Pick<RoutineStep, 'rawText' | 'targets'>, ctx: DOMElementContext | undefined): string | null {
   if (!ctx) return null;
-  return forbiddenCandidateReason(step, { name: ctx.innerText, role: ctx.role, tagName: ctx.tagName });
+  return forbiddenCandidateReason(step, {
+    name: ctx.innerText,
+    role: ctx.role,
+    tagName: ctx.tagName,
+    inNavbar: ctx.isTopNav
+  });
 }
 
 /**

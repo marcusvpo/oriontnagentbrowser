@@ -5,7 +5,8 @@ import { parseRoutineMarkdown } from './parser.js';
 import { annotateScreenshot } from './annotator.js';
 import { AgentBrowserClient } from './browser.js';
 import { ensureAuthenticated, isSessionActiveInPage, noteFullReset, noteLightReset } from './auth.js';
-import { locateAndCaptureWithSelfHealing, hasNavigationIntent, buildCalloutsFromGroup, inferStepZone } from './smart-locator.js';
+import { locateAndCaptureWithSelfHealing, hasNavigationIntent, buildCalloutsFromGroup, inferStepZone, normalizeText } from './smart-locator.js';
+import { resolveFirmasStep, runFirmasSearchPostStep, type FirmasPostStepResult } from './firmas-interactive.js';
 import { describeMenuPathMissing, extractMenuPaths } from './menu-path.js';
 import { classifyRoutineWorkload } from './worker-pool.js';
 import { generateMockPerson } from './mock-generator.js';
@@ -302,6 +303,7 @@ async function resetToHome(client: AgentBrowserClient): Promise<void> {
   }
   // A aba ativa pode ser uma aba aberta pela rotina anterior (sem a emulação de viewport)
   if (await client.ensureViewport(config.viewportWidth, config.viewportHeight)) await client.wait(1200);
+  await client.mouseMove(2, 2).catch(() => undefined);
   let screen = await client.probeScreenLoaded();
   if (!screen.ok && /login|portal/i.test(screen.reason || '')) {
     console.log('[Auditoria] Sessão fora do Orion TN; reautenticando o worker...');
@@ -930,7 +932,14 @@ export async function executeRoutineAudit(
       if (prior.block?.stepNumber === step.stepNumber) {
         console.log(`   [Reauditoria] ↺ Checkpoint: este é o passo em que a rotina parou no ambiente anterior${prior.block.tipo ? ` (${prior.block.tipo})` : ''}; verificando se agora é superado.`);
       }
-      let locResult = await locateAndCaptureWithSelfHealing(client, locStep, rawStepPath, locOptions);
+      let firmasResolved: Awaited<ReturnType<typeof resolveFirmasStep>> = null;
+      if (!implicit && !isOptionsOnly) {
+        firmasResolved = await resolveFirmasStep(client, locStep, rawStepPath).catch(() => null);
+      }
+      let locResult = firmasResolved
+        ? firmasResolved.locResult
+        : await locateAndCaptureWithSelfHealing(client, locStep, rawStepPath, locOptions);
+      if (firmasResolved?.adjusted) adjustedSteps.add(step.stepNumber);
 
       // ADR-025: sub-portal integrado em nova guia. Com o alvo ausente na tela, um link que abre nova guia e tem
       // afinidade com o passo/rotina é acionado; a guia vira o foco (até o resetToHome) e o MESMO passo é
@@ -1028,7 +1037,9 @@ export async function executeRoutineAudit(
         }
         const executedAction: ExecutedStepAction = isOptionsOnly
           ? { kind: 'none', via: 'skipped', zone: domGeometry.zone, reason: 'Passo lista opções alternativas: nenhuma é acionada' }
-          : await executeStepAction(client, step, locResult, domGeometry, { dryRunMutations });
+          : firmasResolved?.skipStandardAction
+            ? { kind: 'none', via: 'skipped', zone: domGeometry.zone, reason: 'Fluxo interativo conduzido na tela de Reconhecimento de firmas' }
+            : await executeStepAction(client, step, locResult, domGeometry, { dryRunMutations });
         if (executedAction.via === 'dry-run' && executedAction.commitLabel) {
           skippedCommits.push({ stepNumber: step.stepNumber, label: executedAction.commitLabel });
         }
@@ -1039,6 +1050,20 @@ export async function executeRoutineAudit(
           callouts: multi,
           executedAction
         });
+        let firmasPostNote: string | undefined;
+        if (firmasResolved?.kind === 'search_person') {
+          const post: FirmasPostStepResult = await runFirmasSearchPostStep(client, step, {
+            getLastIndex: () => lastIndex,
+            rawPathFor,
+            getNextLetter: () => nextLetter,
+            addSubFrame
+          }).catch((err): FirmasPostStepResult => {
+            console.warn(`   ⚠ [Firmas Interativo] Falha na busca ao vivo: ${err?.message || err}`);
+            return { executed: false };
+          });
+          if (post.adjusted) adjustedSteps.add(step.stepNumber);
+          if (post.note) firmasPostNote = post.note;
+        }
         // ADR-025: o link que abriu o sub-portal é fotografado na guia de ORIGEM (sub-captura `passo-NN-b`)
         if (subportal) {
           const linkCallouts: DOMCallout[] = [
@@ -1151,7 +1176,13 @@ export async function executeRoutineAudit(
           printFiles,
           exploration,
           implicitTargets: implicit ? implicit.targets : undefined,
-          note: [prerequisiteNote, subportalNote, executedAction.openedTab ? `A ação abriu a guia **${executedAction.openedTab.title || 'sem título'}**; os passos seguintes foram auditados nela.` : undefined].filter(Boolean).join(' ') || undefined,
+          note: [
+            prerequisiteNote,
+            subportalNote,
+            firmasResolved?.note,
+            firmasPostNote,
+            executedAction.openedTab ? `A ação abriu a guia **${executedAction.openedTab.title || 'sem título'}**; os passos seguintes foram auditados nela.` : undefined
+          ].filter(Boolean).join(' ') || undefined,
           status: locked.text !== step.rawText ? 'modified' : 'ok'
         };
 
@@ -1326,6 +1357,26 @@ export async function executeRoutineAudit(
             break;
           }
           stepResults.push(base);
+          continue;
+        }
+
+        // ADR-026: com a grade já populada e uma gravação anterior omitida por dry-run (M-40.0), a ausência
+        // de "Limpar" no formulário que permaneceu aberto é ajuste editorial/UI, nunca dependência [DDD].
+        const hasPopulatedGridObservation = Array.from(emptyByStep.values()).some(
+          e => !e.emptyGrid && e.headers.length > 0
+        );
+        const filterResetAfterDryRun =
+          skippedCommits.length > 0 &&
+          hasPopulatedGridObservation &&
+          wanted.length > 0 &&
+          wanted.every(t => /\b(limpar|filtrar|pesquisar)\b/.test(normalizeText(t)));
+        if (filterResetAfterDryRun) {
+          const lastCommit = skippedCommits[skippedCommits.length - 1];
+          const dryFilterNote =
+            `Ajuste editorial/UI sob Trava Segura de Mutação (dry-run): o botão **${wanted.join('**, **')}** pertence à barra de filtros da listagem e não fica visível no formulário aberto após a omissão intencional de **${lastCommit.label}**. Com a grade já populada por registros reais, não há bloqueio de dependência [DDD].`;
+          adjustedSteps.add(step.stepNumber);
+          console.log(`   [Ajuste Dry-Run] ${dryFilterNote}`);
+          if (!(await captureCleanStep(dryFilterNote))) break;
           continue;
         }
 
@@ -1559,7 +1610,7 @@ export async function executeRoutineAudit(
     try {
       await syncSingleRoutineToSupabase(parsed.id, {
         onlyWebp: true,
-        preserveExistingGovernance: false
+        preserveExistingGovernance: true
       });
     } catch (syncErr: any) {
       console.warn(`⚠ [Supabase Write-Through] Falha ao sincronizar ${parsed.id} (execução continua): ${syncErr?.message || syncErr}`);
@@ -1692,7 +1743,36 @@ export async function executeStepAction(
           openedTab = tab ?? undefined;
           if (openedTab) console.log(`   [Nova Guia] A ação abriu "${openedTab.title || openedTab.url}" (${openedTab.tabId}); a guia é o foco dos próximos passos.`);
         } else {
-          await client.click(selector);
+          const checkIntent =
+            step.actionType === 'check' || /\b(marqu[ae]|marcar|certifique|assinal[ae])\b/i.test(step.rawText);
+          if (checkIntent) {
+            const boxState = await client.evalJson<{ hasBox: boolean; checked: boolean }>(`
+              (() => {
+                const el = document.querySelector(${JSON.stringify(selector)});
+                if (!el) return JSON.stringify({ hasBox: false, checked: false });
+                const cb = el.matches('input[type="checkbox"]') ? el : el.querySelector('input[type="checkbox"]');
+                if (!cb) return JSON.stringify({ hasBox: false, checked: false });
+                return JSON.stringify({ hasBox: true, checked: !!cb.checked });
+              })()
+            `).catch(() => null);
+            if (boxState?.hasBox && boxState.checked) {
+              console.log(`   [Ação] Checkbox já estava marcado; clique omitido para preservar estado.`);
+              return { kind: 'none', via: 'measured-node', selector, node, zone: geometry.zone, reason: 'Checkbox já estava marcado' };
+            }
+            if (boxState?.hasBox && !boxState.checked) {
+              await client.eval(`
+                (() => {
+                  const el = document.querySelector(${JSON.stringify(selector)});
+                  const cb = el && (el.matches('input[type="checkbox"]') ? el : el.querySelector('input[type="checkbox"]'));
+                  if (cb) cb.click();
+                })()
+              `);
+            } else {
+              await client.click(selector);
+            }
+          } else {
+            await client.click(selector);
+          }
         }
       }
       await client.wait(1500);

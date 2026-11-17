@@ -105,9 +105,9 @@ function historyYamlLines(history: ReauditHistoryEntry[]): string[] {
     lines.push(`      ambiente_anterior: ${q(e.ambiente_anterior)}`);
     lines.push(`      ambiente_atual: ${q(e.ambiente_atual)}`);
     lines.push(`      status_anterior: ${q(e.status_anterior)}`);
-    lines.push(`      tags_anteriores: ${qList(e.tags_anteriores)}`);
+    lines.push(`      tags_anteriores: ${qList(e.tags_anteriores || [])}`);
     lines.push(`      status_atual: ${q(e.status_atual)}`);
-    lines.push(`      tags_atuais: ${qList(e.tags_atuais)}`);
+    lines.push(`      tags_atuais: ${qList(e.tags_atuais || [])}`);
     lines.push(`      bloqueio_superado: ${e.bloqueio_superado === null ? 'null' : e.bloqueio_superado}`);
     if (e.bloqueio_anterior) {
       lines.push(`      bloqueio_anterior:`);
@@ -120,9 +120,9 @@ function historyYamlLines(history: ReauditHistoryEntry[]): string[] {
       if (e.bloqueio_atual.passo !== undefined) lines.push(`        passo: ${e.bloqueio_atual.passo}`);
       if (e.bloqueio_atual.tipo) lines.push(`        tipo: ${q(e.bloqueio_atual.tipo)}`);
     }
-    if (e.curas_reaproveitadas.length > 0) {
+    if ((e.curas_reaproveitadas || []).length > 0) {
       lines.push(`      curas_reaproveitadas:`);
-      for (const c of e.curas_reaproveitadas) {
+      for (const c of e.curas_reaproveitadas || []) {
         lines.push(`        - passo: ${c.passo}`);
         lines.push(`          alvo: ${q(c.alvo)}`);
         lines.push(`          real: ${q(c.real)}`);
@@ -144,7 +144,7 @@ function reauditSection(history: ReauditHistoryEntry[] | undefined): string {
   const out = [
     `#### Evolução da Reauditoria`,
     `* **Ambiente:** ${e.ambiente_anterior} → ${e.ambiente_atual}`,
-    `* **Status:** ${tagText(e.tags_anteriores)} ${e.status_anterior} → ${tagText(e.tags_atuais)} ${e.status_atual}`
+    `* **Status:** ${tagText(e.tags_anteriores || [])} ${e.status_anterior} → ${tagText(e.tags_atuais || [])} ${e.status_atual}`
   ];
   if (e.bloqueio_anterior) {
     const b = e.bloqueio_anterior;
@@ -153,7 +153,7 @@ function reauditSection(history: ReauditHistoryEntry[] | undefined): string {
     const now = e.bloqueio_atual ? ` (agora: ${e.bloqueio_atual.passo !== undefined ? `passo ${e.bloqueio_atual.passo}` : 'passo não registrado'}${e.bloqueio_atual.tipo ? `, ${e.bloqueio_atual.tipo}` : ''})` : '';
     out.push(`* **Bloqueio anterior:** ${where}${b.tipo ? ` — ${b.tipo}` : ''}${b.motivo ? `: ${b.motivo}` : ''} → ${outcome}${now}`);
   }
-  for (const c of e.curas_reaproveitadas) {
+  for (const c of e.curas_reaproveitadas || []) {
     const how = c.confirmada_ao_vivo
       ? `reconfirmada ao vivo nesta execução ${c.usada_como_dica ? '(a dica anterior localizou o nó)' : '(medida de novo pelo próprio motor, sem depender da dica)'}`
       : 'não reconfirmada nesta execução (a dica não foi usada)';
