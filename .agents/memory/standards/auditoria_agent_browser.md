@@ -1,9 +1,9 @@
 # Especificação Técnica: Auditoria Visual de Rotinas via Agent-Browser & Sharp
 
 **Status:** ATIVO / HOMOLOGADO  
-**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal, RAG Soberano, Evolução Determinística ADR-030, Camada Visual 2C SoM/Grounding via `agy` ADR-031 e Ecossistema Operacional MCP + Daemon Realtime + Exportadores ADR-032)  
-**Normas Vinculantes:** ADR-007 a ADR-032  
-**Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
+**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal, RAG Soberano, Evolução Determinística ADR-030, Camada Visual 2C SoM/Grounding via `agy` ADR-031, Ecossistema Operacional MCP + Daemon Realtime + Exportadores ADR-032 e Orquestrador Satélite Antigravity Python SDK v0.1.23 ADR-033)  
+**Normas Vinculantes:** ADR-007 a ADR-033  
+**Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips) + Google Antigravity Python SDK (`google-antigravity>=0.1.23`, satélite pós-lote)
 
 ---
 
@@ -647,3 +647,22 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * `--export-docs` (`--include-unapproved` opcional): gera Markdown limpo em `auditoria/exports/manual-publicado/<modulo>/<slug>.md` + `_indice.md` (sem frontmatter interno `auditoria_ui` ou callouts de debug, e com links relativos para `.webp`).
 * `--export-playwright`: gera testes `@playwright/test` executáveis em `auditoria/exports/playwright-e2e/<modulo>/<ID>.spec.ts` com viewport `1440×900 @ DPR 1`, `zoom: 0.8` e guarda de mutação (`ORION_E2E_ALLOW_MUTATIONS`).
 * Testes offline em `auditoria/src/__tests__/adr032-mcp-daemon-exporters.test.ts` (188/188 testes aprovados em 46 suítes).
+
+---
+
+## 22. Orquestrador Satélite Google Antigravity Python SDK v0.1.23 para Curadoria SoM e Verificação Semântica Multimodal Pós-Lote (ADR-033)
+
+### 22.1. Arquitetura Satélite e Configuração (`scripts/antigravity-worker/config.py`)
+* **Zero Acoplamento no Loop do Navegador:** O motor Playwright/`agent-browser`, `BrowserWorkerPool` e `Sharp` em `auditoria/src/` permanece 100% em TypeScript (Node.js v22). O pacote Python reside em `scripts/antigravity-worker/` (`requirements.txt`: `google-antigravity>=0.1.23`, `pydantic>=2.0`, `python-dotenv>=1.0`, `psycopg2-binary>=2.9`, `PyYAML>=6.0`).
+* **Isolamento de Credenciais Supabase:** `config.py` lê exclusivamente de `auditoria/.env` (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_SECRET_KEY`, `DATABASE_URL`/`SUPABASE_DB_URL` do IPv4 Pooler) e inicializa `LocalAgentConfig` com `response_schema` Pydantic e modelo primário `gemini-4-hydrogen-xhigh` (`Gemini 4 Hydrogen Extra`) com fallback automático para `gemini-4-hydrogen-high`.
+
+### 22.2. Curador em Lote de Set-of-Mark (`scripts/antigravity-worker/curate_som_sdk.py` / `npm --prefix auditoria run curate:sdk`)
+* Define o schema `SomTargetDecision` (`tag_id`, `confidence`, `justification`, `actual_target_name`).
+* Lê `auditoria/cache/pending-som-queue.json` (e espelho em `auditoria/cache/pending-som/pending-som-queue.json`), envia a imagem demarcada com tags `[1]..[N]` ao Antigravity SDK e aplica a trava da ADR-027 (`confidence >= 0.70`, Zona Semântica, Guarda Anti-Busca e Matriz de Compatibilidade Semântica Intenção × Papel).
+* Para cada decisão aprovada: atualiza `auditoria/cache/human-reviews-cache.json` (Camada 0.1 RAG), atualiza `auditoria/cache/curated-route-synonyms.json` (Camada 0.2) e remove o item curado de `pending-som-queue.json`. Suporta `--limit N`, `--dry-run`, `--verbose` e `--sync-supabase`.
+
+### 22.3. Verificador Semântico Multimodal Pós-Lote (`scripts/antigravity-worker/semantic_visual_verifier.py` / `npm --prefix auditoria run verify:semantics`)
+* Define o schema `SemanticAuditResult` (`routine_id`, `step_number`, `semantic_match`, `visual_confidence`, `discrepancy_reason`).
+* Inspeciona os relatórios `*-revisado.md` com `status: validado_com_ajustes` e passos auto-curados (`auditoria_ui.auto_cura.divergencias_detectadas`), confrontando a imagem final demarcada (`passo-NN.webp` ou `.png`) com o texto do passo.
+* Gera `auditoria/cache/semantic-audit-report.json` e, quando `visual_confidence < 0.85` ou `semantic_match == False`, sinaliza a rotina para revisão prioritária (`status_governanca = 'revisao_solicitada'`) no Orion Audit Console.
+* Testes unitários offline em `scripts/antigravity-worker/test_sdk_worker.py` (7/7 aprovados).

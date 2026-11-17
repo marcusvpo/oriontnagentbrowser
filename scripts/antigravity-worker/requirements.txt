@@ -1,0 +1,7 @@
+# Dependências do Orquestrador Satélite Antigravity Python SDK (ADR-033)
+# Nota: O pacote oficial do Antigravity Python SDK no PyPI é `google-antigravity>=0.1.23`
+google-antigravity>=0.1.23
+pydantic>=2.0
+python-dotenv>=1.0
+psycopg2-binary>=2.9
+PyYAML>=6.0
