@@ -8,7 +8,7 @@ auditoria_ui:
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -43,17 +43,45 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwk7yxrwertuu2-57] | x=474, y=129, 190x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkyg9nz2quzwa-57] | x=474, y=129, 190x21'
       - passo: 2
         alvo_documentado: 'Modo de Envio do Selo Digital'
         elemento_real: 'Selo digital '
         camada: a11y_fuzzy_match
         confianca: 0.76
         texto_alterado: false
-        evidencia: 'dom-measured | @e954 | x=411, y=230, 166x26'
+        evidencia: 'dom-measured | @e1020 | x=411, y=222, 166x26'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera '
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Modo de Envio do Selo Digital'
+          real: 'Selo digital '
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Configurações > Parâmetros Gerais > Selo Digital'
+          real: 'Administração > Comunicações > Selo digital'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
       ambiente_atual: 'Produtos (homologacao interna Siplan)'
       status_anterior: 'dependencia_cruzada_rotina'
       tags_anteriores: ['XRX']
@@ -86,7 +114,7 @@ auditoria_ui:
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera esses registros: D-2.7 — Cadastrar Produto; D-2.4 — Cadastrar Categoria de Produto.
+> **Motivo Técnico:** No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"; pré-filtro automático tentado antes de declarar a grade vazia: a busca (filtro amplo) não retornou registros no ambiente). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera esses registros: D-2.7 — Cadastrar Produto; D-2.4 — Cadastrar Categoria de Produto.
 
 #### Descrição:
 O Provimento Geral da Justiça autoriza a selagem em modo de contingência offline em casos de instabilidade técnica comprovada, permitindo que a serventia reserve a numeração localmente para envio posterior.
@@ -122,7 +150,7 @@ O Provimento Geral da Justiça autoriza a selagem em modo de contingência offli
 * **Alerta de Sincronização: Nunca encerre o expediente sem retransmitir todos os selos gerados em modo offline para evitar penalidades de envio fora do prazo legal.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
 * **Bloqueio anterior:** passo 3 — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera  → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
 * **Cura reaproveitada (passo 2):** "Modo de Envio do Selo Digital" → "Selo digital " — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

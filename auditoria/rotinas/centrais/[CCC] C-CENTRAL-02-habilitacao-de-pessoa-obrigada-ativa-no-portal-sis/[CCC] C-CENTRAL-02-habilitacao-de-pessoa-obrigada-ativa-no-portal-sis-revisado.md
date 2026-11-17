@@ -145,7 +145,7 @@ auditoria_ui:
       notas_editoriais_nao_reconfirmadas: 0
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T06:46:28.100Z
+  governanca_atualizado_em: 2026-11-17T18:11:08.949Z
   governanca_comentario: Passos 1 a 3 ocorrem fora do Orion TN (diretamente no portal oficial do SISCOAF com e-CPF) e devem ser sinalizados como Etapa Externa [CCC] sem print falsa da home. No Orion TN (a partir do passo 4), o caminho atualizado é 'Configurações > Parametrizações > Comunicações' (menu lateral) > bloco 'Coaf' > clicar em 'Clique aqui para acessar a tela de configuração no Orion Coaf', que abre em nova guia a tela com os campos 'CPF/CNPJ', 'E-mail', 'Tipo do certificado' e botão 'Cadastrar'.
 ---
 

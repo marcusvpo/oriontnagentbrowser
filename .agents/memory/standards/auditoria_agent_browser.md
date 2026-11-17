@@ -2,7 +2,7 @@
 
 **Status:** ATIVO / HOMOLOGADO  
 **Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal e RAG Soberano)  
-**Normas Vinculantes:** ADR-007 a ADR-028  
+**Normas Vinculantes:** ADR-007 a ADR-029  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -550,3 +550,29 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 ### 17.2. Desempate de menu (`menu-path.ts`)
 * `chooseMenuItem` agrupa as folhas de mesmo score; se todas partilham o módulo raiz e há uma única de menor profundidade, ela vence com `depthTieBreak` e o motivo "Auto-cura por menor profundidade de cadeia". Mesma profundidade, ou raízes diferentes: `null` (bloqueio por ambiguidade, ADR-016/ADR-024).
 * Testes offline em `src/__tests__/adr028-att-advisor-menu-depth.test.ts`.
+
+## 18. Mineração de Clusters, Equivalências de Menu, Pré-Filtro de Grade e Sinônimos por Rota (ADR-029)
+
+### 18.1. Mineração (`mine-att-clusters.ts`)
+* Offline e somente leitura: `*-revisado.md` (frontmatter + corpo) + `cache/kb-telemetry/*.json` + `cache/orion-menu-tree-real.json` (gerado por `capture-menu-tree.ts`, leitura ao vivo do menu sem cliques). Saída: `cache/att-xrx-cluster-analysis.json` e resumo no terminal.
+* Clusters: **A** caminho de menu (A1 equivalente canônico inequívoco, A1 cauda como aba, A2 rota curada com clique omitido, A3 sem equivalente, A4 módulo externo), **B** grade vazia que exige busca (B1 `Filtrar` desabilitado, B2 sem busca acionada), **C** rótulo renomeado (C0 alvo espúrio de parser, C1 sinônimo de rota, C2 correspondência sem regra), **D** removido/pressuposto/outra rotina (D1 tela pressuposta, D2 produto externo, D3 recurso removido na tela alcançada, D4 depende de objeto de outra rotina).
+* Confere a tabela de equivalências contra a árvore real e os sinônimos por rota contra o Raio-X.
+
+### 18.2. Equivalência canônica de menu (`menu-canonical.ts` + `menu-path.ts` + `menu-tail.ts`)
+* `resolveCanonicalMenuPath(documentado, itensReais)` (função pura): tabela explícita -> irmão de mesma chave de folha (`leafKey`: sem acento, plural -> singular, sem `de/do/da/e/ou`, sem `consulta/cadastro/gestão/tela/tipo(s)`) -> cauda como aba/seção. `chooseMenuItem` aplica depois de exato/revisão humana/rota anterior e antes do Dice; as raízes entram no resolvedor.
+* A cadeia real precisa existir na árvore lida agora; 2+ irmãos com a mesma chave = ambiguidade (`null`). `MenuPathMatch.tail/consumed/canonicalBasis`; `SmartLocatorResult.menuTail`.
+* Texto: só o prefixo documentado que aparece literal dentro do negrito vira o caminho real; a cauda fica como o manual escreveu. Executor: `resolveMenuTail` lê abas/seções da tela, mede o nó (`stampByTextAndMeasure`, `exactOnly`), grava `passo-NN-b` e clica na aba; ausente -> `describeMenuTailMissing` (lista real de abas) e `[ATT]`.
+* Correção A2 (`executeStepAction`): `divergence.resolutionLayer === 'menu_path_resolution'` com `evidence.source === 'menu-tree'` não passa pelo guard de "casamento parcial". O botão `Adicionar` que surge após a navegação é clicado (`ADD_BUTTON_SOURCE`).
+
+### 18.3. Pré-Filtro de Grade Vazia (`grid-prefilter.ts`)
+* Gatilho: `stepNeedsGridRows(passo)` (alvo de linha/`+`, ou "selecione/abra/localize... na grade/listagem") + `countGridRows() === 0` + passo sem caminho de menu; um ciclo por rota e por rotina.
+* Estratégias: `as_is` (botão de busca habilitado) -> `wide_period` (`pickPeriodPair`: 1º par De/Até; `01/01/2000`..hoje; digitação por `agent-browser type` + `Tab`) -> `text_probe` (`"teste"`). Botões aceitos: `filtrar|pesquisar|buscar|consultar|listar|procurar` fora de `table/tbody/tr/td` e fora da navegação.
+* Sucesso: print crua + geometria do botão antes do clique -> sub-captura `passo-NN-b` (`captureKind: 'trigger'`) e nota `Pré-filtro automático da grade`. Fracasso: `Limpar` restaura e `emptyState.prefilter` entra no motivo de `[DDD]`/`[XRX]`.
+* Observação de ambiente (Produtos): em `#/ficha`, `#/livro` e `#/comunicacaoCoaf` o `Filtrar` seguiu desabilitado mesmo com período/nome válidos (a regra de campos obrigatórios vem da parametrização da serventia); `#/seloDigital` busca e retorna 0 linhas.
+
+### 18.4. Sinônimos contextuais por rota (`route-synonyms.ts`)
+* `routeKey(hash)` remove o id numérico final; `routeSynonymsFor(hash, documentado)`. SmartLocator Camada 0.2 (alvo único) e `reconcileUnresolvedGroupTargets` (grupo). O real é medido ao vivo na zona do passo; vários reais não trocam o texto.
+
+### 18.5. Console
+* `StepMedia.contexto`, `AuditoriaUiFrontmatter.diagnostico_tela_att`, `AttScreenDiagnosisCard`, `ReauditTimeline`, `PhaseSplitCards` e filtro rápido de fase em `RoutineFilters`; helpers puros em `lib/attDiagnosis.ts`. `sync-supabase.ts` usa `passo-NN-contexto-att` como mídia do passo bloqueado sem print.
+* Testes: `auditoria/src/__tests__/adr029-menu-canonical-clusters-prefilter.test.ts`, `Orion Audit Console/src/lib/attDiagnosis.test.ts`, `components/studio/adr029Studio.test.tsx`.

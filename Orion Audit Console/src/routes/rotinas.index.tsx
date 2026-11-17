@@ -83,7 +83,7 @@ function Rotinas() {
       </div>
 
       <div className="filter-band stack-3">
-        <RoutineFilters search={search} onChange={patch} />
+        <RoutineFilters search={search} onChange={patch} phases={data?.meta.stats.porFase} />
         <ActiveFilterChips search={search} onChange={patch} onClear={() => navigate({ search: {} })} />
       </div>
 

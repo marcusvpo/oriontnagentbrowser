@@ -632,6 +632,11 @@ export class AgentBrowserClient {
     return this.run(['fill', refOrSelector, text]);
   }
 
+  /** Digita com teclas reais (necessário para campos com máscara, como as datas `__/__/____`). */
+  async type(refOrSelector: string, text: string): Promise<string> {
+    return this.run(['type', refOrSelector, text]);
+  }
+
   async stateSave(filePath: string): Promise<string> {
     const normalized = path.resolve(filePath).replace(/\\/g, '/');
     return this.run(['state', 'save', normalized]);

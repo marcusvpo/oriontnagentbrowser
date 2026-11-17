@@ -8,7 +8,7 @@ auditoria_ui:
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -22,12 +22,16 @@ auditoria_ui:
       alvos_ausentes: ['Usuários Individuais', 'Grupos de Usuários', 'Máquinas (estações)']
       alvos_revelados: []
       resultado: gatilhos_esgotados
-      gatilhos_na_tela: 1
+      gatilhos_na_tela: 2
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
       gatilhos_testados:
         - tipo: tab
           rotulo: 'Consulta'
+          deduzido_do_dom: false
+          resultado: sem_efeito
+        - tipo: button
+          rotulo: 'Adicionar'
           deduzido_do_dom: false
           resultado: sem_efeito
   auto_cura:
@@ -39,14 +43,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkaimet2kwg8-64] | x=474, y=129, 190x21'
-      - passo: 3
-        alvo_documentado: '"+"'
-        elemento_real: '+'
-        camada: a11y_fuzzy_match
-        confianca: 0.98
-        texto_alterado: false
-        evidencia: 'dom-measured | @e390 | x=967, y=300, 32x24'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkypwuxa648y3-64] | x=474, y=129, 190x21'
       - passo: 4
         alvo_documentado: 'Usuários Individuais'
         elemento_real: '(não localizado na tela)'
@@ -93,6 +90,33 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra '
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 3
+          alvo: '"+"'
+          real: '+'
+          confirmada_ao_vivo: false
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Administração > Distribuição'
+          real: 'Administração > Controle de Estoque > Distribuição'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
@@ -125,7 +149,6 @@ A rotina de distribuição transfere a custódia de produtos, selos físicos e p
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Série, Sequência inicial, Sequência final).
 3. Escolha a série e sequência que deseja distribuir clicando na seta de transferência para a direita ou use o botão **"+"** para inclusão manual.
    [aqui vai a print "passo-03.png"]
-   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **""+""**, porém na tela atual do Orion TN o elemento se chama **"+"** (confiança: 98% — Similaridade semântica na árvore de acessibilidade (95%)). O texto do manual não foi alterado.
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Série, Sequência inicial, Sequência final).
 4. No campo **Portador**, defina o destinatário do lote, selecionando entre **Usuários Individuais**, **Grupos de Usuários** ou **Máquinas (estações)**.
    [aqui vai a print "passo-04.png"]
@@ -141,8 +164,8 @@ A rotina de distribuição transfere a custódia de produtos, selos físicos e p
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo não registrado — Dependência Cruzada de Rotina: No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). O auto-seed foi tentado e não concluiu: "Concluir" permaneceu desabilitado após o pre → **mantido** (agora: passo 4, Dependência Cruzada de Rotina)
-* **Cura reaproveitada (passo 3):** ""+"" → "+" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Bloqueio anterior:** passo não registrado — Dependência Cruzada de Rotina: No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra  → **mantido** (agora: passo 4, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 3):** ""+"" → "+" — não reconfirmada nesta execução (a dica não foi usada)
 * **Cura reaproveitada (passo 1):** "Administração > Distribuição" → "Administração > Controle de Estoque > Distribuição" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

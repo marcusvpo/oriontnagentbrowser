@@ -8,7 +8,7 @@ auditoria_ui:
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: read_only
-  worker_id: 'worker-4'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -64,6 +64,29 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). Há botão "Adicionar" na tela, mas o auto-seed'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Número do Livro'
+          real: 'Número'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
@@ -106,7 +129,7 @@ A rotina de controle de livros permite resgatar posições ou folhas notariais m
 * **Dica / Caso Real do 0800: Ajuste o espaçamento entrelinhas para 1.15 e margens para 2.0 cm na configuração de página do traslado para eliminar páginas residuais e otimizar o consumo de folhas oficiais.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 3 — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). O auto-seed foi tentado e não concluiu: motiv → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
+* **Bloqueio anterior:** passo 3 — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). Há botão "Adicionar" na tela, mas o auto-seed → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
 * **Cura reaproveitada (passo 2):** "Número do Livro" → "Número" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

@@ -322,9 +322,9 @@ export async function resolveStatefulStep(
   return null;
 }
 
-async function stampByTextAndMeasure(
+export async function stampByTextAndMeasure(
   client: AgentBrowserClient,
-  targets: Array<{ label: string; selector?: string; textMatch?: string; inSidebar?: boolean }>,
+  targets: Array<{ label: string; selector?: string; textMatch?: string; inSidebar?: boolean; exactOnly?: boolean }>,
   zone: 'any' | 'content'
 ): Promise<{ geometry: DOMResolvedGeometry | null; selectors: Array<{ label: string; selector: string }> }> {
   const stamped = await client.evalJson<Array<{ label: string; selector: string }>>(`
@@ -357,7 +357,7 @@ async function stampByTextAndMeasure(
             .filter(e => vis(e) && !e.closest(topNav))
             .filter(e => t.inSidebar ? true : !e.closest('aside, .sidebar, .nav-stacked, .menu-lateral'));
           const exact = pool.filter(e => norm(e.innerText || e.textContent) === want);
-          const partial = exact.length > 0 ? exact : pool.filter(e => norm(e.innerText || e.textContent).includes(want));
+          const partial = exact.length > 0 || t.exactOnly ? exact : pool.filter(e => norm(e.innerText || e.textContent).includes(want));
           if (partial.length > 0) {
             partial.sort((a, b) => a.getBoundingClientRect().width * a.getBoundingClientRect().height - b.getBoundingClientRect().width * b.getBoundingClientRect().height);
             el = partial[0];

@@ -8,7 +8,7 @@ auditoria_ui:
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -16,6 +16,22 @@ auditoria_ui:
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
+  auto_cura:
+    acionada: true
+    divergencias_detectadas:
+      - passo: 1
+        alvo_documentado: 'Administração > Parâmetros > Certificados digitais'
+        elemento_real: 'Configurações > Parametrizações'
+        camada: menu_path_resolution
+        confianca: 0.9
+        texto_alterado: false
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkuzdk9av2vxg-130] | x=850, y=171, 175x20'
+      - passo: 1
+        alvo_documentado: 'Certificados digitais'
+        elemento_real: '(não localizado na tela)'
+        camada: target_not_found
+        confianca: 0
+        texto_alterado: false
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -34,18 +50,70 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Certificados digitais" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escri'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-17T05:39:47.305Z'
-    rota: '#/inicio'
+    capturado_em: '2026-11-17T15:41:45.358Z'
+    rota: '#/configuracoes'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
-    secoes: []
+    secoes: ['Configurações', 'Cartão de assinatura', 'Cálculo de custas', 'Controle de guia', 'Geral']
     abas: []
     campos:
-      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+      - rotulo: 'Tipo'
+        tipo: 'select'
+      - rotulo: 'Qtd. na busca'
         tipo: 'text'
-    botoes: ['Clique aqui para ativar agora']
+      - rotulo: 'Produto'
+        tipo: 'select'
+      - rotulo: 'Ativar rotina de bloqueio automático de cartões de assinatura'
+        tipo: 'checkbox'
+      - rotulo: 'Horário de execução'
+        tipo: 'time'
+      - rotulo: 'Para menos'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Para mais'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Truncado'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Contábil'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Diário'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Semanal'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Mensal'
+        tipo: 'radio'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Zera anualmente'
+        tipo: 'checkbox'
+        secao: 'Cartão de assinatura'
+      - rotulo: 'Otimizar consultas e telas Atenção! Necessário fazer um novo login'
+        tipo: 'checkbox'
+        secao: 'Cartão de assinatura'
+    botoes: ['Concluir', 'Voltar']
     alvos_do_passo: []
     correspondencias_sugeridas: []
     alvos_sem_correspondencia: []
@@ -56,12 +124,13 @@ auditoria_ui:
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Certificados digitais" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escrituras para Registro", "Controle de Estoque", "Cadastro de Impedimentos", "Importações de arquivos", "Controle de Livros", "Mensalistas", "Intermediadores", "Cadastro de Pessoas Jurídicas", "Serviços internos realizados", "Certidões solicitadas", "Calendário"; "Parâmetros" não está entre eles. Nenhum item de nome igual ou parecido existe em outro ponto da árvore (140 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho de menu real **Configurações > Parametrizações** foi aberto (rota #/configuracoes), mas a tela não tem a aba/seção "Certificados digitais" citada pelo manual. Abas e seções lidas ao vivo na tela: "Geral", "Captura e digitalização", "Parâmetros por estação", "Sequência", "Comunicações", "Campos obrigatórios", "Painel de atalhos", "Pedido de firmas", "Comissões e mensalistas", "E-mail", "Faturamento", "Protocolo", "Certidão", "Editor", "Produtos Orion", "Inteligência Artificial", "WhatsApp", "Impressão", "Cartão de assinatura", "Cálculo de custas", "Controle de guia". Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
-> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
-> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
-> * **Botões:** **Clique aqui para ativar agora**.
+> Tela alcançada no passo 1: rota **#/configuracoes**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Seções visíveis:** **Configurações**, **Cartão de assinatura**, **Cálculo de custas**, **Controle de guia**, **Geral**.
+> * **Campos:** **Tipo**, **Qtd. na busca**, **Produto**, **Ativar rotina de bloqueio automático de cartões de assinatura**, **Horário de execução**, **Para menos** (Cartão de assinatura), **Para mais** (Cartão de assinatura), **Truncado** (Cartão de assinatura), **Contábil** (Cartão de assinatura), **Diário** (Cartão de assinatura), **Semanal** (Cartão de assinatura), **Mensal** (Cartão de assinatura), **Zera anualmente** (Cartão de assinatura), **Otimizar consultas e telas Atenção! Necessário fazer um novo login** (Cartão de assinatura).
+> * **Botões:** **Concluir**, **Voltar**.
 > * **Caminho de menu:** o passo cita um caminho de navegação; a evidência lida da árvore de menus consta no motivo do bloqueio e a rota não foi adivinhada.
 > * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
@@ -77,7 +146,10 @@ Instrui a importação e parametrização do Certificado Digital padrão ICP-Bra
 #### Passo a passo (texto original preservado):
 1. Acesse o menu **Administração > Parâmetros > Certificados digitais**.
    [aqui vai a print "passo-01.png"]
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Caminho de menu não encontrado na árvore de navegação real: Administração > Parâmetros > Certificados digitais
+   > [!NOTE] **Demarcações na print:** (1) **Configurações** · (2) **Parametrizações**
+   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Administração > Parâmetros > Certificados digitais"**, porém na versão atual do Orion TN a tela fica em **"Configurações > Parametrizações"** (confiança: 90% — Equivalência canônica "Administração > Parâmetros" -> "Configurações > Parametrizações": o submenu legado "Administração > Parâmetros" virou a tela única "Configurações > Parametrizações" (abas laterais Geral, Captura e digitalização, E-mail, Protocolo, Certidão, Impressão...)). O texto do manual não foi alterado.
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Certificados digitais"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Certificados digitais"
 2. Clique no botão **Adicionar**.
 3. No campo **Descrição / Titular**, insira o nome do tabelião ou escrevente titular do certificado.
 4. Clique no botão **Selecionar arquivo** e localize o arquivo do certificado digital no formato `.pfx` ou `.p12` no computador.
@@ -89,6 +161,6 @@ Instrui a importação e parametrização do Certificado Digital padrão ICP-Bra
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Administração > Parâmetros > Certificados digitais", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloquead → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Certificados digitais" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escri → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

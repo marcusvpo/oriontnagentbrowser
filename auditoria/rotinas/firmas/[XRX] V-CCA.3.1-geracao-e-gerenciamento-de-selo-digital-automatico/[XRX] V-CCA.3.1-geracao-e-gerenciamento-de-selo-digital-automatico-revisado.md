@@ -8,7 +8,7 @@ auditoria_ui:
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -51,7 +51,7 @@ auditoria_ui:
         camada: investigative_reveal
         confianca: 1
         texto_alterado: false
-        gatilho_revelador: 'button | Adicionar | x=1251, y=384, 163x24'
+        gatilho_revelador: 'button | Adicionar | x=1251, y=376, 163x24'
         evidencia: 'dom-measured | text:selo digital | x=689, y=146, 498x16'
   historico_reauditoria:
     - data: '2026-11-17'
@@ -69,6 +69,29 @@ auditoria_ui:
       bloqueio_atual:
         passo: 4
         tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 4, a tela está sem dados (grade com 4 coluna(s) visível(is) (Arquivo, Data, Tipo, Tamanho) e 0 linhas de dados; controles inativos: "Consumir" (Consumir), "Gerar" (É necessário concluir o cadastro para realizar o consumo do Selo Digital.), "Concluir" (Preencha os campos obrigatórios para li'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Selo Digital'
+          real: 'Selo digital'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
 ---
@@ -126,6 +149,7 @@ O Orion TN permite a aplicação de Selo Digital do Tribunal de Justiça (TJ) no
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad → **superado** (agora: passo 4, Dependência Cruzada de Rotina)
+* **Bloqueio anterior:** passo 4 — Dependência Cruzada de Rotina: No passo 4, a tela está sem dados (grade com 4 coluna(s) visível(is) (Arquivo, Data, Tipo, Tamanho) e 0 linhas de dados; controles inativos: "Consumir" (Consumir), "Gerar" (É necessário concluir o cadastro para realizar o consumo do Selo Digital.), "Concluir" (Preencha os campos obrigatórios para li → **mantido** (agora: passo 4, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 2):** "Selo Digital" → "Selo digital" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

@@ -119,7 +119,7 @@ auditoria_ui:
     print_contexto: passo-04.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T06:46:32.882Z
+  governanca_atualizado_em: 2026-11-17T18:11:13.375Z
   governanca_comentario: "A ausência dos botões de redefinição de senha e reset de 2FA na tela 'Alteração de usuário' não é falta de permissão da conta, mas atualização do sistema: 'Alterar senha', 'Autenticação em dois fatores' e 'Cadastrar biometria' ficam no menu superior direito 'Olá, [username]'."
 ---
 

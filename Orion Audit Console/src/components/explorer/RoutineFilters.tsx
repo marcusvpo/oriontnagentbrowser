@@ -4,6 +4,8 @@ import { Button, Checkbox, Field, Input, Select } from "@/design-system/orion-au
 import { Modal } from "@/components/ui/Modal";
 import { AUDIT_STATUS, GOV_STATUS, MODULOS, REVIEW_TAG_LABEL, REVIEW_TAG_ORDER, SECAO_LABEL, SECOES } from "@/lib/status";
 import type { RotinasSearch } from "@/lib/search";
+import { phaseSplit } from "@/lib/attDiagnosis";
+import type { PhaseStats } from "@/types/api";
 
 type Patch = (p: Partial<RotinasSearch>) => void;
 
@@ -14,7 +16,8 @@ const toggleIn = (csv: string | undefined, v: string) => {
 };
 const has = (csv: string | undefined, v: string) => (csv ?? "").split(",").includes(v);
 
-export function RoutineFilters({ search, onChange }: { search: RotinasSearch; onChange: Patch }) {
+export function RoutineFilters({ search, onChange, phases }: { search: RotinasSearch; onChange: Patch; phases?: PhaseStats[] }) {
+  const split = phaseSplit(phases);
   const [q, setQ] = useState(search.q ?? "");
   const [more, setMore] = useState(false);
   useEffect(() => setQ(search.q ?? ""), [search.q]);
@@ -73,6 +76,20 @@ export function RoutineFilters({ search, onChange }: { search: RotinasSearch; on
         )}
       </Field>
       <Button onClick={() => setMore(true)}><SlidersHorizontal size={14} strokeWidth={1.5} />Mais filtros</Button>
+      {split.length > 0 && (
+        <div className="row" role="group" aria-label="Filtro rápido por fase" data-testid="phase-quick-filter" style={{ gridColumn: "1 / -1" }}>
+          <span className="t-overline-xs">Fases</span>
+          {split.map((p) => {
+            const active = search.fase === String(p.fase);
+            return (
+              <Button key={p.fase} size="sm" variant={active ? undefined : "ghost"} aria-pressed={active}
+                onClick={() => onChange({ fase: active ? undefined : String(p.fase) })}>
+                Fase {p.fase} · {p.total} rotinas ({p.att + p.ddd + p.xrx} em revisão)
+              </Button>
+            );
+          })}
+        </div>
+      )}
 
       <Modal open={more} onClose={() => setMore(false)} title="Mais filtros" footer={<Button onClick={() => setMore(false)}>Fechar</Button>}>
         <div className="stack-6">

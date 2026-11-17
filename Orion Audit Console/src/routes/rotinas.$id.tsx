@@ -6,6 +6,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { StudioHeader } from "@/components/studio/StudioHeader";
 import { StepComparisonCard } from "@/components/studio/StepComparisonCard";
 import { BlockedBanner } from "@/components/studio/BlockedBanner";
+import { AttScreenDiagnosisCard } from "@/components/studio/AttScreenDiagnosisCard";
+import { ReauditTimeline } from "@/components/studio/ReauditTimeline";
 import { ExternalStepCard } from "@/components/studio/ExternalStepCard";
 import { Filmstrip } from "@/components/studio/Filmstrip";
 import { MarkdownPreview } from "@/components/studio/MarkdownPreview";
@@ -145,6 +147,7 @@ function Estudio() {
                   reviewTags={tagsOfSummary(rotina.summary)}
                 />
               )}
+              <AttScreenDiagnosisCard diagnostico={rotina.auditoriaUi?.diagnostico_tela_att} />
               {editing && (
                 <EditModeToolbar tokens={estimateTokens(allText)} errors={issues.filter((i) => i.level === "error").length} warnings={issues.filter((i) => i.level === "warning").length}
                   dirty={dirty} onDiscard={() => { setEditing(false); setDrafts({}); setDescDraft(undefined); }} onSaveApprove={() => setDialog("approve")} />
@@ -167,7 +170,12 @@ function Estudio() {
               {tab === "markdown" && <MarkdownPreview markdown={rotina.markdownRevisado} steps={rotina.steps} onSelect={(n) => select(n, false)} />}
               {tab === "frontmatter" && <FrontmatterView original={rotina.frontmatterOriginalYaml} revisado={rotina.frontmatterRevisadoYaml} />}
               {tab === "telemetria" && <TelemetryView step={activeStep} />}
-              {tab === "historico" && <HistoryTimeline events={rotina.historico} />}
+              {tab === "historico" && (
+                <div className="stack-4">
+                  <ReauditTimeline historico={rotina.auditoriaUi?.historico_reauditoria} />
+                  <HistoryTimeline events={rotina.historico} />
+                </div>
+              )}
             </div>
           </section>
           <div className="studio-resizer" role="separator" aria-orientation="vertical" aria-label="Redimensionar painéis" tabIndex={0} onPointerDown={startResize}

@@ -8,17 +8,17 @@ auditoria_ui:
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 3
+  prints_geradas: 6
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
-    - passo: 3
-      alvos_ausentes: ['Nome do Produto']
+    - passo: 6
+      alvos_ausentes: ['Salvar']
       alvos_revelados: []
       resultado: gatilhos_esgotados
       gatilhos_na_tela: 0
@@ -33,13 +33,21 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwk883316b4d6u-70] | x=286, y=233, 188x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkxxx5f77ovg-70] | x=286, y=233, 188x21'
       - passo: 3
         alvo_documentado: 'Nome do Produto'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
+        elemento_real: 'Descrição'
+        camada: dom_synonym_heuristic
+        confianca: 0.9
         texto_alterado: false
+        evidencia: 'dom-measured | text:descrição | x=314, y=89, 576x40'
+      - passo: 4
+        alvo_documentado: 'Unidade de Medida'
+        elemento_real: 'Unidade'
+        camada: a11y_fuzzy_match
+        confianca: 0.75
+        texto_alterado: false
+        evidencia: 'dom-measured | text:unidade | x=902, y=89, 133x40'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -63,9 +71,31 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 3, o manual cita "Nome do Produto", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e nã'
+      bloqueio_atual:
+        passo: 6
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Configurações > Cadastros Auxiliares > Produto'
+          real: 'Administração > Controle de Estoque > Cadastros > Produto'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
-    passo: 3
-    capturado_em: '2026-11-17T05:05:29.303Z'
+    passo: 6
+    capturado_em: '2026-11-17T17:06:51.268Z'
     rota: '#/produto/cadastrar'
     titulo_painel: 'Estoque - Tabelionatos de Notas'
     em_modal: false
@@ -95,42 +125,33 @@ auditoria_ui:
       - rotulo: 'Observações'
         tipo: 'text'
     botoes: ['Concluir', 'Voltar']
-    alvos_do_passo: ['Nome do Produto', 'Categoria']
-    correspondencias_sugeridas:
-      - alvo: 'Nome do Produto'
-        elemento_real: 'Cadastro de produto'
-        tipo: 'seção'
-        similaridade: 0.53
-      - alvo: 'Categoria'
-        elemento_real: 'Categoria'
-        tipo: 'campo'
-        similaridade: 1
-    alvos_sem_correspondencia: []
-    sugestao_reescrita: 'Sugestão de reescrita: no passo 3, substituir Nome do Produto por Cadastro de produto (seção). Categoria existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece.'
-    print_contexto: 'passo-03.png'
+    alvos_do_passo: ['Salvar']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Salvar']
+    sugestao_reescrita: 'Sugestão de reescrita: Salvar não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-06.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 3, o manual cita "Nome do Produto", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Configurações > Négocios > Cadastros > Produto (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 6, o manual cita "Salvar", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
-> Tela alcançada no passo 3: rota **#/produto/cadastrar**, título **Estoque - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> Tela alcançada no passo 6: rota **#/produto/cadastrar**, título **Estoque - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
 > * **Seções visíveis:** **Cadastro de produto**.
 > * **Campos:** **Categoria**, **Descrição**, **Unidade**, **Responsável**, **Estoque mínimo**, **Distribuição**, **Quantidade de atos**, **Código de barras**, **Prefixo**, **Cod. Referencia**, **Observações**.
 > * **Botões:** **Concluir** (desabilitado), **Voltar**.
-> * **Correspondência sugerida para "Nome do Produto":** **Cadastro de produto** (seção, 53% — termo(s) em comum: produto).
-> * **Correspondência sugerida para "Categoria":** **Categoria** (campo, 100% — termo(s) em comum: categoria).
-> * Sugestão de reescrita: no passo 3, substituir **Nome do Produto** por **Cadastro de produto** (seção). **Categoria** existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. O texto original do manual foi preservado nesta rotina.
-> * **Referência visual:** passo-03.png (tela exata no momento do bloqueio).
+> * **Sem correspondência funcional na tela:** **Salvar**.
+> * Sugestão de reescrita: **Salvar** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-06.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 O cadastro de produtos formaliza todos os itens geridos no cartório, incluindo insumos de segurança (papel moeda, selos digitais/físicos, etiquetas) e itens administrativos. Permite configurar o estoque mínimo de segurança e se o item exige controle de série/folha.
 
 #### Roteiro Técnico para Execução Manual:
-1. Abrir a tela do passo 3 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+1. Abrir a tela do passo 6 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
 2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
 
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
@@ -144,19 +165,26 @@ O cadastro de produtos formaliza todos os itens geridos no cartório, incluindo 
    [aqui vai a print "passo-02.png"]
 3. Preencha o **Nome do Produto** (ex: Papel de Segurança A4 - Escrituras) e a **Categoria**.
    [aqui vai a print "passo-03.png"]
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Nome do Produto"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Nome do Produto"
+   > [!NOTE] **Demarcações na print:** (1) **Descrição** · (2) **Categoria**
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"Nome do Produto"**, porém na tela atual do Orion TN o elemento se chama **"Descrição"** (confiança: 90% — Sinônimo contextual da rota #/produto/cadastrar: o nome do produto é o campo "Descrição" (único campo de texto de identificação da tela)). O texto do manual não foi alterado.
 4. Selecione a **Unidade de Medida** (Folha, Unidade, Milhar) e informe o **Estoque Mínimo**.
+   [aqui vai a print "passo-04.png"]
+   > [!NOTE] **Demarcações na print:** (1) **Unidade** · (2) **Estoque Mínimo**
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Unidade de Medida"**, porém na tela atual do Orion TN o elemento se chama **"Unidade"** (confiança: 75% — Rótulo visível na tela equivalente por inclusão de nome (75%)). O texto do manual não foi alterado.
 5. Configure as opções de rastreabilidade:
+   [aqui vai a print "passo-05.png"]
+   > [!NOTE] As opções **Controlar por Sequência Numérica/Série**, **Critério Padrão de Distribuição** não estavam visíveis na tela durante a auditoria (dependem de um registro selecionado na listagem). Print sem demarcação.
    * Marque **Controlar por Sequência Numérica/Série** para insumos oficiais.
    * Defina o **Critério Padrão de Distribuição** (igualitária ou manual).
 6. Clique em **Salvar** para registrar o produto no catálogo da serventia.
+   [aqui vai a print "passo-06.png"]
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Salvar] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
 
 * **Importante: Insumos marcados com controle sequencial exigem a digitação ou leitura por código de barras dos números inicial e final em cada distribuição.**
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "Nome do Produto", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Explo → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "Nome do Produto", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e nã → **mantido** (agora: passo 6, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
 * **Cura reaproveitada (passo 1):** "Configurações > Cadastros Auxiliares > Produto" → "Administração > Controle de Estoque > Cadastros > Produto" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

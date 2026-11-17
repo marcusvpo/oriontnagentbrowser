@@ -4,6 +4,7 @@ import { Alert, Badge, Button, Card, Skeleton } from "@/design-system/orion-audi
 import { AppShell } from "@/components/layout/AppShell";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { PhaseProgressChart } from "@/components/dashboard/PhaseProgressChart";
+import { PhaseSplitCards } from "@/components/dashboard/PhaseSplitCards";
 import { WorkloadDonut } from "@/components/dashboard/WorkloadDonut";
 import { ModuleBarChart } from "@/components/dashboard/ModuleBarChart";
 import { DivergenceLayers } from "@/components/dashboard/DivergenceLayers";
@@ -81,6 +82,7 @@ function Dashboard() {
           </div>
 
           <div className="section-heading"><h2 className="t-h2">Panorama da auditoria</h2><span className="t-overline-xs">Fases · Carga · Módulos</span></div>
+          <PhaseSplitCards phases={s.porFase} />
           <div className="dash-grid">
             <div className="span-8"><PhaseProgressChart phases={s.porFase} total={s.totalRotinas} tagCounts={s.porTagRevisao} /></div>
             <div className="span-4 stack-4">

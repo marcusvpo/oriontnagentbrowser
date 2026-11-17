@@ -87,12 +87,14 @@ export function parseRoutineMarkdown(filePath: string): ParsedRoutine {
   };
 }
 
-function extractBoldTargets(text: string): string[] {
+export function extractBoldTargets(text: string): string[] {
   const targets: string[] = [];
   const matches = text.matchAll(/\*\*([^*]+)\*\*/g);
   for (const m of matches) {
     const cleaned = m[1].trim();
-    if (cleaned && !targets.includes(cleaned)) {
+    // ADR-029: negrito sem letra nem número ("(**\***)" = asterisco de campo obrigatório escapado) é pontuação do
+    // texto, não um controle da tela: nunca é alvo (virava o alvo espúrio "\" e bloqueava a rotina com `[ATT]`).
+    if (cleaned && /[\p{L}\p{N}]/u.test(cleaned) && !targets.includes(cleaned)) {
       targets.push(cleaned);
     }
   }

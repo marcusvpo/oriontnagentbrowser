@@ -39,7 +39,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwka5nwgd8j2e0-12] | x=633, y=109, 330x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkwx6pc9ywjdr-12] | x=633, y=109, 330x20'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -53,6 +53,29 @@ auditoria_ui:
         passo: 2
         tipo: 'Dependência Cruzada de Rotina'
         motivo: 'No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Firmas > Cadastro > Cartão de assinatura'
+          real: 'Firmas > Cadastros > Cartão de assinatura'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" n'
       bloqueio_atual:
         passo: 2
         tipo: 'Dependência Cruzada de Rotina'
@@ -104,7 +127,7 @@ Permite associar o cartão de assinatura de uma pessoa física a uma ou mais Pes
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)
+* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" n → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)
 * **Cura reaproveitada (passo 1):** "Firmas > Cadastro > Cartão de assinatura" → "Firmas > Cadastros > Cartão de assinatura" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

@@ -7,6 +7,7 @@ import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
 import { resolveGridActions } from './icon-action-resolver.js';
 import { evaluateSemanticCompatibility } from './semantic-compatibility.js';
 import { getHumanTargetSuggestionsForStep } from './human-review-rag.js';
+import { routeSynonymsFor } from './route-synonyms.js';
 import type {
   DOMCallout,
   DOMResolvedGeometry,
@@ -482,6 +483,10 @@ async function reconcileUnresolvedGroupTargets(
   const healedByTarget = new Map<string, SmartLocatorDivergence>();
   const healZone = ctx.zonePolicy === 'any' ? 'any' : 'content';
   let remeasure = false;
+  /** Alvos resolvidos por sinônimo contextual de rota (ADR-029) e os rótulos reais medidos para cada um */
+  const routeResolved = new Set<string>();
+  const routeQueries = new Map<string, string[]>();
+  const routeHash = (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
 
   if (ctx.allowHealing) {
     let nodes: ParsedA11yNode[] = [];
@@ -500,6 +505,41 @@ async function reconcileUnresolvedGroupTargets(
     for (const t of step.targets) taken.add(normalizeText(t));
 
     for (const target of unresolved) {
+      // ADR-029: sinônimo contextual da rota (Raio-X das telas `[ATT]`). Todos os rótulos reais da entrada precisam
+      // ser MEDIDOS ao vivo na zona de conteúdo; só um deles substitui o negrito do manual, vários entram sem troca de texto.
+      const routeSyn = routeSynonymsFor(routeHash, target)[0];
+      if (routeSyn) {
+        const measured: string[] = [];
+        for (const real of routeSyn.real) {
+          remeasure = true;
+          const probe = await client.getDOMGeometry([real], { scrollIntoView: false, zone: healZone });
+          if (probe && !isGenericContainerMatch(probe)) measured.push(real);
+        }
+        if (measured.length === routeSyn.real.length) {
+          routeResolved.add(target);
+          routeQueries.set(target, measured);
+          for (const r of measured) taken.add(normalizeText(r));
+          const single = measured.length === 1;
+          if (single) {
+            replacements.set(target, measured[0]);
+            domQueries.set(target, measured[0]);
+          }
+          const healed: SmartLocatorDivergence = {
+            stepNumber: step.stepNumber,
+            documentedTarget: target,
+            actualElementText: measured.join(' + '),
+            resolutionLayer: 'dom_synonym_heuristic',
+            confidence: 0.9,
+            reason: `Sinônimo contextual da rota ${routeSyn.route}: ${routeSyn.evidence}`,
+            detectedAt: new Date().toISOString(),
+            textChange: single ? { from: `**${target}**`, to: `**${measured[0]}**` } : undefined
+          };
+          divergences.push(healed);
+          healedByTarget.set(target, healed);
+          console.log(`   ◈ [Sinônimo de Rota] ${routeSyn.route}: "${target}" -> ${measured.map(m => `"${m}"`).join(' + ')} medido(s) ao vivo na zona de conteúdo.`);
+          continue;
+        }
+      }
       const ranked = rankSemanticCandidatesInA11y([target], nodes, step)
         .filter(c => !taken.has(normalizeText(c.node.name)))
         .slice(0, MAX_ZONE_HEAL_ATTEMPTS);
@@ -534,7 +574,7 @@ async function reconcileUnresolvedGroupTargets(
   }
 
   for (const target of unresolved) {
-    if (replacements.has(target)) continue;
+    if (replacements.has(target) || routeResolved.has(target)) continue;
     divergences.push({
       stepNumber: step.stepNumber,
       documentedTarget: target,
@@ -551,7 +591,7 @@ async function reconcileUnresolvedGroupTargets(
   // precisa ser a do grupo, já com os rótulos curados no lugar dos documentados.
   let finalGeometry = geometry;
   if (remeasure) {
-    const healedGroup = ctx.groupTargets.map(t => domQueries.get(t) ?? t);
+    const healedGroup = ctx.groupTargets.flatMap(t => routeQueries.get(t) ?? [domQueries.get(t) ?? t]);
     const again = await client.getDOMGeometry(ctx.candidates, {
       scrollIntoView: true,
       zone: ctx.zonePolicy,
@@ -562,8 +602,8 @@ async function reconcileUnresolvedGroupTargets(
 
   // Evidência (ADR-017): o rótulo curado só altera o texto se o seu nó foi medido na união final
   for (const [target, healed] of healedByTarget) {
-    const name = replacements.get(target)!;
-    const member = (finalGeometry.groupMembers || []).find(m => m.query === domQueries.get(target));
+    const name = replacements.get(target) ?? (routeQueries.get(target) || []).join(' + ');
+    const member = (finalGeometry.groupMembers || []).find(m => m.query === (domQueries.get(target) ?? routeQueries.get(target)?.[0]));
     if (member) {
       healed.evidence = {
         source: 'dom-measured',
@@ -890,6 +930,35 @@ export async function locateAndCaptureWithSelfHealing(
         matchedTargetName: sug.actual,
         divergence
       };
+    }
+  }
+
+  // =========================================================================
+  // CAMADA 0.2 (ADR-029): sinônimo contextual por rota (`location.hash`), descoberto pelo Raio-X das telas `[ATT]`.
+  // Só passo de alvo único; o rótulo real é MEDIDO ao vivo na zona do passo e passa pelas mesmas guardas. O texto do
+  // manual não é reescrito: a troca só vale com o nó real medido (Evidência Estrita) e a divergência vai ao relatório.
+  // =========================================================================
+  if (step.targets.length === 1 && !groupTargets) {
+    const routeHash = (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
+    for (const syn of routeSynonymsFor(routeHash, step.targets[0]).filter(s => s.real.length === 1)) {
+      const actual = syn.real[0];
+      const geometry = await client.getDOMGeometry([actual], { scrollIntoView: true, zone: zonePolicy });
+      const forbidden = geometry ? forbiddenMeasuredReason(step, geometry.context) : null;
+      if (!geometry || isGenericContainerMatch(geometry) || forbidden) continue;
+      console.log(`   ◈ [Sinônimo de Rota] ${syn.route}: "${step.targets[0]}" -> "${actual}" medido ao vivo (${syn.evidence}).`);
+      await client.screenshot(rawScreenshotPath);
+      const divergence: SmartLocatorDivergence = {
+        stepNumber: step.stepNumber,
+        documentedTarget: step.targets[0],
+        actualElementText: actual,
+        resolutionLayer: 'dom_synonym_heuristic',
+        confidence: 0.9,
+        reason: `Sinônimo contextual da rota ${syn.route}: ${syn.evidence}`,
+        detectedAt: new Date().toISOString(),
+        evidence: { source: 'dom-measured', matchedSelector: geometry.matchedSelector, elementText: geometry.context.innerText || actual, box: geometry.cssBox },
+        textChange: { from: `**${step.targets[0]}**`, to: `**${actual}**` }
+      };
+      return { found: true, healed: true, geometry, matchedTargetName: actual, divergence };
     }
   }
 

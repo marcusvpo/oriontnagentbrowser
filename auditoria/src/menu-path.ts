@@ -1,5 +1,6 @@
 import type { AgentBrowserClient } from './browser.js';
 import { resolveMenuPathViaHumanReview } from './human-review-rag.js';
+import { resolveCanonicalMenuPath, type CanonicalMenuBasis } from './menu-canonical.js';
 import { closeActiveModals } from './modal-scope.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 import type { BoundingBox, MenuPathMissingEvidence, RoutineStep, SmartLocatorDivergence, SmartLocatorResult } from './types.js';
@@ -52,6 +53,11 @@ export interface MenuPathMatch {
   viaPriorAudit?: boolean;
   /** Empate resolvido pela menor profundidade de cadeia no mesmo módulo raiz (ADR-028) */
   depthTieBreak?: { chosen: string; discarded: string[] };
+  /** Equivalência canônica (ADR-029): segmentos do manual que viram aba/seção da tela alcançada */
+  tail?: string[];
+  /** Quantos segmentos do manual a cadeia real substituiu (só com `canonicalBasis`) */
+  consumed?: number;
+  canonicalBasis?: CanonicalMenuBasis;
 }
 
 const MENU_LEAF_SYNONYMS: Record<string, string[]> = {
@@ -272,6 +278,29 @@ export function chooseMenuItem(
         viaPriorAudit: true
       };
     }
+  }
+
+  // ADR-029: equivalência canônica provada pela mineração dos bloqueios `[ATT]` (tabela explícita, chave de folha
+  // sob o prefixo real e cauda como aba/seção da tela). A cadeia real PRECISA existir na árvore lida agora (a tabela
+  // nunca é evidência) e a divergência é registrada no relatório; o texto do manual só muda pela Trava de Evidência.
+  // O resolvedor precisa das RAÍZES (profundidade 1) para achar o maior prefixo existente; só os itens bloqueados
+  // para o perfil ficam de fora.
+  const canonicalPool = items.filter(i => !i.disabled);
+  for (const documented of paths) {
+    const canon = resolveCanonicalMenuPath(documented.segments, canonicalPool);
+    if (!canon) continue;
+    const hit = usable.find(i => sameChain(i.chain, canon.chain));
+    if (!hit) continue;
+    return {
+      item: hit,
+      documented,
+      exact: false,
+      confidence: canon.basis === 'explicit_equivalence' ? 0.9 : 0.88,
+      reason: canon.evidence,
+      tail: canon.tail.length > 0 ? canon.tail : undefined,
+      consumed: canon.consumed,
+      canonicalBasis: canon.basis
+    };
   }
 
   const scoreLeaf = (pool: MenuTreeItem[], documented: DocumentedMenuPath) => {
@@ -719,6 +748,24 @@ export async function resolveAndNavigateMenuPath(
     return { found: true, healed: false, geometry, matchedTargetName: realPath };
   }
 
+  // ADR-029: o caminho real é MAIS CURTO que o documentado (o resto é aba/seção da tela). Só o prefixo substituído
+  // muda no texto (e só se aparece literal dentro do negrito); a cauda fica como o manual escreveu e é provada ao
+  // vivo pelo executor depois do clique da folha. Sem prefixo literal, a divergência não carrega troca de texto.
+  const tail = match.tail && match.tail.length > 0 ? match.tail : undefined;
+  let textChange: SmartLocatorDivergence['textChange'] = { from: fromSpan, to: realMarkup };
+  let validatedText: string | undefined = step.rawText.replace(fromSpan, realMarkup);
+  if (tail) {
+    const consumed = match.consumed ?? match.documented.segments.length - tail.length;
+    const prefixText = match.documented.segments.slice(0, consumed).join(' > ');
+    if (singleBold && prefixText && step.rawText.includes(prefixText)) {
+      textChange = { from: prefixText, to: chain.join(' > ') };
+      validatedText = step.rawText.replace(prefixText, chain.join(' > '));
+    } else {
+      textChange = undefined;
+      validatedText = undefined;
+    }
+  }
+
   const divergence: SmartLocatorDivergence = {
     stepNumber: step.stepNumber,
     documentedTarget: strippedAlternative ? `${documentedPath} ou ${removedAlternatives.join(' ou ')}` : documentedPath,
@@ -732,7 +779,7 @@ export async function resolveAndNavigateMenuPath(
     detectedAt: new Date().toISOString(),
     // Evidência (ADR-017): cada segmento do caminho real foi lido da árvore de navegação e medido na print
     evidence: { source: 'menu-tree', matchedSelector: leafSelector, elementText: realPath, box: leafBox },
-    textChange: { from: fromSpan, to: realMarkup }
+    textChange
   };
 
   return {
@@ -741,7 +788,8 @@ export async function resolveAndNavigateMenuPath(
     geometry,
     matchedTargetName: realPath,
     divergence,
-    validatedText: step.rawText.replace(fromSpan, realMarkup),
+    validatedText,
+    menuTail: tail ? { segments: tail, realChain: chain, documentedPath, basis: match.canonicalBasis ?? 'tail_as_screen_section' } : undefined,
     priorHint: match.viaPriorAudit ? { documented: documentedPath, actual: realPath, layer: 'menu_path_resolution' } : undefined
   };
 }

@@ -26,7 +26,9 @@ import {
   type ReauditHistoryEntry
 } from './prior-audit.js';
 import { collectHelpTooltips, type HelpTooltip } from './help-tooltips.js';
-import { installToastObserver, readEmptyState, hasNoData } from './empty-state.js';
+import { installToastObserver, readEmptyState, hasNoData, countGridRows, ADD_BUTTON_SOURCE } from './empty-state.js';
+import { autoFilterEmptyGrid, stepNeedsGridRows, type GridPrefilterOutcome } from './grid-prefilter.js';
+import { resolveMenuTail, describeMenuTailMissing, type MenuTailOutcome } from './menu-tail.js';
 import { autoSeedMockRecord, routineNeedsExistingRows } from './auto-seed.js';
 import { ACTIVE_MODAL_SELECTOR, closeActiveModals } from './modal-scope.js';
 import { detectImplicitTargets } from './implicit-targets.js';
@@ -463,6 +465,9 @@ export async function executeRoutineAudit(
   const autoSeedEnabled = options.autoSeed !== false;
   const emptyByHash = new Map<string, EmptyStateEvidence>();
   const emptyByStep = new Map<number, EmptyStateEvidence>();
+  /** Pré-filtro automático de grade vazia (ADR-029) já tentado por rota: um ciclo por rota e por rotina */
+  const prefilterByHash = new Map<string, NonNullable<EmptyStateEvidence['prefilter']>>();
+  const prefilterTriedHashes = new Set<string>();
   const seededByStep = new Map<number, SeededRecord>();
   const implicitByStep = new Map<number, string[]>();
   const seededRecords: SeededRecord[] = [];
@@ -478,7 +483,7 @@ export async function executeRoutineAudit(
       if (!state) return null;
       const key = state.hash || '';
       const prev = emptyByHash.get(key);
-      const merged: EmptyStateEvidence = { ...state, toastText: state.toastText ?? prev?.toastText };
+      const merged: EmptyStateEvidence = { ...state, toastText: state.toastText ?? prev?.toastText, prefilter: prefilterByHash.get(key) };
       emptyByHash.set(key, merged);
       emptyByStep.set(stepNumber, merged);
       if (hasNoData(merged)) console.log(`   [Estado Vazio] ${merged.emptyGrid ? `grade sem linhas (${merged.headers.slice(0, 5).join(', ')})` : 'sem dados'}${merged.toastText ? ` | tela: "${merged.toastText}"` : ''}${merged.addButton ? ` | "${merged.addButton.label}" ativo` : ''}`);
@@ -943,6 +948,33 @@ export async function executeRoutineAudit(
       if (prior.block?.stepNumber === step.stepNumber) {
         console.log(`   [Reauditoria] ↺ Checkpoint: este é o passo em que a rotina parou no ambiente anterior${prior.block.tipo ? ` (${prior.block.tipo})` : ''}; verificando se agora é superado.`);
       }
+      // ADR-029: pré-filtro automático de grade vazia. O passo escolhe/abre um item da listagem (ou aciona um botão
+      // de linha) e a grade da tela atual abriu SEM linhas porque a busca ainda não foi disparada. Antes de declarar
+      // grade vazia (`[DDD]`/`[XRX]`/`[ATT]`), aciona `Filtrar`/`Pesquisar`/`Consultar` com um filtro amplo e seguro.
+      let prefilter: GridPrefilterOutcome | null = null;
+      if (!implicit && !isOptionsOnly && !hasMenuPath && stepNeedsGridRows(step)) {
+        const hashNow = (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
+        if (!prefilterTriedHashes.has(hashNow) && (await countGridRows(client).catch(() => -1)) === 0) {
+          prefilterTriedHashes.add(hashNow);
+          prefilter = await autoFilterEmptyGrid(client, { rawPathFor, getNextLetter: () => nextLetter });
+          if (prefilter.attempted) {
+            console.log(
+              prefilter.populated
+                ? `   [Pré-Filtro de Grade] ${prefilter.reason}`
+                : `   [Pré-Filtro de Grade] grade permaneceu sem linhas: ${prefilter.reason}`
+            );
+            if (!prefilter.populated) {
+              prefilterByHash.set(hashNow, {
+                strategy: prefilter.strategy,
+                trigger: prefilter.trigger,
+                filled: prefilter.filled.map(f => ({ label: f.label, value: f.value })),
+                reason: prefilter.reason
+              });
+            }
+          }
+        }
+      }
+
       let statefulResolved: Awaited<ReturnType<typeof resolveStatefulStep>> = null;
       if (!implicit && !isOptionsOnly) {
         statefulResolved = await resolveStatefulStep(client, locStep, rawStepPath, nextStepWithId).catch(() => null);
@@ -1117,6 +1149,94 @@ export async function executeRoutineAudit(
           };
         }
 
+        // ADR-029: pré-filtro bem-sucedido -> o botão de busca, medido imediatamente antes do clique, vira sub-captura
+        let prefilterNote: string | undefined;
+        if (prefilter?.populated) {
+          adjustedSteps.add(step.stepNumber);
+          prefilterNote = `**Pré-filtro automático da grade:** ${prefilter.reason}.`;
+          if (prefilter.triggerRawPath && prefilter.triggerGeometry) {
+            const triggerLabel = prefilter.trigger || 'Filtrar';
+            await addSubFrame(
+              prefilter.triggerRawPath,
+              prefilter.triggerGeometry,
+              [{ index: lastIndex + 1, label: triggerLabel, cssBox: prefilter.triggerGeometry.cssBox, matchedSelector: prefilter.triggerGeometry.matchedSelector }],
+              'trigger',
+              { kind: 'button', label: triggerLabel, directed: false }
+            );
+          }
+        }
+
+        // ADR-029: cauda do caminho de menu (aba/seção da tela alcançada). O clique da folha já foi dado; a aba citada
+        // pelo manual é medida ao vivo, demarcada em `passo-NN-b` e acionada. Sem aba medida: bloqueio com as abas reais.
+        let tailNote: string | undefined;
+        let tailEvidence: string | undefined;
+        if (locResult.menuTail && executedAction.kind === 'click') {
+          const tail = locResult.menuTail;
+          const outcome: MenuTailOutcome = await resolveMenuTail(client, tail.segments[0], { rawPathFor, getNextLetter: () => nextLetter }).catch(
+            (): MenuTailOutcome => ({ status: 'missing', segment: tail.segments[0], screenLabels: [], hash: '' })
+          );
+          if (outcome.status === 'found' && outcome.geometry && outcome.selector && outcome.rawPath) {
+            const real = outcome.real || outcome.segment;
+            await addSubFrame(
+              outcome.rawPath,
+              outcome.geometry,
+              [{ index: lastIndex + 1, label: real, cssBox: outcome.geometry.cssBox, matchedSelector: outcome.geometry.matchedSelector, innerText: real }],
+              'post-action'
+            );
+            await client.click(outcome.selector).catch(() => undefined);
+            await client.wait(1500);
+            adjustedSteps.add(step.stepNumber);
+            tailNote = `Rota real: **${tail.realChain.join(' > ')}**; a aba/seção **${real}** foi medida ao vivo (${outcome.via === 'exact' ? 'mesmo nome do manual' : outcome.via === 'route_synonym' ? 'sinônimo contextual da rota' : 'mesma chave de nome'}) e acionada.`;
+            if (real.toLowerCase() !== outcome.segment.toLowerCase()) {
+              targetDivergences.push({
+                stepNumber: step.stepNumber,
+                documentedTarget: outcome.segment,
+                actualElementText: real,
+                resolutionLayer: 'dom_synonym_heuristic',
+                confidence: 0.9,
+                reason: `Na tela ${outcome.hash || tail.realChain.join(' > ')}, o manual cita "${outcome.segment}" e a tela real chama a aba de "${real}"${outcome.evidence ? ` (${outcome.evidence})` : ''}`,
+                detectedAt: new Date().toISOString(),
+                evidence: { source: 'dom-measured', matchedSelector: outcome.geometry.matchedSelector, elementText: real, box: outcome.geometry.cssBox }
+              });
+            }
+            console.log(`   [Cauda de Menu] Aba "${real}" medida em ${outcome.hash} e acionada (${outcome.via}).`);
+          } else {
+            tailEvidence = describeMenuTailMissing(tail.realChain, outcome);
+            targetDivergences.push({
+              stepNumber: step.stepNumber,
+              documentedTarget: tail.segments[0],
+              actualElementText: '',
+              resolutionLayer: 'target_not_found',
+              confidence: 0,
+              reason: tailEvidence,
+              detectedAt: new Date().toISOString()
+            });
+            console.warn(`   ⚠ [Cauda de Menu] ${tailEvidence}`);
+          }
+        }
+
+        // ADR-029: passo "acesse o menu X e clique em **Adicionar**": a Camada 0 devolve só o caminho, então o botão
+        // de cadastro citado no mesmo passo nunca era conferido. Depois do clique da folha ele vira alvo pendente: a
+        // medição pós-ação (item 4) o demarca em `passo-NN-b` e o aciona. Só botões de cadastro (`Adicionar`/`Novo`...):
+        // os demais negritos do passo mantêm o comportamento anterior.
+        if (hasMenuPath && executedAction.kind === 'click' && locResult.found) {
+          const pathSegments = new Set(extractMenuPaths(step).flatMap(p => p.segments.map(s => normalizeText(s))));
+          const addButtonRe = new RegExp(ADD_BUTTON_SOURCE);
+          for (const t of step.targets) {
+            if (t.includes('>') || pathSegments.has(normalizeText(t)) || !addButtonRe.test(normalizeText(t))) continue;
+            if (targetDivergences.some(d => d.documentedTarget === t)) continue;
+            targetDivergences.push({
+              stepNumber: step.stepNumber,
+              documentedTarget: t,
+              actualElementText: '',
+              resolutionLayer: 'target_not_found',
+              confidence: 0,
+              reason: 'Botão de cadastro citado no mesmo passo do caminho de menu: conferido na tela aberta pela navegação',
+              detectedAt: new Date().toISOString()
+            });
+          }
+        }
+
         const notFound = () => targetDivergences.filter(d => d.resolutionLayer === 'target_not_found');
         const dropFound = (seen: Set<string>) => {
           targetDivergences = targetDivergences.filter(d => !(d.resolutionLayer === 'target_not_found' && seen.has(d.documentedTarget)));
@@ -1142,6 +1262,27 @@ export async function executeRoutineAudit(
             console.log(
               `   [Multi-Demarcação] Alvo(s) visíveis após a ação do passo, demarcados em ${printB}: ${calloutsB.map(c => `(${c.index}) ${c.label}`).join(' · ')}`
             );
+
+            // ADR-029: "Acesse o menu X e clique em **Adicionar**": o clique da navegação já foi dado; o botão de
+            // cadastro que apareceu como efeito dele (medido e demarcado acima) é a ação final do passo. Abrir o
+            // formulário não grava nada; sem este clique o passo seguinte ("Preencha a Descrição") rodava na grade.
+            const addRe = new RegExp(ADD_BUTTON_SOURCE);
+            const addNames = Array.from(seen).filter(n => addRe.test(normalizeText(n)));
+            if (!isOptionsOnly && addNames.length === 1 && /\b(clique|clicar|acione|acionar|pressione)\b/i.test(step.rawText)) {
+              const addGeom = await client.getDOMGeometry([addNames[0]], { scrollIntoView: true, zone: domGeometry.zonePolicy ?? 'any' });
+              const addSel = addGeom?.actionTarget?.clickSelector;
+              const addNode = addSel ? await client.probeActionNode(addSel) : null;
+              if (addSel && addNode && !addNode.disabled && !(addGeom?.zone === 'content' && addNode.insideNavZone)) {
+                await client.click(addSel);
+                await client.wait(1500);
+                adjustedSteps.add(step.stepNumber);
+                console.log(`   [Ação] click no botão de cadastro "${addNode.text}" que apareceu após a navegação (abre o formulário; nada é gravado).`);
+              } else {
+                console.warn(
+                  `   ⚠ [Ação] botão de cadastro "${addNames[0]}" medido, mas não acionado: ${!addGeom ? 'a medição individual falhou' : !addSel ? 'sem carimbo de clique' : !addNode ? 'nó não conferido' : addNode.disabled ? 'controle desabilitado' : 'nó dentro da navegação'}.`
+                );
+              }
+            }
           }
         }
 
@@ -1201,6 +1342,8 @@ export async function executeRoutineAudit(
           note: [
             prerequisiteNote,
             subportalNote,
+            prefilterNote,
+            tailNote,
             statefulResolved?.note,
             statefulPostNote,
             executedAction.openedTab ? `A ação abriu a guia **${executedAction.openedTab.title || 'sem título'}**; os passos seguintes foram auditados nela.` : undefined
@@ -1239,7 +1382,7 @@ export async function executeRoutineAudit(
         if (withoutEvidence.length > 0) {
           const list = withoutEvidence.map(t => `"${t}"`).join(', ');
           console.warn(`   ⚠ Alvo(s) do passo sem evidência na tela: ${list}. Texto original preservado; rotina segue para revisão humana.`);
-          block = await missingBlock(withoutEvidence, true, exploration, isOptionsOnly ? undefined : explorationSkippedReason);
+          block = await missingBlock(withoutEvidence, true, exploration, isOptionsOnly ? undefined : explorationSkippedReason, tailEvidence);
           stepResults.push({
             ...base,
             validatedText: step.rawText,
@@ -1764,7 +1907,13 @@ export async function executeStepAction(
     }
     // Passo com vários alvos: o nó medido só é clicado se o seu texto É um dos alvos citados. Um casamento
     // parcial ("Protocolo" -> botão "Agenda de protocolos") é outro controle e pode abrir uma tela alheia.
-    if (node && !wantsFill && !healedFrom && step.targets.length >= 2) {
+    // ADR-029: a folha de um caminho de menu RESOLVIDO na árvore real (Auto-Cura de Rota, equivalência canônica,
+    // revisão humana ou rota anterior reconfirmada) é o nó da navegação, não um casamento parcial: o rótulo real
+    // ("Tipo de documento") difere do documentado ("Tipos de documentos") por definição da cura. Sem este clique a
+    // rotina seguia na tela anterior e o passo seguinte bloqueava em `#/inicio`.
+    const isResolvedMenuLeaf =
+      locResult.divergence?.resolutionLayer === 'menu_path_resolution' && locResult.divergence.evidence?.source === 'menu-tree';
+    if (node && !wantsFill && !healedFrom && !isResolvedMenuLeaf && step.targets.length >= 2) {
       const flat = (t: string) =>
         String(t || '')
           .normalize('NFD')

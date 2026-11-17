@@ -8,32 +8,19 @@ auditoria_ui:
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 4
+  prints_geradas: 5
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
-  exploracao_investigativa:
-    - passo: 4
-      alvos_ausentes: ['\']
-      alvos_revelados: []
-      resultado: gatilhos_esgotados
-      gatilhos_na_tela: 1
-      seletores_sem_afinidade_descartados: 7
-      estado_restaurado: true
-      gatilhos_testados:
-        - tipo: button
-          rotulo: 'Adicionar'
-          deduzido_do_dom: false
-          resultado: sem_efeito
   auto_cura:
     acionada: true
     divergencias_detectadas:
-      - passo: 4
-        alvo_documentado: '\'
+      - passo: 5
+        alvo_documentado: 'Lupa'
         elemento_real: '(não localizado na tela)'
         camada: target_not_found
         confianca: 0
@@ -55,9 +42,25 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 4, o manual cita "\", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigativa acionou 1 de '
+      bloqueio_atual:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
-    passo: 4
-    capturado_em: '2026-11-17T06:33:42.566Z'
+    passo: 5
+    capturado_em: '2026-11-17T16:33:41.125Z'
     rota: '#/ficha/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -205,51 +208,31 @@ auditoria_ui:
       - rotulo: 'selecionarAnexoFichaRegistra'
         tipo: 'file'
         secao: 'Papel de segurança'
-    botoes: ['Preencher cartão usando I.A.', 'Consumir', 'Gerar', 'Consulta Central de notificações de suspeitos (CNS).', 'Excluir', 'Adicionar', 'Selecionar', 'Capturar', 'Digitalizar ', 'Concluir', 'Voltar']
-    alvos_do_passo: ['\', 'Nome', 'CPF']
-    correspondencias_sugeridas:
-      - alvo: 'Nome'
-        elemento_real: 'Nome'
-        tipo: 'campo'
-        secao: 'Papel de segurança'
-        similaridade: 1
-      - alvo: 'Nome'
-        elemento_real: 'Nome social'
-        tipo: 'campo'
-        secao: 'Papel de segurança'
-        similaridade: 0.92
-      - alvo: 'CPF'
-        elemento_real: 'CPF ou CIN'
-        tipo: 'campo'
-        secao: 'Papel de segurança'
-        similaridade: 0.92
-    alvos_sem_correspondencia: ['\']
-    sugestao_reescrita: 'Sugestão de reescrita: no passo 4, substituir CPF por CPF ou CIN (campo da seção Papel de segurança). Nome existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. \ não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
-    print_contexto: 'passo-04.png'
+    botoes: ['Preencher cartão usando I.A.', 'Consumir', 'Gerar', 'Consulta Central de notificações de suspeitos (CNS).', 'Adicionar', 'Selecionar', 'Capturar', 'Digitalizar ', 'Concluir', 'Voltar']
+    alvos_do_passo: []
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: []
+    print_contexto: 'passo-05.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 4, o manual cita "\", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigativa acionou 1 de 1 gatilho(s) revelador(es) seguro(s) da tela (botão "Adicionar"); nenhum revelou o elemento, e o estado da tela foi restaurado. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 5, o manual cita "Lupa", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
-> Tela alcançada no passo 4: rota **#/ficha/cadastrar**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> Tela alcançada no passo 5: rota **#/ficha/cadastrar**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
 > * **Seções visíveis:** **Cadastro de cartão de assinatura**, **Papel de segurança**, **Selo digital**, **Dados pessoais**, **Contato**, **Endereço**, **Pessoa Jurídica - Representante**, **Arquivos anexos**.
 > * **Campos:** **Filtro** (Papel de segurança), **Nome** (Papel de segurança), **Nome social** (Papel de segurança), **Sexo** (Papel de segurança), **Nascimento** (Papel de segurança), **CPF ou CIN** (Papel de segurança), **RG** (Papel de segurança), **Orgão emissor** (Papel de segurança), **UF** (Papel de segurança), **Data emissão** (Papel de segurança), **CNH** (Papel de segurança), **Categoria** (Papel de segurança), **Data 1ª habilitação** (Papel de segurança), **Data Expedição** (Papel de segurança), **Data expiração** (Papel de segurança), **Outro documento** (Papel de segurança), **Número** (Papel de segurança), **Nacionalidade** (Papel de segurança), **Naturalidade** (Papel de segurança), **Estado civil** (Papel de segurança), **Profissão** (Papel de segurança), **Pai** (Papel de segurança), **Mãe** (Papel de segurança), **Politicamente exposta (Prov. 88)** (Papel de segurança), **Pessoa acusada de terrorismo** (Papel de segurança) (+22).
-> * **Botões:** **Preencher cartão usando I.A.**, **Consumir** (desabilitado), **Gerar** (desabilitado), **Consulta Central de notificações de suspeitos (CNS).**, **Excluir**, **Adicionar**, **Selecionar**, **Capturar**, **Digitalizar **, **Concluir** (desabilitado), **Voltar**.
-> * **Correspondência sugerida para "Nome":** **Nome** (campo, 100% — termo(s) em comum: nome; na seção "Papel de segurança"); **Nome social** (campo, 92% — termo(s) em comum: nome; na seção "Papel de segurança").
-> * **Correspondência sugerida para "CPF":** **CPF ou CIN** (campo, 92% — termo(s) em comum: cpf; na seção "Papel de segurança").
-> * **Sem correspondência funcional na tela:** **\**.
-> * Sugestão de reescrita: no passo 4, substituir **CPF** por **CPF ou CIN** (campo da seção **Papel de segurança**). **Nome** existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. **\** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
-> * **Referência visual:** passo-04.png (tela exata no momento do bloqueio).
+> * **Botões:** **Preencher cartão usando I.A.**, **Consumir** (desabilitado), **Gerar** (desabilitado), **Consulta Central de notificações de suspeitos (CNS).**, **Adicionar**, **Selecionar**, **Capturar**, **Digitalizar **, **Concluir** (desabilitado), **Voltar**.
+> * **Referência visual:** passo-05.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 O cadastro de cartão de assinatura (ficha de autógrafo/firma) registra a qualificação completa, dados documentais e parâmetros civis da pessoa física para subsidiar os atos de reconhecimento de firma e lavratura de escrituras/procurações. O Orion TN disponibiliza buscas inteligentes para reaproveitamento ágil de cadastros pré-existentes na base de dados notarial e validações em tempo real de consistência cadastral.
 
 #### Roteiro Técnico para Execução Manual:
-1. Abrir a tela do passo 4 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+1. Abrir a tela do passo 5 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
 2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
 
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
@@ -268,10 +251,13 @@ O cadastro de cartão de assinatura (ficha de autógrafo/firma) registra a quali
 4. Identifique os campos com asterisco (**\***), que indicam preenchimento obrigatório pelo sistema (por padrão: **Nome** e **CPF**, além de eventuais campos customizados pela serventia).
    [aqui vai a print "passo-04.png"]
    > [!NOTE] **Demarcações na print:** (1) **Nome** · (2) **CPF**
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"\"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Arquivo, Data, Tipo, Tamanho).
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "\"
 5. Para reaproveitar dados já cadastrados e agilizar o atendimento:
+   [aqui vai a print "passo-05.png"]
+   > [!NOTE] **Demarcações na print:** (1) **Nome** · (2) **CPF**
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Lupa"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Arquivo, Data, Tipo, Tamanho).
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Lupa"
    * No campo **Nome**, digite o nome completo ou parcial e clique no ícone da **Lupa** ao lado do campo; ou
    * No campo **CPF**, digite o número do documento e clique no ícone da **Lupa** ao lado do campo para uma busca exata.
 6. Na lista de resultados apresentada pelo sistema:
@@ -293,6 +279,6 @@ O cadastro de cartão de assinatura (ficha de autógrafo/firma) registra a quali
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "\", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investig → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "\", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigativa acionou 1 de  → **mantido** (agora: passo 5, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

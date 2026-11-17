@@ -114,6 +114,8 @@ export interface AuditoriaUiFrontmatter {
     notas_editoriais_reconfirmadas: number;
     notas_editoriais_nao_reconfirmadas: number;
   }>;
+  /** ADR-028: Raio-X da tela do bloqueio (só rotinas `[ATT]`) */
+  diagnostico_tela_att?: DiagnosticoTelaAtt;
   auto_cura?: {
     acionada: boolean;
     divergencias_detectadas: Array<{
@@ -158,6 +160,26 @@ export interface StepMedia {
   webpUrl?: string; pngUrl: string; rawUrl?: string;  // URLs opacas servidas pela API; nunca montar caminho no front
   width: number; height: number;                     // tamanho natural (1440x900 em DPR 1)
   webpBytes?: number; pngBytes?: number;
+  /** ADR-029: print de contexto do Raio-X `[ATT]` (`passo-NN-contexto-att`): tela exata do bloqueio, sem demarcação */
+  contexto?: boolean;
+}
+/** Raio-X da Tela Atual de um bloqueio `[ATT]` (ADR-028): leitura somente-leitura da tela do bloqueio. */
+export interface DiagnosticoTelaAtt {
+  passo: number;
+  capturado_em?: string;
+  rota?: string;
+  titulo_painel?: string;
+  em_modal?: boolean;
+  secoes?: string[];
+  abas?: Array<string | { rotulo: string; ativa?: boolean }>;
+  campos?: Array<{ rotulo: string; tipo?: string; secao?: string; obrigatorio?: boolean }>;
+  botoes?: string[];
+  alvos_do_passo?: string[];
+  correspondencias_sugeridas?: Array<{ alvo: string; elemento_real: string; tipo?: string; secao?: string; similaridade?: number }>;
+  alvos_sem_correspondencia?: string[];
+  sugestao_reescrita?: string;
+  /** Nome da print do passo bloqueado (`passo-NN.png`) ou `passo-NN-contexto-att.png` */
+  print_contexto?: string;
 }
 export interface GeometryInvariantResult {
   id: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;

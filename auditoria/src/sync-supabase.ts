@@ -588,6 +588,12 @@ async function buildRoutineRecords(params: {
     } else if (auditedInfo) {
       const pad = String(s).padStart(2, '0');
       media = mediaFor(`passo-${pad}.png`, 'a');
+      // ADR-029: passo bloqueado `[ATT]` sem print própria: a print de contexto do Raio-X (`passo-NN-contexto-att`,
+      // tela exata do bloqueio, sem demarcação) vira a mídia do passo, marcada `contexto` para a UI sinalizar.
+      if (!media) {
+        const ctx = mediaFor(`passo-${pad}-contexto-att.png`, 'contexto-att');
+        if (ctx) media = { ...ctx, contexto: true };
+      }
     }
 
     const domGeometry: DOMResolvedGeometry | undefined = telItem?.domGeometry ?? undefined;

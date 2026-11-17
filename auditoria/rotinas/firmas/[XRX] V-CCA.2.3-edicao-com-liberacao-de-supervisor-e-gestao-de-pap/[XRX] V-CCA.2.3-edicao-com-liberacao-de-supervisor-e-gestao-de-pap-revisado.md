@@ -57,13 +57,30 @@ auditoria_ui:
         tipo: 'Dependência Cruzada de Rotina'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 4, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" n'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 4, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra rotina do sistema gera esses registros: V-CCA.3.3 — Cadastro Rápido e Edição de Cartão de Assinatura Integrados ao Reconhecimento de Firmas; D-3.3 — Cadastrar Cartão de Assinatura; M-9.0 — Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais).
+> **Motivo Técnico:** No passo 4, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir); pré-filtro automático tentado antes de declarar a grade vazia: o botão "Filtrar" está desabilitado ("Período de pesquisa inválido") mesmo com o filtro amplo; a grade permaneceu sem linhas). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra rotina do sistema gera esses registros: V-CCA.3.3 — Cadastro Rápido e Edição de Cartão de Assinatura Integrados ao Reconhecimento de Firmas; D-3.3 — Cadastrar Cartão de Assinatura; M-9.0 — Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais).
 
 #### Descrição:
 Quando um cartão de assinatura já possui atos notariais ou reconhecimentos de firma vinculados em seu histórico, os campos sensíveis de identificação (como Nome e Documentos) são bloqueados pelo sistema para segurança jurídica, exigindo liberação por senha de supervisor. Além disso, esta rotina abrange todo o ciclo de vida do papel/formulário de segurança no cartão: consumo, controle de status (Reservado/Consumido), estorno para o estoque e inutilização definitiva.
@@ -116,6 +133,6 @@ Quando um cartão de assinatura já possui atos notariais ou reconhecimentos de 
 * **Dica / Caso Real do 0800: Caso o protocolo não seja localizado no Caixa, certifique-se de que o status do ato na triagem foi marcado como **Aguardando Pagamento** e verifique se o operador possui privilégios de movimentação financeira.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad → **superado** (agora: passo 4, Dependência Cruzada de Rotina)
+* **Bloqueio anterior:** passo 4 — Dependência Cruzada de Rotina: No passo 4, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" n → **mantido** (agora: passo 4, Dependência Cruzada de Rotina)

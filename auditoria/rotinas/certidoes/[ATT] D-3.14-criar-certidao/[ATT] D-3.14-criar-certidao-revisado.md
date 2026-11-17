@@ -193,7 +193,7 @@ auditoria_ui:
     print_contexto: passo-02.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T06:46:29.172Z
+  governanca_atualizado_em: 2026-11-17T18:11:10.127Z
   governanca_comentario: "No passo 1 ('Notas > Certidões > Novo Pedido de Certidão'), o agente curou erroneamente para o campo de busca global ('Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B') em vez de abrir o menu 'Notas' no cabeçalho, o que quebrou o passo 2 ('Identificação do Solicitante'). No menu Notas atual, as opções reais são 'Certidões e serviços' e 'Certidões e serviços em aberto'."
 ---
 

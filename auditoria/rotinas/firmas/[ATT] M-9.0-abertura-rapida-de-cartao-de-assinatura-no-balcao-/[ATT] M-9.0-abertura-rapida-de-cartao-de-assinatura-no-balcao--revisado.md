@@ -12,23 +12,23 @@ auditoria_ui:
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 4
+  prints_geradas: 5
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
-    - passo: 2
-      alvos_ausentes: ['Dados pessoais', 'Nome completo', 'RG/CNH']
-      alvos_revelados: ['Dados pessoais']
-      resultado: alvo_revelado
+    - passo: 4
+      alvos_ausentes: ['Contato e Endereço']
+      alvos_revelados: []
+      resultado: gatilhos_esgotados
       gatilhos_na_tela: 1
-      seletores_sem_afinidade_descartados: 0
+      seletores_sem_afinidade_descartados: 7
       estado_restaurado: true
       gatilhos_testados:
         - tipo: button
           rotulo: 'Adicionar'
           deduzido_do_dom: false
-          resultado: revelou_o_alvo
+          resultado: sem_efeito
   auto_cura:
     acionada: true
     divergencias_detectadas:
@@ -38,27 +38,34 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwka246ucf51yf-12] | x=633, y=109, 330x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwl02ves1byhnn-12] | x=633, y=109, 330x20'
       - passo: 2
         alvo_documentado: 'Nome completo'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
+        elemento_real: 'Nome'
+        camada: dom_synonym_heuristic
+        confianca: 0.9
         texto_alterado: false
+        evidencia: 'dom-measured | text:nome | x=20, y=286, 299x40'
       - passo: 2
         alvo_documentado: 'RG/CNH'
+        elemento_real: 'RG + CNH'
+        camada: dom_synonym_heuristic
+        confianca: 0.9
+        texto_alterado: false
+        evidencia: 'dom-measured | text:rg | x=20, y=326, 135x40'
+      - passo: 3
+        alvo_documentado: 'Data de nascimento'
+        elemento_real: 'Nascimento'
+        camada: a11y_fuzzy_match
+        confianca: 0.93
+        texto_alterado: false
+        evidencia: 'dom-measured | text:nascimento | x=806, y=286, 139x40'
+      - passo: 4
+        alvo_documentado: 'Contato e Endereço'
         elemento_real: '(não localizado na tela)'
         camada: target_not_found
         confianca: 0
         texto_alterado: false
-      - passo: 2
-        alvo_documentado: 'Dados pessoais'
-        elemento_real: 'Dados pessoais'
-        camada: investigative_reveal
-        confianca: 1
-        texto_alterado: false
-        gatilho_revelador: 'button | Adicionar | x=1251, y=384, 163x24'
-        evidencia: 'dom-measured | text:dados pessoais | x=20, y=262, 1167x15'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -87,9 +94,63 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Nome completo", "RG/CNH", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inves'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Dados pessoais'
+          real: 'Dados pessoais'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Firmas > Cadastro > Cartão de assinatura'
+          real: 'Firmas > Cadastros > Cartão de assinatura'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Nome completo", "RG/CNH", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inves'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Dados pessoais'
+          real: 'Dados pessoais'
+          confirmada_ao_vivo: false
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Firmas > Cadastro > Cartão de assinatura'
+          real: 'Firmas > Cadastros > Cartão de assinatura'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
-    passo: 2
-    capturado_em: '2026-11-17T05:56:33.915Z'
+    passo: 4
+    capturado_em: '2026-11-17T18:10:34.800Z'
     rota: '#/ficha/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -237,51 +298,53 @@ auditoria_ui:
       - rotulo: 'selecionarAnexoFichaRegistra'
         tipo: 'file'
         secao: 'Papel de segurança'
-    botoes: ['Preencher cartão usando I.A.', 'Consumir', 'Gerar', 'Consulta Central de notificações de suspeitos (CNS).', 'Adicionar', 'Selecionar', 'Capturar', 'Digitalizar ', 'Concluir', 'Voltar']
-    alvos_do_passo: ['Dados pessoais', 'Nome completo', 'CPF', 'RG/CNH']
+    botoes: ['Preencher cartão usando I.A.', 'Consumir', 'Gerar', 'Consulta Central de notificações de suspeitos (CNS).', 'Excluir', 'Adicionar', 'Selecionar', 'Capturar', 'Digitalizar ', 'Concluir', 'Voltar']
+    alvos_do_passo: ['Contato e Endereço', 'CEP']
     correspondencias_sugeridas:
-      - alvo: 'Dados pessoais'
-        elemento_real: 'Dados pessoais'
+      - alvo: 'Contato e Endereço'
+        elemento_real: 'Endereço'
         tipo: 'seção'
+        similaridade: 0.61
+      - alvo: 'Contato e Endereço'
+        elemento_real: 'Contato'
+        tipo: 'seção'
+        similaridade: 0.55
+      - alvo: 'Contato e Endereço'
+        elemento_real: 'Tipo de endereço'
+        tipo: 'campo'
+        secao: 'Papel de segurança'
+        similaridade: 0.53
+      - alvo: 'CEP'
+        elemento_real: 'CEP'
+        tipo: 'campo'
+        secao: 'Papel de segurança'
         similaridade: 0.85
-      - alvo: 'CPF'
-        elemento_real: 'CPF ou CIN'
-        tipo: 'campo'
-        secao: 'Papel de segurança'
-        similaridade: 0.78
-      - alvo: 'RG/CNH'
-        elemento_real: 'CNH'
-        tipo: 'campo'
-        secao: 'Papel de segurança'
-        similaridade: 0.49
-    alvos_sem_correspondencia: ['Nome completo']
-    sugestao_reescrita: 'Sugestão de reescrita: no passo 2, substituir CPF por CPF ou CIN (campo da seção Papel de segurança); substituir RG/CNH por CNH (campo da seção Papel de segurança). Dados pessoais existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. Nome completo não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
-    print_contexto: 'passo-02.png'
+    alvos_sem_correspondencia: []
+    sugestao_reescrita: 'Sugestão de reescrita: no passo 4, substituir Contato e Endereço por Endereço (seção). CEP existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece.'
+    print_contexto: 'passo-04.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 2, o manual cita "Nome completo", "RG/CNH", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigativa acionou 1 de 1 gatilho(s) revelador(es) seguro(s) da tela (botão "Adicionar"); nenhum revelou o elemento, e o estado da tela foi restaurado. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Notas > Orçamento completo (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 4, o manual cita "Contato e Endereço", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigativa acionou 1 de 1 gatilho(s) revelador(es) seguro(s) da tela (botão "Adicionar"); nenhum revelou o elemento, e o estado da tela foi restaurado. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Configurações > Cadastros auxiliares > Tipo de endereço (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
-> Tela alcançada no passo 2: rota **#/ficha/cadastrar**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> Tela alcançada no passo 4: rota **#/ficha/cadastrar**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
 > * **Seções visíveis:** **Cadastro de cartão de assinatura**, **Papel de segurança**, **Selo digital**, **Dados pessoais**, **Contato**, **Endereço**, **Pessoa Jurídica - Representante**, **Arquivos anexos**.
 > * **Campos:** **Filtro** (Papel de segurança), **Nome** (Papel de segurança), **Nome social** (Papel de segurança), **Sexo** (Papel de segurança), **Nascimento** (Papel de segurança), **CPF ou CIN** (Papel de segurança), **RG** (Papel de segurança), **Orgão emissor** (Papel de segurança), **UF** (Papel de segurança), **Data emissão** (Papel de segurança), **CNH** (Papel de segurança), **Categoria** (Papel de segurança), **Data 1ª habilitação** (Papel de segurança), **Data Expedição** (Papel de segurança), **Data expiração** (Papel de segurança), **Outro documento** (Papel de segurança), **Número** (Papel de segurança), **Nacionalidade** (Papel de segurança), **Naturalidade** (Papel de segurança), **Estado civil** (Papel de segurança), **Profissão** (Papel de segurança), **Pai** (Papel de segurança), **Mãe** (Papel de segurança), **Politicamente exposta (Prov. 88)** (Papel de segurança), **Pessoa acusada de terrorismo** (Papel de segurança) (+22).
-> * **Botões:** **Preencher cartão usando I.A.**, **Consumir** (desabilitado), **Gerar** (desabilitado), **Consulta Central de notificações de suspeitos (CNS).**, **Adicionar**, **Selecionar**, **Capturar**, **Digitalizar **, **Concluir** (desabilitado), **Voltar**.
-> * **Correspondência sugerida para "Dados pessoais":** **Dados pessoais** (seção, 85% — termo(s) em comum: dado, pessoai).
-> * **Correspondência sugerida para "CPF":** **CPF ou CIN** (campo, 78% — termo(s) em comum: cpf; na seção "Papel de segurança").
-> * **Correspondência sugerida para "RG/CNH":** **CNH** (campo, 49% — termo(s) em comum: cnh; na seção "Papel de segurança").
-> * **Sem correspondência funcional na tela:** **Nome completo**.
-> * Sugestão de reescrita: no passo 2, substituir **CPF** por **CPF ou CIN** (campo da seção **Papel de segurança**); substituir **RG/CNH** por **CNH** (campo da seção **Papel de segurança**). **Dados pessoais** existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. **Nome completo** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
-> * **Referência visual:** passo-02.png (tela exata no momento do bloqueio).
+> * **Botões:** **Preencher cartão usando I.A.**, **Consumir** (desabilitado), **Gerar** (desabilitado), **Consulta Central de notificações de suspeitos (CNS).**, **Excluir**, **Adicionar**, **Selecionar**, **Capturar**, **Digitalizar **, **Concluir** (desabilitado), **Voltar**.
+> * **Correspondência sugerida para "Contato e Endereço":** **Endereço** (seção, 61% — termo(s) em comum: endereco); **Contato** (seção, 55% — termo(s) em comum: contato); **Tipo de endereço** (campo, 53% — termo(s) em comum: endereco; na seção "Papel de segurança").
+> * **Correspondência sugerida para "CEP":** **CEP** (campo, 85% — termo(s) em comum: cep; na seção "Papel de segurança").
+> * Sugestão de reescrita: no passo 4, substituir **Contato e Endereço** por **Endereço** (seção). **CEP** existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-04.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Etapa inicial da abertura de ficha de firma no balcão de atendimento, destinada à inserção ágil e qualificação de dados pessoais, documentação civil, contatos e endereço do titular.
 
 #### Roteiro Técnico para Execução Manual:
-1. Abrir a tela do passo 2 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+1. Abrir a tela do passo 4 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
 2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
 
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
@@ -289,29 +352,34 @@ Etapa inicial da abertura de ficha de firma no balcão de atendimento, destinada
 #### Passo a passo (texto original preservado):
 1. Acesse o menu **Firmas > Cadastro > Cartão de assinatura** e clique em **Adicionar** (ou utilize o atalho de novo cartão diretamente na tela do balcão de atendimento).
    [aqui vai a print "passo-01.png"]
-   > [!NOTE] **Demarcações na print:** (1) **Firmas** · (2) **Cadastros** · (3) **Cartão de assinatura**
+   [aqui vai a print "passo-01-b.png"]
+   > [!NOTE] **Demarcações na print:** (1) **Firmas** · (2) **Cadastros** · (3) **Cartão de assinatura** · (4) **Adicionar**
    > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Firmas > Cadastro > Cartão de assinatura"**, porém na versão atual do Orion TN a tela fica em **"Firmas > Cadastros > Cartão de assinatura"** (confiança: 95% — Rota comprovada numa auditoria anterior e reconfirmada na árvore de navegação real desta execução). O texto do manual não foi alterado.
-   > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação).
+   > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Arquivo, Data, Tipo, Tamanho).
 2. Na aba **Dados pessoais**, insira o **Nome completo** do cliente, **CPF**, documento de identificação (**RG/CNH**, órgão emissor e UF).
    [aqui vai a print "passo-02.png"]
-   [aqui vai a print "passo-02-b.png"]
-   [aqui vai a print "passo-02-c.png"]
-   > [!NOTE] **Demarcações na print:** (1) **CPF** · (2) **Adicionar** · (3) **Dados pessoais**
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Nome completo"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"RG/CNH"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!NOTE] **Sub-passo descoberto (Exploração Investigativa):** **"Dados pessoais"** não estava visível na tela inicial do passo; passou a ser exibido após acionar o(a) botão **"Adicionar"**, medido ao vivo na tela. O gatilho está demarcado em "passo-02-b.png" e o elemento revelado, na sub-captura seguinte. O texto do manual não foi alterado.
+   > [!NOTE] **Demarcações na print:** (1) **Dados pessoais** · (2) **Nome** · (3) **CPF** · (4) **RG** · (5) **CNH**
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"Nome completo"**, porém na tela atual do Orion TN o elemento se chama **"Nome"** (confiança: 90% — Sinônimo contextual da rota #/ficha/cadastrar: campo "Nome" da seção Dados pessoais (o "Nome social" é outro campo)). O texto do manual não foi alterado.
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"RG/CNH"**, porém na tela atual do Orion TN o elemento se chama **"RG + CNH"** (confiança: 90% — Sinônimo contextual da rota #/ficha/cadastrar: o manual agrupa dois campos que a tela separa: "RG" e "CNH"). O texto do manual não foi alterado.
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Arquivo, Data, Tipo, Tamanho).
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Nome completo", "RG/CNH"
 3. Preencha **Data de nascimento**, **Nacionalidade**, **Estado civil**, **Profissão** e nome dos genitores (filiação).
+   [aqui vai a print "passo-03.png"]
+   > [!NOTE] **Demarcações na print:** (1) **Nascimento** · (2) **Nacionalidade** · (3) **Estado civil** · (4) **Profissão**
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Data de nascimento"**, porém na tela atual do Orion TN o elemento se chama **"Nascimento"** (confiança: 93% — Similaridade semântica na árvore de acessibilidade (89%)). O texto do manual não foi alterado.
+   > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Arquivo, Data, Tipo, Tamanho).
 4. Na seção **Contato e Endereço**, digite o **CEP** para preenchimento automático do logradouro e complemente com número, bairro, telefone celular e e-mail.
+   [aqui vai a print "passo-04.png"]
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Contato e Endereço"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Arquivo, Data, Tipo, Tamanho).
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Contato e Endereço"
 5. Clique em **Avançar** para seguir para as etapas de captura biométrica, fotográfica e consumo de selos.
 
 * **Importante: A validação do CPF é automática; se o CPF já constar na base do Orion TN, o sistema notificará o escrevente para evitar abertura de ficha em duplicidade.**
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Nome completo", "RG/CNH", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. → **mantido** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
-* **Cura reaproveitada (passo 2):** "Dados pessoais" → "Dados pessoais" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Nome completo", "RG/CNH", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inves → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 2):** "Dados pessoais" → "Dados pessoais" — não reconfirmada nesta execução (a dica não foi usada)
 * **Cura reaproveitada (passo 1):** "Firmas > Cadastro > Cartão de assinatura" → "Firmas > Cadastros > Cartão de assinatura" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

@@ -167,6 +167,11 @@ export function ScreenshotViewer({ steps, active, onSelect, loading, bloqueioTip
           {frames.map((f, i) => <Button key={f.printName} size="md" variant={frame === i + 1 ? undefined : "ghost"} onClick={() => setFrame(i + 1)}>{f.printName.replace(/^passo-\d+-?/, "").replace(/\.png$/, "") || "b"} · {frameLabel(f.kind)}</Button>)}
         </div>
       )}
+      {step?.media?.contexto && (
+        <p className="t-body-s dim" data-testid="context-print-note" style={{ margin: 0 }}>
+          <OctagonAlert size={12} strokeWidth={1.5} aria-hidden /> Print de contexto do Raio-X: tela exata do bloqueio, sem demarcação (fora da paridade das prints).
+        </p>
+      )}
       {toolbar}
       <div className="viewer" ref={boxRef}>{body}</div>
       <Filmstrip steps={steps} active={active} onSelect={onSelect} />

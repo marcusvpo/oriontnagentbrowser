@@ -227,7 +227,7 @@ auditoria_ui:
     print_contexto: passo-04.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T06:46:24.416Z
+  governanca_atualizado_em: 2026-11-17T18:11:05.076Z
   governanca_comentario: "Passos 1 e 2 estão corretos. Nos passos 3 e 4 o agente destacou erroneamente o menu superior 'Firmas' (navbar) como se fosse 'Grupo de Trabalho > Grupo Firmas' (que não existe nesta tela) e acusou falso bloqueio de permissão em 'Balcão de Firmas'. A conta marcus (Perfil de acesso - Gerência webFirmas) possui 100% de permissão liberada. A rotina está desatualizada: o caminho real na tela atual é assinalar a opção 'Escrevente de Firmas' nos checkboxes do lado esquerdo da tela."
 ---
 

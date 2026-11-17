@@ -392,6 +392,16 @@ export interface EmptyStateEvidence {
   addButton?: { label: string; selector: string };
   /** Hash da rota onde a evidência foi lida */
   hash?: string;
+  /**
+   * Pré-filtro automático de grade vazia tentado antes de declarar a tela sem dados (ADR-029): estratégia usada,
+   * campos de filtro preenchidos e o motivo pelo qual a grade seguiu sem linhas.
+   */
+  prefilter?: {
+    strategy: 'as_is' | 'wide_period' | 'text_probe' | 'none';
+    trigger?: string;
+    filled: Array<{ label: string; value: string }>;
+    reason: string;
+  };
 }
 
 /** Registro mock criado pelo auto-seed (ADR-021 §3), gravado na telemetria. */
@@ -480,6 +490,13 @@ export interface SmartLocatorResult {
    * RECONFIRMADO ao vivo no DOM desta execução. A dica nunca é evidência; a evidência é o nó medido agora.
    */
   priorHint?: { documented: string; actual: string; layer: string };
+  /**
+   * Cauda do caminho documentado que a árvore real NÃO tem como item de menu (ADR-029): `Administração >
+   * Parâmetros > Captura e digitalização` resolve para a tela `Configurações > Parametrizações`, e o segmento
+   * restante é aba/seção dessa tela. O executor mede a aba ao vivo depois do clique da folha; sem aba medida, o passo
+   * bloqueia com a lista real de abas. O texto da cauda nunca é reescrito.
+   */
+  menuTail?: { segments: string[]; realChain: string[]; documentedPath: string; basis: string };
   /**
    * Divergências de alvos individuais de um passo com múltiplos alvos (ADR-016): rótulos curados para
    * o nome real da tela ou não localizados na zona de conteúdo, mesmo quando o passo foi demarcado.

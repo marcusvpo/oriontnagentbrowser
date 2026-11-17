@@ -53,6 +53,9 @@ function describeEmpty(state: EmptyStateEvidence): string {
   if (blocked.length > 0) {
     parts.push(`controles inativos: ${blocked.map(d => `"${d.label}"${d.hint ? ` (${d.hint})` : ''}`).join(', ')}`);
   }
+  if (state.prefilter) {
+    parts.push(`pré-filtro automático tentado antes de declarar a grade vazia: ${state.prefilter.reason}`);
+  }
   return parts.join('; ');
 }
 
