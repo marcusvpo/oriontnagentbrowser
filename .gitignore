@@ -26,6 +26,7 @@ __pycache__/
 # 4. Backups, caches e saídas temporárias do motor de auditoria
 auditoria/backups/
 auditoria/cache/
+auditoria/exports/
 auditoria/test-output/*.png
 
 # 5. Prints PNG pesados ficam apenas localmente (versionar *-revisado.md e .webp)

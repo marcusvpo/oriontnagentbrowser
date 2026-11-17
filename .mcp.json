@@ -7,6 +7,22 @@
         "@playwright/mcp@latest",
         "--headless"
       ]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    },
+    "orion-audit": {
+      "command": "npx",
+      "args": [
+        "--prefix",
+        "auditoria",
+        "tsx",
+        "auditoria/src/mcp-server.ts"
+      ]
     }
   }
 }

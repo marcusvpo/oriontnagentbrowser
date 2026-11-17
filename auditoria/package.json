@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "server": "tsx src/server.ts",
+    "worker:daemon": "tsx src/worker-daemon.ts",
+    "mcp": "tsx src/mcp-server.ts",
     "supabase:migrate": "tsx src/migrate-supabase.ts",
     "supabase:sync": "tsx src/sync-supabase.ts",
     "audit": "tsx src/cli.ts",
@@ -15,6 +17,7 @@
     "test:parser": "tsx src/parser.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@supabase/supabase-js": "^2.119.0",
     "agent-browser": "^0.42.0",
     "dotenv": "^16.4.7",

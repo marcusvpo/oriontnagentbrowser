@@ -18,6 +18,7 @@ import { REVIEW_TAGS, isReviewStatus, type ReviewTag } from './review-taxonomy.j
 import { seedHumanReviews } from './seed-human-reviews.js';
 import { crawlOrionRouteGraph } from './route-crawler.js';
 import { resolveVisualAuditMode, AGY_MODEL_LABEL } from './agy-client.js';
+import { exportManualDocs, exportPlaywrightSpecs } from './exporters.js';
 import type { AuditRoutineReport, VisualAuditMode, WorkloadType } from './types.js';
 
 const argValue = (args: string[], flag: string): string | null => {
@@ -201,8 +202,13 @@ async function main() {
     const pendingMode = args.includes('--reaudit-pending');
     const listOnly = args.includes('--list-only');
     const isCrawlMap = args.includes('--crawl-map');
+    const isExportDocs = args.includes('--export-docs');
+    const isExportPlaywright = args.includes('--export-playwright');
+    const includeUnapproved = args.includes('--include-unapproved');
     const touchesNetwork =
       !isDryRun &&
+      !isExportDocs &&
+      !isExportPlaywright &&
       (isLoginOnly ||
         isCrawlMap ||
         !!targetRoutine ||
@@ -210,6 +216,35 @@ async function main() {
         (pendingMode && !listOnly) ||
         (targetPhase !== null && !args.includes('--pretriage-only')));
     if (touchesNetwork) await preflightOrionReachability();
+
+    if (isExportDocs || isExportPlaywright) {
+      const filterIds = targetRoutine
+        ? [targetRoutine]
+        : routineList.length > 0
+          ? routineList
+          : undefined;
+
+      if (isExportDocs) {
+        const docsRes = await exportManualDocs({
+          includeUnapproved,
+          routineIds: filterIds
+        });
+        console.log(
+          `\n✓ [Export Docs] ${docsRes.exportedCount} rotina(s) publicada(s) em ${docsRes.outputDir} (${docsRes.skippedCount} ignorada(s)).`
+        );
+      }
+
+      if (isExportPlaywright) {
+        const pwRes = await exportPlaywrightSpecs({
+          includeUnapproved: true,
+          routineIds: filterIds
+        });
+        console.log(
+          `\n✓ [Export Playwright E2E] ${pwRes.exportedCount} spec(s) @playwright/test gerada(s) em ${pwRes.outputDir} (${pwRes.skippedCount} ignorada(s)).`
+        );
+      }
+      return;
+    }
 
     if (isSeedReviews) {
       await seedHumanReviews();
@@ -378,6 +413,8 @@ async function main() {
       console.log('  --no-auto-seed      não cria registro mock quando a grade está vazia (ADR-021); --auto-seed liga (sobrepõe ORION_AUTO_SEED)');
       console.log('  --reaudit-pending   reaudita as rotinas pendentes/bloqueadas das Fases 2 e 3, sem as de hardware (ADR-025); --list-only só lista');
       console.log('  --visual-mode       modo da Camada 2B/2C: "live" (padrão em --routines/--routine) ou "defer" (padrão em --phase/--reaudit-pending)');
+      console.log('  --export-docs       gera Base de Ajuda limpa em auditoria/exports/manual-publicado/ (--include-unapproved inclui validadas não aprovadas)');
+      console.log('  --export-playwright gera suíte E2E @playwright/test em auditoria/exports/playwright-e2e/<modulo>/<ID>.spec.ts');
       console.log('  --no-sync           desliga sincronização automática com o Supabase (apenas testes offline)');
     }
   } catch (err: any) {

@@ -10,8 +10,9 @@ dotenv.config({ path: path.join(auditoriaRoot, '.env') });
 
 export const SUPABASE_URL = process.env.SUPABASE_URL || '';
 export const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || '';
-export const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || '';
-export const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL || '';
+export const SUPABASE_SECRET_KEY =
+  process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+export const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL || '';
 export const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'audit-screenshots';
 
 export function isSupabaseConfigured(): boolean {

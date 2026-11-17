@@ -1,8 +1,8 @@
 # Especificação Técnica: Auditoria Visual de Rotinas via Agent-Browser & Sharp
 
 **Status:** ATIVO / HOMOLOGADO  
-**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal, RAG Soberano e Evolução Determinística ADR-030)  
-**Normas Vinculantes:** ADR-007 a ADR-030  
+**Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal, RAG Soberano, Evolução Determinística ADR-030, Camada Visual 2C SoM/Grounding via `agy` ADR-031 e Ecossistema Operacional MCP + Daemon Realtime + Exportadores ADR-032)  
+**Normas Vinculantes:** ADR-007 a ADR-032  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -622,3 +622,28 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * **`defer` (padrão em `--phase` / `--reaudit-pending`):** não dispara subprocessos `agy` durante lotes; grava overlays em `auditoria/cache/pending-som/<routineId>-passo-<NN>-som.png` e registra metadados em `auditoria/cache/pending-som/pending-som-queue.json` (`enqueuePendingSomForCuration`).
 * **Curadoria Pós-Lote (`curate-pending-som.ts`, `npm --prefix auditoria run visual:curate`):** processa `pending-som-queue.json` em bloco via `agy` (`Gemini 4 Hydrogen Extra`), valida com `validateVisualCandidateSemantics` e grava os mapeamentos aprovados em `human-reviews-cache.json` / `routine_reviews` (`upsertVisualCuratedTargetOverride`, Camada 0.1) e em `curated-route-synonyms.json` (`upsertCuratedRouteSynonym`, Camada 0.2).
 * Testes offline em `auditoria/src/__tests__/visual-som-layer.test.ts` (181/181 testes aprovados em 45 suítes).
+
+---
+
+## 21. Servidor MCP Local (`orion-audit`), `chrome-devtools-mcp`, Worker Daemon Realtime e Exportadores Pós-Aprovação (ADR-032)
+
+### 21.1. Servidor MCP Local (`auditoria/src/mcp-server.ts`) e `.mcp.json`
+* **Restrição Obrigatória:** `@supabase/mcp-server-supabase` não é utilizado no `.mcp.json` para evitar conflito de credenciais com outras instâncias. Toda comunicação com o banco e Storage utiliza exclusivamente o **Pooler PostgreSQL IPv4** (`SUPABASE_DB_URL` / `DATABASE_URL` via `pg`) e a **API REST/Storage** (`SUPABASE_URL` + `SUPABASE_SECRET_KEY` / `SUPABASE_SERVICE_ROLE_KEY`) em `auditoria/.env`.
+* `.mcp.json` configura `playwright`, `chrome-devtools` (`npx -y chrome-devtools-mcp@latest`) e `orion-audit` (`npx --prefix auditoria tsx auditoria/src/mcp-server.ts`).
+* `mcp-server.ts` expõe 7 tools via `StdioServerTransport`:
+  1. `inspect_routine({ routineId })`: status, YAML frontmatter, divergências, `diagnostico_tela_att`, passo bloqueado e caminhos `.webp`.
+  2. `query_clusters({ tag?, modulo?, phase? })`: agregação por status (`[ATT]`, `[CCC]`, `[DDD]`, `[XRX]`, `validado_com_ajustes`, `validado_inalterado`) e clusters A/B/C/D.
+  3. `search_orion_tree({ query })`: busca em `orion-route-graph.json`, `orion-menu-tree-real.json`, equivalências canônicas e `glossario_siplan.md`.
+  4. `list_human_reviews()`: consulta `routine_reviews` e `routines` via Pooler PostgreSQL IPv4 (`pg`) com fallback offline para `human-reviews-cache.json`.
+  5. `trigger_single_reaudit({ routineId, headless? })`: dispara `--routines <id> --dry-run-mutations` e retorna o snapshot atualizado.
+  6. `list_pending_som()`: lista itens pendentes em `auditoria/cache/pending-som/pending-som-queue.json`.
+  7. `apply_som_curation({ routineId, stepNumber, tagId, actualTarget, note })`: aplica curadoria na Camada 0.1 (`human-reviews-cache.json` + `routine_reviews` via `pg`) e Camada 0.2 (`curated-route-synonyms.json`), removendo o item da fila.
+
+### 21.2. Worker Daemon Realtime (`auditoria/src/worker-daemon.ts` / `npm --prefix auditoria run worker:daemon`)
+* `OrionRealtimeWorkerDaemon` assina `postgres_changes` em `routine_reviews`, `runner_jobs`, `audit_jobs` e `routines`.
+* Aplica debounce por `routineId` e trava de concorrência `AsyncSemaphore(1)` (1 job por vez), atualiza `human-reviews-cache.json`, executa `--routines <id> --headless --dry-run-mutations` e sincroniza via `syncSingleRoutineToSupabase`.
+
+### 21.3. Exportadores Pós-Aprovação (`auditoria/src/exporters.ts`, `cli.ts`)
+* `--export-docs` (`--include-unapproved` opcional): gera Markdown limpo em `auditoria/exports/manual-publicado/<modulo>/<slug>.md` + `_indice.md` (sem frontmatter interno `auditoria_ui` ou callouts de debug, e com links relativos para `.webp`).
+* `--export-playwright`: gera testes `@playwright/test` executáveis em `auditoria/exports/playwright-e2e/<modulo>/<ID>.spec.ts` com viewport `1440×900 @ DPR 1`, `zoom: 0.8` e guarda de mutação (`ORION_E2E_ALLOW_MUTATIONS`).
+* Testes offline em `auditoria/src/__tests__/adr032-mcp-daemon-exporters.test.ts` (188/188 testes aprovados em 46 suítes).
