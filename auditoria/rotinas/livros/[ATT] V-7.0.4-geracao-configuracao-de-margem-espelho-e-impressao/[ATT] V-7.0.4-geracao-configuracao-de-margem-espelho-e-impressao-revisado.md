@@ -4,15 +4,17 @@ titulo: 'Geração, Configuração de Margem Espelho e Impressão do Livro Ofici
 modulo: livros
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: read_only
-  worker_id: 'worker-1'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 5
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 5
@@ -22,13 +24,56 @@ auditoria_ui:
       gatilhos_na_tela: 0
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 5, o manual cita "CNIB", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência'
+      bloqueio_atual:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 5
+    capturado_em: '2026-11-17T06:23:54.224Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: ['CNIB']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['CNIB']
+    sugestao_reescrita: 'Sugestão de reescrita: CNIB não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-05.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 5, o manual cita "CNIB", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 5, o manual cita "CNIB", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 5: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Sem correspondência funcional na tela:** **CNIB**.
+> * Sugestão de reescrita: **CNIB** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-05.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Procedimento para transição da minuta para o livro oficial de notas no **ORION TN**, abrangendo a emissão de prévia sem lavratura para conferência externa, a geração do livro definitivo com recibo e número de folhas, a aplicação mandatória de margem espelho para folhas de segurança encadernáveis, a inserção de certidões da Central de Indisponibilidade (**CNIB**) e a impressão definitiva com fechamento automático de folhas.
@@ -75,3 +120,8 @@ Procedimento para transição da minuta para o livro oficial de notas no **ORION
 * **Impressão definitiva: envia o ato para impressão nas folhas de segurança oficiais.**
 * **Atenção: A impressão definitiva consome a numeração oficial de folhas no sistema e trava o documento para edição direta, exigindo liberação de supervisor caso sejam necessárias retificações posteriores.**
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 5 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 5, o manual cita "CNIB", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência → **mantido** (agora: passo 5, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

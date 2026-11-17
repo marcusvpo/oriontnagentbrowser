@@ -9,7 +9,7 @@ auditoria_ui:
   review_tags:
     - ATT
   carga: mutation
-  worker_id: worker-3
+  worker_id: worker-2
   versao_homologacao: WildFly 22 / Orion 06.04.01
   ambiente: Produtos (homologacao interna Siplan)
   tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
@@ -35,7 +35,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.98
         texto_alterado: false
-        evidencia: menu-tree | [data-orion-audit-menu-mmwk50t4mfpkfhd-23] | x=535, y=129, 183x21
+        evidencia: menu-tree | [data-orion-audit-menu-mmwk8grc32pcyx7-23] | x=503, y=129, 183x21
   historico_reauditoria:
     - data: 2026-11-17
       ambiente_anterior: não registrado (anterior ao ADR-025)
@@ -56,9 +56,144 @@ auditoria_ui:
         tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-17
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+        motivo: No passo 2, o manual cita "Identificação do Solicitante", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio
+      bloqueio_atual:
+        passo: 2
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: Notas > Certidões > Novo Pedido de Certidão
+          real: Notas > Certidões e serviços
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 2
+    capturado_em: 2026-11-17T05:11:22.552Z
+    rota: "#/certidoesServicos/cadastrar"
+    titulo_painel: OrionTN - Tabelionatos de Notas
+    em_modal: false
+    secoes:
+      - Certidões e serviços
+    abas: []
+    campos:
+      - rotulo: Pedido
+        tipo: text
+      - rotulo: Data pedido
+        tipo: text
+      - rotulo: Recibo
+        tipo: text
+      - rotulo: Data recibo
+        tipo: text
+      - rotulo: Previsão de entrega
+        tipo: text
+      - rotulo: Status
+        tipo: text
+      - rotulo: Situação
+        tipo: select
+      - rotulo: Escrevente
+        tipo: select
+      - rotulo: Certidões e serviços
+        tipo: select
+      - rotulo: "Escrevente assinante (Substituto):"
+        tipo: select
+      - rotulo: "Auxiliar do escrevente:"
+        tipo: select
+      - rotulo: Escrevente que colheu as assinaturas
+        tipo: select
+      - rotulo: Pessoa física
+        tipo: radio
+      - rotulo: Pessoa jurídica
+        tipo: radio
+      - rotulo: Mensalista
+        tipo: radio
+      - rotulo: CPF ou CIN
+        tipo: text
+      - rotulo: Nome
+        tipo: text
+      - rotulo: Tomador
+        tipo: checkbox
+      - rotulo: Informar intermediador
+        tipo: checkbox
+      - rotulo: Tipo de endereço
+        tipo: select
+      - rotulo: CEP
+        tipo: text
+      - rotulo: Logradouro
+        tipo: text
+      - rotulo: Número
+        tipo: text
+      - rotulo: Complemento
+        tipo: text
+      - rotulo: Bairro
+        tipo: text
+      - rotulo: País
+        tipo: select
+      - rotulo: UF
+        tipo: select
+      - rotulo: Cidade
+        tipo: text
+      - rotulo: Cód. IBGE
+        tipo: text
+      - rotulo: Tipo de telefone
+        tipo: select
+      - rotulo: Telefone
+        tipo: text
+      - rotulo: Tipo de e-mail
+        tipo: select
+      - rotulo: E-mail
+        tipo: text
+      - rotulo: Observação
+        tipo: textarea
+      - rotulo: Vigência
+        tipo: select
+      - rotulo: Número da guia
+        tipo: text
+      - rotulo: ckbToggleCustasProtocolo
+        tipo: checkbox
+      - rotulo: inputCodigoItemServicoprotocoloCustasRegistra00
+        tipo: text
+      - rotulo: inputNomeServicoprotocoloCustasRegistra00
+        tipo: text
+      - rotulo: inputQuantidadeCalculoprotocoloCustasRegistra00
+        tipo: text
+      - rotulo: selectDivisorServicoprotocoloCustasRegistra00
+        tipo: select
+      - rotulo: inputNomeOutrosServicos04073
+        tipo: text
+      - rotulo: quantidadeOutrosServicos04073
+        tipo: text
+      - rotulo: inputValorOutrosServicos04073
+        tipo: text
+      - rotulo: ckbToggleEditor
+        tipo: checkbox
+      - rotulo: Documentos e anexos
+        tipo: checkbox
+    botoes: []
+    alvos_do_passo:
+      - Identificação do Solicitante
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia:
+      - Identificação do Solicitante
+    sugestao_reescrita: "Sugestão de reescrita: Identificação do Solicitante não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida."
+    print_contexto: passo-02.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T03:40:15.251Z
+  governanca_atualizado_em: 2026-11-17T06:46:29.172Z
   governanca_comentario: "No passo 1 ('Notas > Certidões > Novo Pedido de Certidão'), o agente curou erroneamente para o campo de busca global ('Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B') em vez de abrir o menu 'Notas' no cabeçalho, o que quebrou o passo 2 ('Identificação do Solicitante'). No menu Notas atual, as opções reais são 'Certidões e serviços' e 'Certidões e serviços em aberto'."
 ---
 
@@ -67,6 +202,14 @@ auditoria_ui:
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
 > **Motivo Técnico:** No passo 2, o manual cita "Identificação do Solicitante", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 2: rota **#/certidoesServicos/cadastrar**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Seções visíveis:** **Certidões e serviços**.
+> * **Campos:** **Pedido**, **Data pedido**, **Recibo**, **Data recibo**, **Previsão de entrega**, **Status**, **Situação**, **Escrevente**, **Certidões e serviços**, **Escrevente assinante (Substituto):**, **Auxiliar do escrevente:**, **Escrevente que colheu as assinaturas**, **Pessoa física**, **Pessoa jurídica**, **Mensalista**, **CPF ou CIN**, **Nome**, **Tomador**, **Informar intermediador**, **Tipo de endereço**, **CEP**, **Logradouro**, **Número**, **Complemento**, **Bairro** (+21).
+> * **Sem correspondência funcional na tela:** **Identificação do Solicitante**.
+> * Sugestão de reescrita: **Identificação do Solicitante** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-02.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Esta rotina inicia a lavratura de certidões oficiais de atos lavrados no cartório (escrituras, testamentos, procurações e atas notariais). Permite selecionar o formato da certidão (Inteiro Teor, Breve Relatório ou Reprográfica), consultar o ato original e gerar o recibo.
@@ -94,6 +237,7 @@ Esta rotina inicia a lavratura de certidões oficiais de atos lavrados no cartó
 * **Dica / Caso Real do 0800: Ajuste o espaçamento entrelinhas para 1.15 e margens para 2.0 cm na configuração de página do traslado para eliminar páginas residuais e otimizar o consumo de folhas oficiais.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Notas > Certidões > Novo Pedido de Certidão" não existe na árvore de navegação real do Orion TN. O menu **Notas** existe na barra de navegação e contém: "Protocolos em aberto", "Protocolos", "Orçamentos", "Orçame → **superado** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 2 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Identificação do Solicitante", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio → **mantido** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 1):** "Notas > Certidões > Novo Pedido de Certidão" → "Notas > Certidões e serviços" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

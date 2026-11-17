@@ -50,6 +50,8 @@ export interface MenuPathMatch {
   reason: string;
   /** Escolhido pela rota comprovada numa auditoria anterior e reconfirmada na árvore real (ADR-025) */
   viaPriorAudit?: boolean;
+  /** Empate resolvido pela menor profundidade de cadeia no mesmo módulo raiz (ADR-028) */
+  depthTieBreak?: { chosen: string; discarded: string[] };
 }
 
 const MENU_LEAF_SYNONYMS: Record<string, string[]> = {
@@ -302,23 +304,42 @@ export function chooseMenuItem(
   for (const documented of paths) {
     const { scored, docAncestors } = scoreLeaf(usable, documented);
     if (scored.length === 0) continue;
-    const best = scored[0];
-    const tied = scored.filter(s => s.score === best.score && !sameChain(s.item.chain, best.item.chain));
-    if (tied.length > 0) continue;
+    let best = scored[0];
+    const tiedAll = scored.filter(s => s.score === best.score);
+    let depthTieBreak: { chosen: string; discarded: string[] } | undefined;
+    if (tiedAll.length > 1) {
+      // ADR-028: empate entre folhas do mesmo módulo raiz com profundidades diferentes (ex.: `Notas > Protocolos`
+      // operacional x `Notas > Consultas > Protocolos` de consulta) desempata pela MENOR profundidade de cadeia.
+      // Na mesma profundidade, ou em módulos raiz diferentes, segue a ambiguidade (bloqueio): não se adivinha a tela.
+      const sameRoot = tiedAll.every(s => normalizeText(s.item.chain[0]) === normalizeText(tiedAll[0].item.chain[0]));
+      if (!sameRoot) continue;
+      const minDepth = Math.min(...tiedAll.map(s => s.item.chain.length));
+      const shallowest = tiedAll.filter(s => s.item.chain.length === minDepth);
+      if (shallowest.length !== 1) continue;
+      best = shallowest[0];
+      depthTieBreak = {
+        chosen: best.item.chain.join(' > '),
+        discarded: tiedAll.filter(s => s !== best).map(s => s.item.chain.join(' > '))
+      };
+    }
 
     const confidence = Math.min(
       0.95,
       best.leafSimilarity * 0.8 + (docAncestors.length ? (0.15 * best.shared) / docAncestors.length : 0)
     );
     const docLeaf = documented.segments[documented.segments.length - 1];
+    const baseReason = best.canonicalSynonym
+      ? `Equivalência canônica de menu: "${docLeaf}" -> "${best.item.chain[best.item.chain.length - 1]}" (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`
+      : `Item "${best.item.chain[best.item.chain.length - 1]}" localizado na árvore de navegação em outra rota (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`;
     return {
       item: best.item,
       documented,
       exact: false,
       confidence: Number(confidence.toFixed(2)),
-      reason: best.canonicalSynonym
-        ? `Equivalência canônica de menu: "${docLeaf}" -> "${best.item.chain[best.item.chain.length - 1]}" (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`
-        : `Item "${best.item.chain[best.item.chain.length - 1]}" localizado na árvore de navegação em outra rota (${best.shared} de ${docAncestors.length} segmentos ancestrais coincidem)`
+      reason: depthTieBreak
+        ? `${baseReason}. Auto-cura por menor profundidade de cadeia: "${depthTieBreak.chosen}" (profundidade ${best.item.chain.length}) escolhida entre ${[depthTieBreak.chosen, ...depthTieBreak.discarded].map(c => `"${c}"`).join(' e ')}`
+        : baseReason,
+      depthTieBreak
     };
   }
 

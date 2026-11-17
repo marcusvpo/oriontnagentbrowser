@@ -4,16 +4,18 @@ titulo: 'Impressão da Ficha do Cartão de Assinatura e Destinação de Impresso
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: dependencia_cruzada_rotina
+  review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['D-3.3', 'M-9.0', 'V-CCA.3.3']
   prints_geradas: 2
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 2
@@ -28,13 +30,31 @@ auditoria_ui:
           rotulo: 'Adicionar'
           deduzido_do_dom: false
           resultado: sem_efeito
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentado e não concluiu: "Concluir" permaneceu desabilitado após o preenchimento.. Outra rotina do sistema gera esses registros: D-3.3 — Cadastrar Cartão de Assinatura; M-9.0 — Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais); V-CCA.3.3 — Cadastro Rápido e Edição de Cartão de Assinatura Integrados ao Reconhecimento de Firmas.
+> **Motivo Técnico:** No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra rotina do sistema gera esses registros: D-3.3 — Cadastrar Cartão de Assinatura; M-9.0 — Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais); V-CCA.3.3 — Cadastro Rápido e Edição de Cartão de Assinatura Integrados ao Reconhecimento de Firmas.
 
 #### Descrição:
 Após a gravação inicial dos dados cadastrais, consumo do formulário/papel de segurança e aplicação do selo digital, o Orion TN habilita a emissão física do cartão de assinatura. A rotina permite selecionar o modelo gráfico padrão da serventia e direcionar a impressão para a impressora correta de papel de segurança ou formulário contínuo.
@@ -71,3 +91,8 @@ Após a gravação inicial dos dados cadastrais, consumo do formulário/papel de
 * **Atenção: O botão de impressão do cartão pelo menu principal só é liberado na tela de edição após o cartão ter sido gravado previamente no banco de dados.**
 * **Observação: É altamente recomendável digitalizar o cartão físico logo após a coleta das assinaturas e anexá-lo à ficha no sistema (conforme rotina de captura de imagens).**
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)

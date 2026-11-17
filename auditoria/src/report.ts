@@ -1,3 +1,4 @@
+import { attDiagnosisYamlLines, renderAttDiagnosisTip, type AttScreenDiagnosis } from './att-screen-advisor.js';
 import { lockStepText } from './evidence.js';
 import { config } from './config.js';
 import type { ReauditHistoryEntry } from './prior-audit.js';
@@ -69,6 +70,11 @@ export interface RevisedReportInput {
    * primeira auditoria. Vai para `auditoria_ui.historico_reauditoria` (JSONB no Supabase, sem migration).
    */
   reauditHistory?: ReauditHistoryEntry[];
+  /**
+   * Raio-X da tela real num bloqueio `[ATT]` (ADR-028): inventário de seções/campos/botões e correspondências
+   * sugeridas. Só é renderizado em rotina `[ATT]`; vai para `auditoria_ui.diagnostico_tela_att` (JSONB, sem migration).
+   */
+  attDiagnosis?: AttScreenDiagnosis;
 }
 
 /** Todas as tags da rotina em ordem canônica: a do status principal mais as adicionais (ADR-024). */
@@ -319,6 +325,7 @@ function buildYaml(input: RevisedReportInput, printsCount: number, appliedDiverg
     }
   }
   if (input.reauditHistory && input.reauditHistory.length > 0) lines.push(...historyYamlLines(input.reauditHistory));
+  if (input.attDiagnosis && tags.includes('ATT')) lines.push(...attDiagnosisYamlLines(input.attDiagnosis));
   return lines.join('\n');
 }
 
@@ -424,6 +431,8 @@ export function buildRevisedRoutineDocument(input: RevisedReportInput): { conten
     body += `> [!CAUTION]\n> **${reviewHeadline(status as ReviewStatus, tags)}:**  \n> A auditoria automática foi interrompida: **${info.tipo}**.\n>\n> **Motivo Técnico:** ${info.motivo}\n`;
     if (externalSummary) body += `>\n> **Etapas externas ([CCC]):** ${externalSummary}\n`;
     body += `\n`;
+    // ADR-028: Raio-X da tela real logo abaixo do callout de bloqueio `[ATT]`
+    if (input.attDiagnosis && tags.includes('ATT')) body += `${renderAttDiagnosisTip(input.attDiagnosis)}\n\n`;
     body += `#### Descrição:\n${parsed.descricao}\n\n`;
     body += `#### Roteiro Técnico para Execução Manual:\n${info.roteiro.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\n`;
     if (info.prerequisites && info.prerequisites.length > 0) {

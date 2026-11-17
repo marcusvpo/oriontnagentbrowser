@@ -4,15 +4,17 @@ titulo: 'Correção de Rejeição da Carga CENSEC CEP por Ausência de Código I
 modulo: centrais
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 2
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 2
@@ -27,18 +29,137 @@ auditoria_ui:
     divergencias_detectadas:
       - passo: 1
         alvo_documentado: 'Notas > Protocolo'
-        elemento_real: 'Notas'
-        camada: a11y_fuzzy_match
-        confianca: 0.68
+        elemento_real: 'Notas > Protocolos'
+        camada: menu_path_resolution
+        confianca: 0.9
         texto_alterado: false
-        evidencia: 'dom-measured | text:notas | x=573, y=1, 67x50'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwk73t2r7pqla-18] | x=503, y=67, 183x21'
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Partes", "Município", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não '
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Notas > Protocolo'
+          real: 'Notas'
+          confirmada_ao_vivo: false
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 2
+    capturado_em: '2026-11-17T04:33:45.089Z'
+    rota: '#/protocolo/cadastrar'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: ['Protocolo']
+    abas: []
+    campos:
+      - rotulo: 'ckbToggleDadosProtocolo'
+        tipo: 'checkbox'
+      - rotulo: 'Data recepção'
+        tipo: 'text'
+      - rotulo: 'Status'
+        tipo: 'text'
+      - rotulo: 'Situação'
+        tipo: 'select'
+      - rotulo: 'Recibo'
+        tipo: 'text'
+      - rotulo: 'Data recibo'
+        tipo: 'text'
+      - rotulo: 'Data 1ª lavratura'
+        tipo: 'text'
+      - rotulo: 'Escrevente'
+        tipo: 'select'
+      - rotulo: 'Espécie'
+        tipo: 'select'
+      - rotulo: 'Natureza'
+        tipo: 'select'
+      - rotulo: 'Data do contrato'
+        tipo: 'text'
+      - rotulo: 'Escrevente assinante (Substituto):'
+        tipo: 'select'
+      - rotulo: 'Auxiliar do escrevente:'
+        tipo: 'select'
+      - rotulo: 'Escrevente que colheu as assinaturas'
+        tipo: 'select'
+      - rotulo: 'Pessoa física'
+        tipo: 'radio'
+      - rotulo: 'Pessoa jurídica'
+        tipo: 'radio'
+      - rotulo: 'Mensalista'
+        tipo: 'radio'
+      - rotulo: 'CPF ou CIN'
+        tipo: 'text'
+      - rotulo: 'Nome'
+        tipo: 'text'
+      - rotulo: 'Tomador'
+        tipo: 'checkbox'
+      - rotulo: 'Informar intermediador'
+        tipo: 'checkbox'
+      - rotulo: 'Tipo de endereço'
+        tipo: 'select'
+      - rotulo: 'CEP'
+        tipo: 'text'
+      - rotulo: 'Logradouro'
+        tipo: 'text'
+      - rotulo: 'Número'
+        tipo: 'text'
+      - rotulo: 'Complemento'
+        tipo: 'text'
+      - rotulo: 'Bairro'
+        tipo: 'text'
+      - rotulo: 'País'
+        tipo: 'select'
+      - rotulo: 'UF'
+        tipo: 'select'
+      - rotulo: 'Cidade'
+        tipo: 'text'
+      - rotulo: 'Cód. IBGE'
+        tipo: 'text'
+      - rotulo: 'Tipo de telefone'
+        tipo: 'select'
+      - rotulo: 'Telefone'
+        tipo: 'text'
+      - rotulo: 'Tipo de e-mail'
+        tipo: 'select'
+      - rotulo: 'E-mail'
+        tipo: 'text'
+      - rotulo: 'Observação'
+        tipo: 'textarea'
+    botoes: []
+    alvos_do_passo: ['Partes', 'Município']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Partes', 'Município']
+    sugestao_reescrita: 'Sugestão de reescrita: Partes, Município não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-02.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 2, o manual cita "Partes", "Município", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Configurações > Cadastros auxiliares > Perfil de partes (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 2, o manual cita "Partes", "Município", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Configurações > Cadastros auxiliares > Perfil de partes (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 2: rota **#/protocolo/cadastrar**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Seções visíveis:** **Protocolo**.
+> * **Campos:** **ckbToggleDadosProtocolo**, **Data recepção**, **Status**, **Situação**, **Recibo**, **Data recibo**, **Data 1ª lavratura**, **Escrevente**, **Espécie**, **Natureza**, **Data do contrato**, **Escrevente assinante (Substituto):**, **Auxiliar do escrevente:**, **Escrevente que colheu as assinaturas**, **Pessoa física**, **Pessoa jurídica**, **Mensalista**, **CPF ou CIN**, **Nome**, **Tomador**, **Informar intermediador**, **Tipo de endereço**, **CEP**, **Logradouro**, **Número** (+11).
+> * **Sem correspondência funcional na tela:** **Partes**, **Município**.
+> * Sugestão de reescrita: **Partes**, **Município** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-02.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 A CENSEC não utiliza o nome textual dos municípios para cruzamento estatístico, mas sim o código de 7 dígitos da tabela oficial do IBGE. Cidades cadastradas sem esse vínculo impedem o envio da carga.
@@ -52,7 +173,8 @@ A CENSEC não utiliza o nome textual dos municípios para cruzamento estatístic
 #### Passo a passo (texto original preservado):
 1. Acesse **Notas > Protocolo** e abra o ato apontado com pendência no log da CEP.
    [aqui vai a print "passo-01.png"]
-   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Notas > Protocolo"**, porém na tela atual do Orion TN o elemento se chama **"Notas"** (confiança: 68% — Similaridade semântica na árvore de acessibilidade (64%)). O texto do manual não foi alterado.
+   > [!NOTE] **Demarcações na print:** (1) **Notas** · (2) **Protocolos**
+   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Notas > Protocolo"**, porém na versão atual do Orion TN a tela fica em **"Notas > Protocolos"** (confiança: 90% — Item "Protocolos" localizado na árvore de navegação em outra rota (1 de 1 segmentos ancestrais coincidem). Auto-cura por menor profundidade de cadeia: "Notas > Protocolos" (profundidade 2) escolhida entre "Notas > Protocolos" e "Notas > Consultas > Protocolos"). O texto do manual não foi alterado.
 2. Na aba **Partes**, edite o endereço das partes: no campo **Município**, utilize a lupa de busca para selecionar a cidade da lista oficial (o sistema preencherá o código IBGE automaticamente).
    [aqui vai a print "passo-02.png"]
    > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Partes, Município] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
@@ -62,3 +184,9 @@ A CENSEC não utiliza o nome textual dos municípios para cruzamento estatístic
 6. Transmita o lote aprovado.
 
 * **Prevenção Cadastral: Nunca desative o preenchimento automático por CEP dos Correios; ele já amarra o código IBGE correto sem intervenção do digitador.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 2 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Partes", "Município", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não  → **mantido** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 1):** "Notas > Protocolo" → "Notas" — não reconfirmada nesta execução (a dica não foi usada)

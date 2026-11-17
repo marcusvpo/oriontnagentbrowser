@@ -4,16 +4,18 @@ titulo: 'Consulta Rápida de Anexos, Histórico de Andamentos e Bloqueio de Fich
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: dependencia_cruzada_rotina
+  review_tags: ['XRX']
   carga: read_only
-  worker_id: 'worker-1'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['M-9.0', 'D-3.3', 'V-CCA.3.3']
   prints_geradas: 2
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 2
@@ -28,13 +30,31 @@ auditoria_ui:
           rotulo: 'Adicionar'
           deduzido_do_dom: false
           resultado: sem_efeito
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentado e não concluiu: "Concluir" permaneceu desabilitado após o preenchimento.. Outra rotina do sistema gera esses registros: M-9.0 — Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais); D-3.3 — Cadastrar Cartão de Assinatura; V-CCA.3.3 — Cadastro Rápido e Edição de Cartão de Assinatura Integrados ao Reconhecimento de Firmas.
+> **Motivo Técnico:** No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra rotina do sistema gera esses registros: M-9.0 — Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais); D-3.3 — Cadastrar Cartão de Assinatura; V-CCA.3.3 — Cadastro Rápido e Edição de Cartão de Assinatura Integrados ao Reconhecimento de Firmas.
 
 #### Descrição:
 Cada registro listado na tabela de cartões de assinatura possui atalhos de consulta instantânea e recursos de auditoria. Esta rotina aborda a leitura dos indicadores visuais (presença de imagem e foto), o uso da galeria unificada de anexos em tela cheia, o rastreamento do log de andamentos e a ativação de bloqueios cautelares com alertas operacionais para o balcão de firmas.
@@ -78,3 +98,8 @@ Cada registro listado na tabela de cartões de assinatura possui atalhos de cons
 
 * **Observação: O histórico de andamentos é gravado de forma automática e imutável pelo sistema, servindo como base de conformidade e auditoria interna do cartório.**
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). O auto-seed foi tentad → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)

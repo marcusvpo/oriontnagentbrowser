@@ -9,7 +9,7 @@ auditoria_ui:
   review_tags:
     - CCC
   carga: mutation
-  worker_id: worker-1
+  worker_id: worker-3
   versao_homologacao: WildFly 22 / Orion 06.04.01
   ambiente: Produtos (homologacao interna Siplan)
   tipo_bloqueio: Dependência de Comunicação/Portal Externo
@@ -33,7 +33,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.98
         texto_alterado: true
-        evidencia: menu-tree | [data-orion-audit-menu-mmwk55i5d3enfio-130] | x=850, y=171, 175x20
+        evidencia: menu-tree | [data-orion-audit-menu-mmwk6osrn6srthe-130] | x=850, y=171, 175x20
       - passo: 5
         alvo_documentado: CPF do Responsável pelo Envio
         elemento_real: CPF/CNPJ
@@ -115,9 +115,37 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-17
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: comunicacao_externa
+      tags_anteriores:
+        - CCC
+      status_atual: comunicacao_externa
+      tags_atuais:
+        - CCC
+      bloqueio_superado: null
+      curas_reaproveitadas:
+        - passo: 5
+          alvo: CPF do Responsável pelo Envio
+          real: CPF/CNPJ
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 6
+          alvo: Gravar
+          real: Cadastrar
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 4
+          alvo: Configurações > Parâmetros Gerais > Comunicação COAF
+          real: Configurações > Parametrizações
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T03:40:13.924Z
+  governanca_atualizado_em: 2026-11-17T06:46:28.100Z
   governanca_comentario: Passos 1 a 3 ocorrem fora do Orion TN (diretamente no portal oficial do SISCOAF com e-CPF) e devem ser sinalizados como Etapa Externa [CCC] sem print falsa da home. No Orion TN (a partir do passo 4), o caminho atualizado é 'Configurações > Parametrizações > Comunicações' (menu lateral) > bloco 'Coaf' > clicar em 'Clique aqui para acessar a tela de configuração no Orion Coaf', que abre em nova guia a tela com os campos 'CPF/CNPJ', 'E-mail', 'Tipo do certificado' e botão 'Cadastrar'.
 ---
 

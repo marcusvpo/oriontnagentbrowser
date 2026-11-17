@@ -233,7 +233,7 @@ async function uploadScreenshots(
   for (const [id, info] of auditedFolders.entries()) {
     const files = fs.readdirSync(info.dirPath);
     for (const f of files) {
-      const m = f.match(/^passo-(\d+)(?:-([a-z]))?\.(png|webp)$/i);
+      const m = f.match(/^passo-(\d+)(?:-([a-z]|contexto-att))?\.(png|webp)$/i);
       if (!m) continue;
       const ext = m[3].toLowerCase();
       if (opts.onlyWebp && ext !== 'webp') continue;

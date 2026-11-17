@@ -4,23 +4,18 @@ titulo: 'Reutilizar Posição de Livro Inutilizada'
 modulo: livros
 secao: R
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: dependencia_cruzada_rotina
+  review_tags: ['XRX']
   carga: read_only
   worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['D-3.60', 'D-3.41', 'C-LIVRO-05']
-  registros_mock_criados:
-    - passo: 1
-      rota: '#/livro'
-      botao_cadastro: 'Adicionar'
-      botao_gravacao: 'Concluir'
-      linhas_na_grade_apos: 0
-      campos: ['Tipo livro=Atos notariais', 'Sigla=AUD', 'Número do livro=1', 'Página inicial=AUDIT-MO', 'Lado inicial=F', 'Posição inicial=AU']
   prints_geradas: 3
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 3
@@ -44,14 +39,38 @@ auditoria_ui:
         camada: a11y_fuzzy_match
         confianca: 0.73
         texto_alterado: false
-        evidencia: 'dom-measured | text:número | x=25, y=117, 51x20'
+        evidencia: 'dom-measured | text:número | x=20, y=94, 41x16'
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). O auto-seed foi tentado e não concluiu: motiv'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Número do Livro'
+          real: 'Número'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). O auto-seed foi tentado e não concluiu: motivo não informado. Outra rotina do sistema gera esses registros: D-3.60 — Cadastrar Livro para Consumo; D-3.41 — Gerar Livro a partir de Minuta; C-LIVRO-05 — Geração de Termos de Abertura e Encerramento de Livros Notariais.
+> **Motivo Técnico:** No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra rotina do sistema gera esses registros: D-3.60 — Cadastrar Livro para Consumo; D-3.41 — Gerar Livro a partir de Minuta; C-LIVRO-05 — Geração de Termos de Abertura e Encerramento de Livros Notariais.
 
 #### Descrição:
 A rotina de controle de livros permite resgatar posições ou folhas notariais marcadas indevidamente como inutilizadas, devolvendo-as ao saldo operacional para que novos atos possam aproveitá-las.
@@ -71,7 +90,6 @@ A rotina de controle de livros permite resgatar posições ou folhas notariais m
    [aqui vai a print "passo-01.png"]
    > [!NOTE] **Demarcações na print:** (1) **Administração** · (2) **Controle de Livros**
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual).
-   > [!NOTE] **Registro mock de pré-requisito criado (AUDIT-MOCK):** a grade estava vazia; o agente usou **Adicionar**, preencheu 6 campo(s) e gravou com **Concluir**. Linhas na grade depois: 0.
 2. No campo **Número do Livro**, informe o livro desejado e clique no ícone do **Livro Pequeno** para carregar suas informações detalhadas.
    [aqui vai a print "passo-02.png"]
    > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Número do Livro"**, porém na tela atual do Orion TN o elemento se chama **"Número"** (confiança: 73% — Similaridade semântica na árvore de acessibilidade (73%)). O texto do manual não foi alterado.
@@ -86,3 +104,9 @@ A rotina de controle de livros permite resgatar posições ou folhas notariais m
 
 * **Importante: Certifique-se de que a folha física do livro está em perfeito estado e apta para impressão antes de formalizar a reutilização.**
 * **Dica / Caso Real do 0800: Ajuste o espaçamento entrelinhas para 1.15 e margens para 2.0 cm na configuração de página do traslado para eliminar páginas residuais e otimizar o consumo de folhas oficiais.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo 3 — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). O auto-seed foi tentado e não concluiu: motiv → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 2):** "Número do Livro" → "Número" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

@@ -4,15 +4,17 @@ titulo: 'Regularização de Sequência no Livro de Termos de Comparecimento e Et
 modulo: firmas
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 1
@@ -22,13 +24,56 @@ auditoria_ui:
       gatilhos_na_tela: 0
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Erro de Grafia no Termo Já Impresso", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto par'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 1
+    capturado_em: '2026-11-17T04:40:26.562Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: ['Erro de Grafia no Termo Já Impresso']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Erro de Grafia no Termo Já Impresso']
+    sugestao_reescrita: 'Sugestão de reescrita: Erro de Grafia no Termo Já Impresso não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-01.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita "Erro de Grafia no Termo Já Impresso", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Firmas > Cadastros > Tipo de documento - Termo de comparecimento (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita "Erro de Grafia no Termo Já Impresso", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Firmas > Cadastros > Tipo de documento - Termo de comparecimento (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Sem correspondência funcional na tela:** **Erro de Grafia no Termo Já Impresso**.
+> * Sugestão de reescrita: **Erro de Grafia no Termo Já Impresso** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Em livros encadernados de termos de comparecimento (DUT/CRV e autenticidade), não é permitido rasgar folhas. O Orion TN dispõe de rotina nativa de ressalva com reutilização da folha do termo.
@@ -52,3 +97,8 @@ Em livros encadernados de termos de comparecimento (DUT/CRV e autenticidade), n�
 8. Informe a numeração que deve ser restabelecida como próximo termo e confirme.
 
 * **Corregedoria: A emissão de etiqueta de ressalva preserva a integridade numérica e atende integralmente às exigências das Normas de Serviço.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Erro de Grafia no Termo Já Impresso", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto par → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

@@ -4,26 +4,28 @@ titulo: 'Chaveamento Emergencial para Modo Offline (Contingência de Selos) por 
 modulo: selos
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: dependencia_cruzada_rotina
+  review_tags: ['XRX']
   carga: mutation
   worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['D-2.7', 'D-2.4']
   prints_geradas: 3
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   rbac:
     perfil_exigido: ['administrador', 'substituto']
     origem_requisito: 'passo 1'
     estado: satisfied
     atendido: true
-    perfil_pleno_comprovado_por: 'Perfil de acesso - Gerência webFirmas'
-    sessao_usuario: '4tabeliao.scs'
-    sessao_cargo: 'TABELIAO'
-    sessao_perfis: ['Perfil de acesso - Gerência webCaixa', 'Perfil de acesso - Gerência webEstoque', 'Perfil de acesso - Gerência webGed', 'Perfil de acesso - Gerência webLivros', 'Perfil de acesso - Gerência webPro', 'Perfil de acesso - Gerência webFirmas']
+    perfil_pleno_comprovado_por: 'marcus'
+    sessao_usuario: 'marcus'
+    sessao_cargo: 'Teste'
+    sessao_perfis: ['Perfil de acesso - Gerência webFirmas', 'Perfil de acesso - Gerência webCaixa', 'Perfil de acesso - Gerência webEstoque']
   exploracao_investigativa:
     - passo: 3
       alvos_ausentes: ['Online', 'Modo de Selagem Offline (Contingência)']
@@ -39,16 +41,45 @@ auditoria_ui:
         alvo_documentado: 'Configurações > Parâmetros Gerais > Selo Digital'
         elemento_real: 'Administração > Comunicações > Selo digital'
         camada: menu_path_resolution
-        confianca: 0.8
+        confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwis27sr52p8mi-55] | x=373, y=160, 238x26'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwk7yxrwertuu2-57] | x=474, y=129, 190x21'
       - passo: 2
         alvo_documentado: 'Modo de Envio do Selo Digital'
         elemento_real: 'Selo digital '
         camada: a11y_fuzzy_match
         confianca: 0.76
         texto_alterado: false
-        evidencia: 'dom-measured | @e1640 | x=410, y=287, 162x53'
+        evidencia: 'dom-measured | @e954 | x=411, y=230, 166x26'
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera '
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Modo de Envio do Selo Digital'
+          real: 'Selo digital '
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Configurações > Parâmetros Gerais > Selo Digital'
+          real: 'Administração > Comunicações > Selo digital'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
@@ -73,7 +104,7 @@ O Provimento Geral da Justiça autoriza a selagem em modo de contingência offli
 1. Com login de administrador ou substituto, acesse no **Orion TN** o menu **Configurações > Parâmetros Gerais > Selo Digital** (ou aba **Integração TJ**).
    [aqui vai a print "passo-01.png"]
    > [!NOTE] **Demarcações na print:** (1) **Administração** · (2) **Comunicações** · (3) **Selo digital**
-   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Configurações > Parâmetros Gerais > Selo Digital"**, porém na versão atual do Orion TN a tela fica em **"Administração > Comunicações > Selo digital"** (confiança: 80% — Item "Selo digital" localizado na árvore de navegação em outra rota (0 de 2 segmentos ancestrais coincidem)). O texto do manual não foi alterado.
+   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Configurações > Parâmetros Gerais > Selo Digital"**, porém na versão atual do Orion TN a tela fica em **"Administração > Comunicações > Selo digital"** (confiança: 95% — Rota comprovada numa auditoria anterior e reconfirmada na árvore de navegação real desta execução). O texto do manual não foi alterado.
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Produto, Série, Sequência, Selo digital, Geração, Comunicação).
 2. Localize a opção **Modo de Envio do Selo Digital**.
    [aqui vai a print "passo-02.png"]
@@ -89,3 +120,10 @@ O Provimento Geral da Justiça autoriza a selagem em modo de contingência offli
 7. Assim que o tribunal restabelecer a operação: retorne o parâmetro para **Online** e acione **Transmitir Lote de Contingência Acumulado**.
 
 * **Alerta de Sincronização: Nunca encerre o expediente sem retransmitir todos os selos gerados em modo offline para evitar penalidades de envio fora do prazo legal.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo 3 — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera  → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 2):** "Modo de Envio do Selo Digital" → "Selo digital " — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 1):** "Configurações > Parâmetros Gerais > Selo Digital" → "Administração > Comunicações > Selo digital" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

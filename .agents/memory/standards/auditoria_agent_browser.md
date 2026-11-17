@@ -2,7 +2,7 @@
 
 **Status:** ATIVO / HOMOLOGADO  
 **Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal e RAG Soberano)  
-**Normas Vinculantes:** ADR-007 a ADR-027  
+**Normas Vinculantes:** ADR-007 a ADR-028  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips)
 
 ---
@@ -534,3 +534,19 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * `loadHumanReviewsKnowledge()` e `compileHumanReviewsKnowledge()` transformam registros de `routine_reviews` (com cache síncrono em `auditoria/cache/human-reviews-cache.json`) em **Camada 0.1** (`resolveMenuPathViaHumanReview` em `chooseMenuItem` e `getHumanTargetSuggestionsForStep` em `smart-locator.ts`) e no `CrossRoutineKnowledgeGraph` global (`antiTargets`, equivalências de menu e aliases icônicos). `--seed-reviews` e `server.ts` chamam `refreshHumanReviewsCache()`.
 * `buildMenuTreeScript()` seleciona o `<a>` visível quando existe placeholder `<a style="display: none;">` no `<li>` (`FIRMPEDCERTIN01` -> `#menuNovaCertidaoEServico`) mantendo o alias textual para o `selector` visível; `closeActiveModals()` fecha `#modalAvisoCertificado` antes da abertura da cascata.
 * Testes offline em `src/__tests__/adr027-semantic-graph-stateful-rag.test.ts` (`npm --prefix auditoria test`: 114/114 aprovados em 28 suítes).
+
+---
+
+## 17. Consultor Propositivo de Tela em `[ATT]` e Desempate de Menu por Profundidade (ADR-028)
+
+### 17.1. `att-screen-advisor.ts`
+* **Gatilho:** `executor.ts`, depois de `classifyBlock()` devolver `atualizacao_editorial`, com navegador ativo, RBAC Gate satisfeito e passo bloqueado identificado. Todas as camadas de localização já se esgotaram; a tela do bloqueio continua aberta.
+* **Inventário (`buildScreenInventoryScript`, via `eval --stdin`, somente leitura):** `route` (`location.hash`, nunca a origem), título, `sections` (`legend`, `.panel-heading`, `.card-header`, `.box-title`, `h1-h5`, `.modal-title`), `tabs` (`.nav-tabs`/`[role=tab]` de conteúdo), `fields` (rótulo por `label[for]`, `label` ancestral, `aria-label`, `.form-group`, checkbox em `<span>`, `placeholder`) e `buttons` (texto, `title` ou `aria-label`). Escopo: modal ativo (`ACTIVE_MODAL_SELECTOR`) ou página, sempre sem `NAV_ZONE_SELECTOR` (menos `.nav-tabs`).
+* **Correspondência (`suggestScreenMatches`):** igualdade de token (sem acento, plural simples, sem stopword), Dice só com termo em comum ou ≥ 0,75 (guarda anti-substring: `Autenticidade` ≠ `Cidade`), pista do verbo do passo (campo/botão/aba/seção), bônus de seção citada no passo; mínimo 0,45; até 3 por alvo. Sem correspondente: `unmatched` e dica de revisão.
+* **Saídas:** `renderAttDiagnosisTip` (`> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**`, logo abaixo do `[!CAUTION]`), `attDiagnosisYamlLines` (`auditoria_ui.diagnostico_tela_att`: `passo`, `rota`, `titulo_painel`, `secoes`, `abas`, `campos`, `botoes`, `alvos_do_passo`, `correspondencias_sugeridas`, `alvos_sem_correspondencia`, `sugestao_reescrita`, `print_contexto`). Só rotina com a tag `ATT`. Sem migration.
+* **Print de contexto:** `passo-NN-contexto-att.png/.webp` apenas se o passo bloqueado não tem imagem. O padrão `passo-NN-contexto-att` não casa com `passo-\d+(-[a-z])?` (validador) e o relatório não usa marcador `[aqui vai a print]` para ele.
+* **Evidência Estrita preservada:** nada é acionado, nenhum texto do manual é reescrito, nenhuma demarcação é desenhada.
+
+### 17.2. Desempate de menu (`menu-path.ts`)
+* `chooseMenuItem` agrupa as folhas de mesmo score; se todas partilham o módulo raiz e há uma única de menor profundidade, ela vence com `depthTieBreak` e o motivo "Auto-cura por menor profundidade de cadeia". Mesma profundidade, ou raízes diferentes: `null` (bloqueio por ambiguidade, ADR-016/ADR-024).
+* Testes offline em `src/__tests__/adr028-att-advisor-menu-depth.test.ts`.

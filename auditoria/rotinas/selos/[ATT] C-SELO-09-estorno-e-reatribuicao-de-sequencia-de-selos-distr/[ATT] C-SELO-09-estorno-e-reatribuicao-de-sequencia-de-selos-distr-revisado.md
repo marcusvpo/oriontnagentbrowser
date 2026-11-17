@@ -4,25 +4,27 @@ titulo: 'Estorno e Reatribuição de Sequência de Selos Distribuídos Incorreta
 modulo: selos
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: read_only
   worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   rbac:
     perfil_exigido: ['administrador']
     origem_requisito: 'passo 1'
     estado: satisfied
     atendido: true
-    perfil_pleno_comprovado_por: 'Perfil de acesso - Gerência webFirmas'
-    sessao_usuario: '4tabeliao.scs'
-    sessao_cargo: 'TABELIAO'
-    sessao_perfis: ['Perfil de acesso - Gerência webCaixa', 'Perfil de acesso - Gerência webEstoque', 'Perfil de acesso - Gerência webGed', 'Perfil de acesso - Gerência webLivros', 'Perfil de acesso - Gerência webPro', 'Perfil de acesso - Gerência webFirmas']
+    perfil_pleno_comprovado_por: 'marcus'
+    sessao_usuario: 'marcus'
+    sessao_cargo: 'Teste'
+    sessao_perfis: ['Perfil de acesso - Gerência webFirmas', 'Perfil de acesso - Gerência webCaixa', 'Perfil de acesso - Gerência webEstoque']
   exploracao_investigativa:
     - passo: 1
       alvos_ausentes: ['Orion Estoque']
@@ -31,13 +33,56 @@ auditoria_ui:
       gatilhos_na_tela: 0
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Orion Estoque", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insu'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 1
+    capturado_em: '2026-11-17T04:58:48.742Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: ['Orion Estoque']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Orion Estoque']
+    sugestao_reescrita: 'Sugestão de reescrita: Orion Estoque não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-01.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita "Orion Estoque", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Relatórios > Auditoria Selos TJ - Orion; Administração > Controle de Estoque (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita "Orion Estoque", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Relatórios > Auditoria Selos TJ - Orion; Administração > Controle de Estoque (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Sem correspondência funcional na tela:** **Orion Estoque**.
+> * Sugestão de reescrita: **Orion Estoque** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 No Orion Estoque, os lotes de selos são entregues em pacotes sequenciais numerados. Se o administrador distribuir o lote 2 antes do lote 1, os escreventes consomem selos fora de ordem cronológica.
@@ -60,3 +105,8 @@ No Orion Estoque, os lotes de selos são entregues em pacotes sequenciais numera
 7. Solicite ao escrevente que atualize a tela de lavratura para carregar o novo numerador.
 
 * **Fiscalização: A quebra indevida da sequência de distribuição é apontada em relatórios de correição; sempre confira o número inicial antes de confirmar o lote.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Orion Estoque", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insu → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

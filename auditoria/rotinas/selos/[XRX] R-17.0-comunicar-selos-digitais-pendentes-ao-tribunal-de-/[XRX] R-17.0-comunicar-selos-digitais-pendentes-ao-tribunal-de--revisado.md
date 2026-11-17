@@ -4,16 +4,18 @@ titulo: 'Comunicar Selos Digitais Pendentes ao Tribunal de Justiça'
 modulo: selos
 secao: R
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: dependencia_cruzada_rotina
+  review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['D-2.7', 'D-2.4']
   prints_geradas: 3
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   auto_cura:
     acionada: true
@@ -24,21 +26,49 @@ auditoria_ui:
         camada: a11y_fuzzy_match
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'dom-measured | text:comunicado | x=25, y=117, 278x50'
+        evidencia: 'dom-measured | text:comunicado | x=20, y=94, 282x40'
       - passo: 3
         alvo_documentado: '"Comunicação pendente"'
         elemento_real: 'Comunicação'
         camada: a11y_fuzzy_match
         confianca: 0.89
         texto_alterado: false
-        evidencia: 'dom-measured | text:comunicação | x=683, y=287, 114x53'
+        evidencia: 'dom-measured | text:comunicação | x=690, y=230, 114x26'
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/N'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 3
+          alvo: '"Não comunicado"'
+          real: 'Comunicado'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 3
+          alvo: '"Comunicação pendente"'
+          real: 'Comunicação'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera esses registros: D-2.7 — Cadastrar Produto; D-2.4 — Cadastrar Categoria de Produto.
+> **Motivo Técnico:** No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/Novo na tela. Outra rotina do sistema gera esses registros: D-2.7 — Cadastrar Produto; D-2.4 — Cadastrar Categoria de Produto.
 
 #### Descrição:
 Esta rotina permite auditar a fila de selos gerados na serventia e forçar a transmissão manual em lote daqueles que permaneceram com status pendente de sincronização com o webservice do Tribunal de Justiça.
@@ -72,3 +102,10 @@ Esta rotina permite auditar a fila de selos gerados na serventia e forçar a tra
 
 * **Observação: Monitore a conclusão da transmissão até que todos os selos do período passem para o status "Comunicado com sucesso".**
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo não registrado — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Produto, Série, Sequência, Selo digital, Geração, Comunicação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Comunicar" (Nenhum selo encontrado), "Totalizadores"). Não existe botão Adicionar/N → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 3):** ""Não comunicado"" → "Comunicado" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 3):** ""Comunicação pendente"" → "Comunicação" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

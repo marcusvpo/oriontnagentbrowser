@@ -4,15 +4,17 @@ titulo: 'Identificação e Reaproveitamento de Dados do Solicitante para Recibo 
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: read_only
   worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 1
@@ -22,13 +24,56 @@ auditoria_ui:
       gatilhos_na_tela: 0
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Gerar Recibo", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuf'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 1
+    capturado_em: '2026-11-17T06:20:28.442Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: ['Gerar Recibo']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Gerar Recibo']
+    sugestao_reescrita: 'Sugestão de reescrita: Gerar Recibo não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-01.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita "Gerar Recibo", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita "Gerar Recibo", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Sem correspondência funcional na tela:** **Gerar Recibo**.
+> * Sugestão de reescrita: **Gerar Recibo** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Procedimento para identificar o solicitante responsável pelo ato notarial no **ORION TN** (exigência obrigatória para emissão do recibo), utilizando o recurso de busca por lupa para reaproveitar cadastros prévios de cartões de assinatura, cadastros de tomadores de NF-e, orçamentos ou protocolos anteriores.
@@ -57,3 +102,8 @@ Procedimento para identificar o solicitante responsável pelo ato notarial no **
 * **Observação: O solicitante é a pessoa física ou jurídica titular em nome de quem será formalizado o recibo de entrega e a documentação fiscal do protocolo.**
 * **Observação: As modificações feitas nas informações do solicitante dentro da tela do protocolo são válidas exclusivamente para aquele ato notarial em andamento, sem alterar o cadastro de origem da ficha de assinatura ou tomador.**
 * **Dica / Caso Real do 0800: Caso o protocolo não seja localizado no Caixa, certifique-se de que o status do ato na triagem foi marcado como **Aguardando Pagamento** e verifique se o operador possui privilégios de movimentação financeira.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Gerar Recibo", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuf → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

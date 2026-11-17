@@ -4,16 +4,18 @@ titulo: 'Como Realizar a Distribuição de Produtos e Selos no Estoque'
 modulo: selos
 secao: R
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: dependencia_cruzada_rotina
+  review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['D-2.7', 'D-2.4']
   prints_geradas: 4
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 4
@@ -37,14 +39,14 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwivui4r92v5hl-60] | x=373, y=160, 238x26'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkaimet2kwg8-64] | x=474, y=129, 190x21'
       - passo: 3
         alvo_documentado: '"+"'
         elemento_real: '+'
         camada: a11y_fuzzy_match
         confianca: 0.98
         texto_alterado: false
-        evidencia: 'dom-measured | @e167 | x=968, y=374, 40x30'
+        evidencia: 'dom-measured | @e390 | x=967, y=300, 32x24'
       - passo: 4
         alvo_documentado: 'Usuários Individuais'
         elemento_real: '(não localizado na tela)'
@@ -63,13 +65,41 @@ auditoria_ui:
         camada: target_not_found
         confianca: 0
         texto_alterado: false
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). O auto-seed foi tentado e não concluiu: "Concluir" permaneceu desabilitado após o pre'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 3
+          alvo: '"+"'
+          real: '+'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Administração > Distribuição'
+          real: 'Administração > Controle de Estoque > Distribuição'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([XRX]):**  
 > A auditoria automática foi interrompida: **Dependência Cruzada de Rotina**.
 >
-> **Motivo Técnico:** No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). O auto-seed foi tentado e não concluiu: "Concluir" permaneceu desabilitado após o preenchimento (obrigatórios vazios: Série, Portador).. Outra rotina do sistema gera esses registros: D-2.7 — Cadastrar Produto; D-2.4 — Cadastrar Categoria de Produto.
+> **Motivo Técnico:** No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra rotina do sistema gera esses registros: D-2.7 — Cadastrar Produto; D-2.4 — Cadastrar Categoria de Produto.
 
 #### Descrição:
 A rotina de distribuição transfere a custódia de produtos, selos físicos e papéis de segurança do almoxarifado central do cartório diretamente para colaboradores individuais, grupos ou estações de trabalho específicas.
@@ -87,7 +117,7 @@ A rotina de distribuição transfere a custódia de produtos, selos físicos e p
 1. No módulo **Orion Estoque**, acesse o menu **Administração > Distribuição**.
    [aqui vai a print "passo-01.png"]
    > [!NOTE] **Demarcações na print:** (1) **Administração** · (2) **Controle de Estoque** · (3) **Distribuição**
-   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Administração > Distribuição"**, porém na versão atual do Orion TN a tela fica em **"Administração > Controle de Estoque > Distribuição"** (confiança: 95% — Item "Distribuição" localizado na árvore de navegação em outra rota (1 de 1 segmentos ancestrais coincidem)). O texto do manual não foi alterado.
+   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Administração > Distribuição"**, porém na versão atual do Orion TN a tela fica em **"Administração > Controle de Estoque > Distribuição"** (confiança: 95% — Rota comprovada numa auditoria anterior e reconfirmada na árvore de navegação real desta execução). O texto do manual não foi alterado.
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Série, Sequência inicial, Sequência final).
 2. Na aba **Distribuição**, selecione a **Categoria** e o **Produto** desejado para que o sistema relacione os lotes disponíveis.
    [aqui vai a print "passo-02.png"]
@@ -109,3 +139,10 @@ A rotina de distribuição transfere a custódia de produtos, selos físicos e p
 
 * **Importante: Produtos que já sofreram consumo em atos ou selagens de balcão não podem ser estornados para o estoque central.**
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo não registrado — Dependência Cruzada de Rotina: No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). O auto-seed foi tentado e não concluiu: "Concluir" permaneceu desabilitado após o pre → **mantido** (agora: passo 4, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 3):** ""+"" → "+" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 1):** "Administração > Distribuição" → "Administração > Controle de Estoque > Distribuição" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

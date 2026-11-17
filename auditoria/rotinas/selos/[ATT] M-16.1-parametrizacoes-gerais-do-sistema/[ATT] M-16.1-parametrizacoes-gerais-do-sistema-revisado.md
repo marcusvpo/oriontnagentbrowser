@@ -4,47 +4,78 @@ titulo: 'Parametrizações Gerais do Sistema'
 modulo: selos
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 2
+  prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
-  exploracao_investigativa:
-    - passo: 2
-      alvos_ausentes: ['Geral', 'Papel de Segurança (NFS)']
-      alvos_revelados: []
-      resultado: gatilhos_esgotados
-      gatilhos_na_tela: 0
-      seletores_sem_afinidade_descartados: 0
-      estado_restaurado: true
-  auto_cura:
-    acionada: true
-    divergencias_detectadas:
-      - passo: 1
-        alvo_documentado: 'Administração > Parâmetros > Parâmetros gerais'
-        elemento_real: 'Administração'
-        camada: a11y_fuzzy_match
-        confianca: 0.69
-        texto_alterado: false
-        evidencia: 'dom-measured | text:administração | x=733, y=1, 119x50'
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Geral", "Papel de Segurança (NFS)", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para '
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Parâmetros gerais'
+          real: 'Administração'
+          confirmada_ao_vivo: false
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 1
+    capturado_em: '2026-11-17T05:27:40.558Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: []
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: []
+    print_contexto: 'passo-01.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 2, o manual cita "Geral", "Papel de Segurança (NFS)", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Parâmetros gerais" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escrituras para Registro", "Controle de Estoque", "Cadastro de Impedimentos", "Importações de arquivos", "Controle de Livros", "Mensalistas", "Intermediadores", "Cadastro de Pessoas Jurídicas", "Serviços internos realizados", "Certidões solicitadas", "Calendário"; "Parâmetros" não está entre eles. Nenhum item de nome igual ou parecido existe em outro ponto da árvore (140 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Caminho de menu:** o passo cita um caminho de navegação; a evidência lida da árvore de menus consta no motivo do bloqueio e a rota não foi adivinhada.
+> * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo de papel de segurança (NFS), método de envio do selo digital, regra de arredondamento de centavos em emolumentos e numeração de guias.
 
 #### Roteiro Técnico para Execução Manual:
-1. Abrir a tela do passo 2 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+1. Abrir a barra de menus do Orion TN no ambiente de homologação e localizar onde a tela do passo 1 fica na versão atual.
 2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
 
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
@@ -52,10 +83,8 @@ Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo
 #### Passo a passo (texto original preservado):
 1. Acesse o menu **Administração > Parâmetros > Parâmetros gerais**.
    [aqui vai a print "passo-01.png"]
-   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Administração > Parâmetros > Parâmetros gerais"**, porém na tela atual do Orion TN o elemento se chama **"Administração"** (confiança: 69% — Similaridade semântica na árvore de acessibilidade (65%)). O texto do manual não foi alterado.
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Caminho de menu não encontrado na árvore de navegação real: Administração > Parâmetros > Parâmetros gerais
 2. Na aba **Geral**, configure o comportamento de insumos: marque se o sistema deve exigir o consumo de **Papel de Segurança (NFS)** na emissão de atos.
-   [aqui vai a print "passo-02.png"]
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Geral, Papel de Segurança (NFS)] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
 3. Na seção **Selo Digital**, defina o modo de geração preferencial (**Online** para envio em tempo real ou **Offline** para envio agrupado).
 4. No campo **Arredondamento de custas**, selecione o critério homologado para frações de centavos (Arredondamento ABNT, Truncamento ou Superior).
 5. Na seção **Guias**, ative o controle de numeração automática e regras de controle fiscal se aplicável.
@@ -63,3 +92,9 @@ Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo
 
 * **Importante: Alterações nos parâmetros gerais exigem atenção da administração do cartório, pois impactam o cálculo financeiro e o fluxo de todos os escreventes.**
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 2 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Geral", "Papel de Segurança (NFS)", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para  → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Parâmetros gerais" → "Administração" — não reconfirmada nesta execução (a dica não foi usada)

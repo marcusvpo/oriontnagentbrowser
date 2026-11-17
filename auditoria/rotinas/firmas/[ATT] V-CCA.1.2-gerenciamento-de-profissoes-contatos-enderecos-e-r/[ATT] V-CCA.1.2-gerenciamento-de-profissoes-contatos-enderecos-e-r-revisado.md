@@ -4,76 +4,75 @@ titulo: 'Gerenciamento de Profissões, Contatos, Endereços e Representação de
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
+  ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
   exploracao_investigativa:
     - passo: 1
-      alvos_ausentes: ['Cartão de Assinatura', 'Profissão', 'Atenção:', 'NÃO', 'Lupa', 'Ctrl+C', 'Concluir']
+      alvos_ausentes: ['Cartão de Assinatura', 'Profissão']
       alvos_revelados: []
       resultado: gatilhos_esgotados
       gatilhos_na_tela: 0
       seletores_sem_afinidade_descartados: 0
       estado_restaurado: true
-  auto_cura:
-    acionada: true
-    divergencias_detectadas:
-      - passo: 1
-        alvo_documentado: 'Cartão de Assinatura'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
-      - passo: 1
-        alvo_documentado: 'Profissão'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
-      - passo: 1
-        alvo_documentado: 'Atenção:'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
-      - passo: 1
-        alvo_documentado: 'NÃO'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
-      - passo: 1
-        alvo_documentado: 'Lupa'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
-      - passo: 1
-        alvo_documentado: 'Ctrl+C'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
-      - passo: 1
-        alvo_documentado: 'Concluir'
-        elemento_real: '(não localizado na tela)'
-        camada: target_not_found
-        confianca: 0
-        texto_alterado: false
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Cartão de Assinatura", "Profissão", "Atenção:", "NÃO", "Lupa", "Ctrl+C", "Concluir", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado '
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 1
+    capturado_em: '2026-11-17T06:34:33.964Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: ['Cartão de Assinatura', 'Profissão']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Cartão de Assinatura', 'Profissão']
+    sugestao_reescrita: 'Sugestão de reescrita: Cartão de Assinatura, Profissão não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-01.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita "Cartão de Assinatura", "Profissão", "Atenção:", "NÃO", "Lupa", "Ctrl+C", "Concluir", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Firmas > Cadastros > Cartão de assinatura; Configurações > Cadastros auxiliares > Pessoa física > Profissão (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita "Cartão de Assinatura", "Profissão", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Firmas > Cadastros > Cartão de assinatura; Configurações > Cadastros auxiliares > Pessoa física > Profissão (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Sem correspondência funcional na tela:** **Cartão de Assinatura**, **Profissão**.
+> * Sugestão de reescrita: **Cartão de Assinatura**, **Profissão** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 O cartão de assinatura permite estruturar de forma minuciosa as formas de contato (pessoal, residencial, comercial), múltiplos endereços e os vínculos societários/representativos com pessoas jurídicas, além de exigir a seleção padronizada de profissões na tabela do sistema para garantir integridade nas certidões e relatórios.
@@ -87,14 +86,7 @@ O cartão de assinatura permite estruturar de forma minuciosa as formas de conta
 #### Passo a passo (texto original preservado):
 1. Na tela de cadastro do **Cartão de Assinatura**, localize o campo **Profissão**:
    [aqui vai a print "passo-01.png"]
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Cartão de Assinatura"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Profissão"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Atenção:"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"NÃO"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Lupa"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Ctrl+C"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Concluir"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Cartão de Assinatura", "Profissão", "Atenção:", "NÃO", "Lupa", "Ctrl+C", "Concluir"
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Cartão de Assinatura, Profissão, Atenção:, NÃO, Lupa, Ctrl+C, +, Concluir] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
    * **Atenção:** O campo profissão utiliza pesquisa obrigatória por tabela. Se você apenas digitar um texto livre e não selecionar um item da lista suspensa da lupa, o sistema **NÃO** gravará a profissão na ficha.
    * Digite o nome da profissão e clique na **Lupa** para buscar.
    * Se a profissão for localizada, clique sobre ela para selecioná-la.
@@ -115,3 +107,8 @@ O cartão de assinatura permite estruturar de forma minuciosa as formas de conta
 * **Atenção: O campo profissão utiliza pesquisa obrigatória por tabela. Se você apenas digitar um texto livre e não selecionar um item da lista suspensa da lupa, o sistema **NÃO** gravará a profissão na ficha.**
 * **Observação: O vínculo de Pessoa Jurídica na ficha de firma agiliza extraordinariamente o reconhecimento de firma por representação, evitando a necessidade de digitar dados da empresa a cada ato de firma presencial ou por autenticidade.**
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Cartão de Assinatura", "Profissão", "Atenção:", "NÃO", "Lupa", "Ctrl+C", "Concluir", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado  → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

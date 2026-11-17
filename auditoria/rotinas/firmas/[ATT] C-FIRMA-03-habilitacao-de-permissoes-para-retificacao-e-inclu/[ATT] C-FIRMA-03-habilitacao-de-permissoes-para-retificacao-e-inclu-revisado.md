@@ -9,7 +9,7 @@ auditoria_ui:
   review_tags:
     - ATT
   carga: mutation
-  worker_id: worker-4
+  worker_id: worker-3
   versao_homologacao: WildFly 22 / Orion 06.04.01
   ambiente: Produtos (homologacao interna Siplan)
   tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
@@ -49,7 +49,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: menu-tree | [data-orion-audit-menu-mmwk1beej1lpwz6-126] | x=850, y=150, 175x21
+        evidencia: menu-tree | [data-orion-audit-menu-mmwk7fr8c3dds50-129] | x=850, y=150, 175x21
       - passo: 2
         alvo_documentado: Editar
         elemento_real: Alterar
@@ -60,7 +60,7 @@ auditoria_ui:
         alvo_documentado: Grupo Firmas
         elemento_real: Escrevente de Firmas
         camada: dom_synonym_heuristic
-        confianca: 0.9
+        confianca: 0.98
         texto_alterado: false
         evidencia: dom-measured | text:escrevente de firmas | x=20, y=187, 133x13
   historico_reauditoria:
@@ -134,9 +134,100 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-17
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+        motivo: No passo 4, o manual cita "Permissões Específicas", "Balcão de Firmas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência
+      bloqueio_atual:
+        passo: 4
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: Editar
+          real: Alterar
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 3
+          alvo: Grupo Firmas
+          real: Escrevente de Firmas
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: Configurações > Segurança > Usuários
+          real: Configurações > Usuários
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 4
+    capturado_em: 2026-11-17T04:45:14.104Z
+    rota: "#/usuario/alterar/1"
+    titulo_painel: OrionTN - Tabelionatos de Notas
+    em_modal: false
+    secoes:
+      - Alteração de usuário
+    abas: []
+    campos:
+      - rotulo: Usuário
+        tipo: text
+      - rotulo: Nome
+        tipo: text
+      - rotulo: CPF ou CIN
+        tipo: text
+      - rotulo: Cargo
+        tipo: text
+      - rotulo: E-mail
+        tipo: text
+      - rotulo: Telefone principal
+        tipo: text
+      - rotulo: Telefone
+        tipo: text
+      - rotulo: Perfil de Usuário
+        tipo: select
+      - rotulo: Escrevente de Firmas
+        tipo: checkbox
+      - rotulo: Escrevente de Notas
+        tipo: checkbox
+      - rotulo: Escrevente e-Recepção
+        tipo: checkbox
+      - rotulo: Tabelião
+        tipo: checkbox
+      - rotulo: Supervisor
+        tipo: checkbox
+      - rotulo: Substituto
+        tipo: checkbox
+      - rotulo: Auxiliar
+        tipo: checkbox
+    botoes:
+      - Salvar
+      - Excluir
+      - Voltar
+    alvos_do_passo:
+      - Permissões Específicas
+      - Balcão de Firmas
+    correspondencias_sugeridas:
+      - alvo: Balcão de Firmas
+        elemento_real: Escrevente de Firmas
+        tipo: campo
+        similaridade: 0.45
+    alvos_sem_correspondencia:
+      - Permissões Específicas
+    sugestao_reescrita: "Sugestão de reescrita: no passo 4, substituir Balcão de Firmas por Escrevente de Firmas (campo). Permissões Específicas não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida."
+    print_contexto: passo-04.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T03:40:10.343Z
+  governanca_atualizado_em: 2026-11-17T06:46:24.416Z
   governanca_comentario: "Passos 1 e 2 estão corretos. Nos passos 3 e 4 o agente destacou erroneamente o menu superior 'Firmas' (navbar) como se fosse 'Grupo de Trabalho > Grupo Firmas' (que não existe nesta tela) e acusou falso bloqueio de permissão em 'Balcão de Firmas'. A conta marcus (Perfil de acesso - Gerência webFirmas) possui 100% de permissão liberada. A rotina está desatualizada: o caminho real na tela atual é assinalar a opção 'Escrevente de Firmas' nos checkboxes do lado esquerdo da tela."
 ---
 
@@ -145,6 +236,16 @@ auditoria_ui:
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
 > **Motivo Técnico:** No passo 4, o manual cita "Permissões Específicas", "Balcão de Firmas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Firmas; Firmas > Balcão de firmas; Firmas > Reconhecimento de firmas; Firmas > Consultas > Reconhecimentos de firmas; Configurações > Perfis e permissões de acesso (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 4: rota **#/usuario/alterar/1**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Seções visíveis:** **Alteração de usuário**.
+> * **Campos:** **Usuário**, **Nome**, **CPF ou CIN**, **Cargo**, **E-mail**, **Telefone principal**, **Telefone**, **Perfil de Usuário**, **Escrevente de Firmas**, **Escrevente de Notas**, **Escrevente e-Recepção**, **Tabelião**, **Supervisor**, **Substituto**, **Auxiliar**.
+> * **Botões:** **Salvar**, **Excluir**, **Voltar**.
+> * **Correspondência sugerida para "Balcão de Firmas":** **Escrevente de Firmas** (campo, 45% — termo(s) em comum: firma).
+> * **Sem correspondência funcional na tela:** **Permissões Específicas**.
+> * Sugestão de reescrita: no passo 4, substituir **Balcão de Firmas** por **Escrevente de Firmas** (campo). **Permissões Específicas** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-04.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 A alteração de cartões de autógrafo é controlada por diretivas de segurança para impedir adulterações em firmas registradas. O operador deve estar vinculado ao grupo específico do balcão.
@@ -165,7 +266,7 @@ A alteração de cartões de autógrafo é controlada por diretivas de seguranç
    > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"Editar"**, porém na tela atual do Orion TN o elemento se chama **"Alterar"** (confiança: 92% — botão de ícone da primeira linha da grade, nome real lido do atributo title em x=1378, y=251, 11x13). O texto do manual não foi alterado.
 3. Na aba **Grupos de Trabalho**, certifique-se de marcar a opção **Grupo Firmas**.
    [aqui vai a print "passo-03.png"]
-   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"Grupo Firmas"**, porém na tela atual do Orion TN o elemento se chama **"Escrevente de Firmas"** (confiança: 90% — Sinônimo canônico Orion TN ('Grupo Firmas' -> 'Escrevente de Firmas')). O texto do manual não foi alterado.
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"Grupo Firmas"**, porém na tela atual do Orion TN o elemento se chama **"Escrevente de Firmas"** (confiança: 98% — Diretriz direta da revisão humana (C-FIRMA-03): "Grupo Firmas" -> "Escrevente de Firmas"). O texto do manual não foi alterado.
 4. Na aba **Permissões Específicas**, expanda o módulo **Balcão de Firmas** e habilite:
    [aqui vai a print "passo-04.png"]
    > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Permissões Específicas, Balcão de Firmas] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
@@ -179,7 +280,7 @@ A alteração de cartões de autógrafo é controlada por diretivas de seguranç
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 4 — Insuficiência de Privilégio na Conta de Homologação: A conta "marcus" ("Perfil de acesso - Gerência webFirmas", "Perfil de acesso - Gerência webCaixa", "Perfil de acesso - Gerência webEstoque") não tem acesso a "Balcão de Firmas", citado no passo 4: a aplicação o marca como bloqueado para o perfil (item oculto pela aplicação para o perfil logado). Evi → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Permissões Específicas", "Balcão de Firmas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
 * **Cura reaproveitada (passo 2):** "Editar" → "Alterar" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
-* **Cura reaproveitada (passo 3):** "Grupo Firmas" → "Firmas" — não reconfirmada nesta execução (a dica não foi usada)
+* **Cura reaproveitada (passo 3):** "Grupo Firmas" → "Escrevente de Firmas" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
 * **Cura reaproveitada (passo 1):** "Configurações > Segurança > Usuários" → "Configurações > Usuários" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

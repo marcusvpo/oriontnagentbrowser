@@ -4,47 +4,90 @@ titulo: 'Balcão de Firmas: Como Buscar e Selecionar Partes para o Reconheciment
 modulo: firmas
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-16'
+  data_execucao: '2026-11-17'
   status: atualizacao_editorial
+  review_tags: ['ATT']
   carga: mutation
   worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
-  tipo_bloqueio: 'Insuficiência de Privilégio na Conta de Homologação'
+  ambiente: 'Produtos (homologacao interna Siplan)'
+  tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
   prints_geradas: 1
   dry_run_mutations: true
-  sessao_usuario: '4tabeliao.scs'
+  sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
-  auto_cura:
-    acionada: true
-    divergencias_detectadas:
-      - passo: 1
-        alvo_documentado: 'Balcão de firmas'
-        elemento_real: '(não localizado na tela)'
-        camada: permission_blocked
-        confianca: 0
-        texto_alterado: false
+  exploracao_investigativa:
+    - passo: 1
+      alvos_ausentes: ['Balcão de firmas', 'Partes / Cartão de assinatura']
+      alvos_revelados: []
+      resultado: gatilhos_esgotados
+      gatilhos_na_tela: 0
+      seletores_sem_afinidade_descartados: 0
+      estado_restaurado: true
+  historico_reauditoria:
+    - data: '2026-11-17'
+      ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Insuficiência de Privilégio na Conta de Homologação'
+        motivo: 'A conta "4tabeliao.scs" ("Perfil de acesso - Gerência webCaixa", "Perfil de acesso - Gerência webEstoque", "Perfil de acesso - Gerência webGed", "Perfil de acesso - Gerência webLivros", "Perfil de acesso - Gerência webPro", "Perfil de acesso - Gerência webFirmas") não tem acesso a "Balcão de firmas"'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+  diagnostico_tela_att:
+    passo: 1
+    capturado_em: '2026-11-17T05:26:07.493Z'
+    rota: '#/inicio'
+    titulo_painel: 'OrionTN - Tabelionatos de Notas'
+    em_modal: false
+    secoes: []
+    abas: []
+    campos:
+      - rotulo: 'Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B'
+        tipo: 'text'
+    botoes: ['Clique aqui para ativar agora']
+    alvos_do_passo: ['Balcão de firmas', 'Partes / Cartão de assinatura']
+    correspondencias_sugeridas: []
+    alvos_sem_correspondencia: ['Balcão de firmas', 'Partes / Cartão de assinatura']
+    sugestao_reescrita: 'Sugestão de reescrita: Balcão de firmas, Partes / Cartão de assinatura não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
+    print_contexto: 'passo-01.png'
 ---
 
 > [!CAUTION]
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
-> A auditoria automática foi interrompida: **Insuficiência de Privilégio na Conta de Homologação**.
+> A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** A conta "4tabeliao.scs" ("Perfil de acesso - Gerência webCaixa", "Perfil de acesso - Gerência webEstoque", "Perfil de acesso - Gerência webGed", "Perfil de acesso - Gerência webLivros", "Perfil de acesso - Gerência webPro", "Perfil de acesso - Gerência webFirmas") não tem acesso a "Balcão de firmas", citado no passo 1: a aplicação o marca como bloqueado para o perfil (item oculto pela aplicação para o perfil logado). Evidência no DOM: li.functionality.ngx-orion-hide. O elemento existe no sistema; o texto original foi preservado.
+> **Motivo Técnico:** No passo 1, o manual cita "Balcão de firmas", "Partes / Cartão de assinatura", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e não encontrou gatilho revelador seguro a testar: nenhuma aba interna inativa, nenhum painel recolhido, nenhum botão de abertura (Alterar, Editar, Adicionar, Novo, Avançado, Filtros) e nenhum seletor condicional com afinidade ao elemento. O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Firmas; Firmas > Balcão de firmas; Firmas > Reconhecimento de firmas; Firmas > Consultas > Reconhecimentos de firmas; Firmas > Cadastros > Cartão de assinatura (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+
+> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
+> Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
+> * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
+> * **Botões:** **Clique aqui para ativar agora**.
+> * **Sem correspondência funcional na tela:** **Balcão de firmas**, **Partes / Cartão de assinatura**.
+> * Sugestão de reescrita: **Balcão de firmas**, **Partes / Cartão de assinatura** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
+> * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
 Instrui como localizar e selecionar a ficha de firma ou o sinal público do signatário durante o atendimento de balcão, exibindo imagens de fotos, espelhos de assinatura e vínculos de representação para confronto visual.
 
 #### Roteiro Técnico para Execução Manual:
-1. Liberar a funcionalidade "Balcão de firmas" para o perfil da conta de homologação, ou autenticar com uma conta que a possua.
-2. Reexecutar a auditoria desta rotina e revisar as prints geradas.
+1. Abrir a tela do passo 1 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
 
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
 
 #### Passo a passo (texto original preservado):
 1. Com o pedido aberto na tela **Balcão de firmas**, clique no campo **Partes / Cartão de assinatura**.
    [aqui vai a print "passo-01.png"]
-   > [!WARNING] **Alvo bloqueado para o perfil logado:** **"Balcão de firmas"** existe no sistema, mas a aplicação o bloqueia para a conta de homologação (item oculto pela aplicação para o perfil logado — li.functionality.ngx-orion-hide).
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Insuficiência de Privilégio na Conta de Homologação: "Balcão de firmas" está bloqueado para o perfil logado (item oculto pela aplicação para o perfil logado)
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Balcão de firmas, Partes / Cartão de assinatura] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
 2. Digite o nome da pessoa, número do CPF ou número da ficha e aguarde a exibição da listagem de autocompletar.
 3. Em caso de homônimos, confira na lista o número do CPF, filiação e data de nascimento antes de clicar no registro.
 4. Para sinais públicos de outras serventias, marque a opção **Sinal Público** para filtrar a tabela de tabeliães e prepostos credenciados.
@@ -53,3 +96,8 @@ Instrui como localizar e selecionar a ficha de firma ou o sinal público do sign
 
 * **Importante: Se a ficha estiver com status **Bloqueado** ou houver **Impedimento** ativo, o sistema emitirá aviso vermelho em pop-up impedindo a continuidade do serviço.**
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
+
+#### Evolução da Reauditoria
+* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
+* **Bloqueio anterior:** passo 1 — Insuficiência de Privilégio na Conta de Homologação: A conta "4tabeliao.scs" ("Perfil de acesso - Gerência webCaixa", "Perfil de acesso - Gerência webEstoque", "Perfil de acesso - Gerência webGed", "Perfil de acesso - Gerência webLivros", "Perfil de acesso - Gerência webPro", "Perfil de acesso - Gerência webFirmas") não tem acesso a "Balcão de firmas" → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

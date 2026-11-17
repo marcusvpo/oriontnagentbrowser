@@ -31,6 +31,7 @@ import { autoSeedMockRecord, routineNeedsExistingRows } from './auto-seed.js';
 import { ACTIVE_MODAL_SELECTOR, closeActiveModals } from './modal-scope.js';
 import { detectImplicitTargets } from './implicit-targets.js';
 import { classifyBlock, describeStatus } from './review-classifier.js';
+import { captureAttScreenDiagnosis, contextPrintName, type AttScreenDiagnosis } from './att-screen-advisor.js';
 import { describeTags, reviewPrefix, reviewTagsFor, stripReviewPrefix, type ReviewTag } from './review-taxonomy.js';
 import { stampStepScopes, stripProductNameTargets } from './step-scope.js';
 import { isGlobalSearchName, isStrictNavigationStep } from './navigation-guard.js';
@@ -403,7 +404,7 @@ export async function executeRoutineAudit(
   // Artefatos de execuções anteriores desta mesma rotina não podem conviver com o relatório novo
   // (ex.: prints de passos que agora nem chegam a ser auditados por causa do RBAC Gate).
   for (const stale of await fs.promises.readdir(routineDir)) {
-    if (/^passo-\d+(-[a-z])?\.(png|webp)$/i.test(stale) || /-revisado\.md$/i.test(stale)) {
+    if (/^passo-\d+(-[a-z]|-contexto-att)?\.(png|webp)$/i.test(stale) || /-revisado\.md$/i.test(stale)) {
       await fs.promises.rm(path.join(routineDir, stale), { force: true });
     }
   }
@@ -1462,6 +1463,8 @@ export async function executeRoutineAudit(
   }
 
   const hasBlocks = stepResults.some(r => r.status === 'blocked');
+  /** Raio-X da tela real de um bloqueio `[ATT]` (ADR-028) */
+  let attDiagnosis: AttScreenDiagnosis | undefined;
 
   // ADR-021: classificação do bloqueio em [ATT] / [DDD] / [XRX] (ou falha técnica, sem tag)
   let reviewStatus: ReturnType<typeof classifyBlock>['status'] = null;
@@ -1492,6 +1495,34 @@ export async function executeRoutineAudit(
     block = cls.block;
     if (reviewStatus) {
       console.log(`   [Revisão Humana] ${describeStatus(reviewStatus)} — ${block.tipo}${block.prerequisites?.length ? ` | pré-requisitos: ${block.prerequisites.join(', ')}` : ''}`);
+    }
+
+    // ADR-028: Raio-X propositivo da tela real. Todas as camadas de localização já se esgotaram e a tela do
+    // bloqueio ainda está aberta: lê o inventário (somente leitura) para subsidiar a atualização do manual.
+    if (reviewStatus === 'atualizacao_editorial' && usesBrowser && gate.satisfied && blockedStep != null && manualBlockedStep) {
+      const padBlocked = String(blockedStep).padStart(2, '0');
+      const mainCount = manualBlockedStep.mainTargetCount ?? manualBlockedStep.targets.length;
+      attDiagnosis =
+        (await captureAttScreenDiagnosis(client, {
+          stepNumber: blockedStep,
+          stepText: manualBlockedStep.rawText,
+          targets: manualBlockedStep.targets.slice(0, mainCount),
+          menuPath: extractMenuPaths(manualBlockedStep).length > 0,
+          existingPrint: blockedResult?.printFiles?.[0],
+          ensureContextPrint: async () => {
+            const rawCtx = path.join(cacheDir, `${fileName}-passo-${padBlocked}-contexto-raw.png`);
+            await client.screenshot(rawCtx);
+            const name = contextPrintName(blockedStep);
+            await saveCleanPrint(rawCtx, path.join(routineDir, name));
+            return name;
+          }
+        })) ?? undefined;
+      if (attDiagnosis) {
+        const inv = attDiagnosis.inventory;
+        console.log(
+          `   [Raio-X ATT] ${inv.route || '(sem hash)'} | ${inv.sections.length} seção(ões), ${inv.fields.length} campo(s), ${inv.buttons.length} botão(ões) | ${attDiagnosis.suggestions.length} correspondência(s) sugerida(s)${attDiagnosis.contextPrint ? ` | print: ${attDiagnosis.contextPrint}` : ''}`
+        );
+      }
     }
   }
 
@@ -1590,7 +1621,8 @@ export async function executeRoutineAudit(
     seededRecords,
     extraTags,
     ambiente: config.envLabel,
-    reauditHistory: reauditEntry ? mergeHistory(prior, reauditEntry) : undefined
+    reauditHistory: reauditEntry ? mergeHistory(prior, reauditEntry) : undefined,
+    attDiagnosis
   });
   for (const v of lockViolations) console.warn(`🔒 [Trava de Evidência] ${v}`);
   await fs.promises.writeFile(revisedDocPath, revisedDocContent, 'utf-8');
