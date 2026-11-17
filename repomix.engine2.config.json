@@ -3,7 +3,7 @@
   "output": {
     "filePath": ".repomix-output/02b-motor-operacao.md",
     "style": "markdown",
-    "headerText": "ORION TN - Super-Contexto (Parte 3/5): operacao do motor de auditoria (orquestrador da Fase 2, API server, MCP, sync Supabase, invariantes, relatorio, CLI, exportadores, daemon, worker pool, RAG de revisoes, consultor [ATT], Firmas). Nucleo na Parte 2/5; periferia e scripts na Parte 4/5. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "headerText": "ORION TN - Super-Contexto (Parte 3/5): operacao do motor de auditoria (API server, MCP, sync Supabase, invariantes, relatorio, CLI, exportadores, daemon, worker pool, RAG de revisoes, consultor [ATT], Firmas, seed de revisoes) + contratos (types.ts, phase3-types.ts) e migrations SQL. Nucleo na Parte 2/5; periferia e scripts na Parte 4/5. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
     "fileSummary": true,
     "directoryStructure": true,
     "removeComments": false,
@@ -11,7 +11,6 @@
     "showLineNumbers": false
   },
   "include": [
-    "auditoria/src/run-phase2-master.ts",
     "auditoria/src/server.ts",
     "auditoria/src/mcp-server.ts",
     "auditoria/src/sync-supabase.ts",
@@ -26,9 +25,12 @@
     "auditoria/src/worker-daemon.ts",
     "auditoria/src/worker-pool.ts",
     "auditoria/src/evidence.ts",
-    "auditoria/src/semantic-compatibility.ts",
     "auditoria/src/step-scope.ts",
-    "auditoria/src/navigation-guard.ts"
+    "auditoria/src/supabase.ts",
+    "auditoria/src/seed-human-reviews.ts",
+    "auditoria/src/types.ts",
+    "auditoria/src/manifests/phase3-types.ts",
+    "auditoria/supabase/**/*.sql"
   ],
   "ignore": {
     "useGitignore": true,

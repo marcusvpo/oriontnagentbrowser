@@ -57,3 +57,33 @@ Repository Secrets no GitHub e, se necessário, `.env` local ignorado pelo Git: 
 
 ## 5. Rebalanceamento para o parser do NotebookLM (2026-11-17)
 Medição após o rebalanceamento: 558 k (01), 495 k (02a), 464 k (02b), 485 k (02c) e 524 k (03) caracteres, todos < 570 k. `npm run check:context` e `tsc --noEmit` (auditoria) com código 0. Exige o secret/variável `GDRIVE_FILE_ID_ENGINE_3` (5º Google Doc nativo, compartilhado como Editor com a Service Account); o Doc do antigo `02b-motor-periferia-e-scripts` (`GDRIVE_FILE_ID_ENGINE_2`) passa a receber o pacote 02b (operação).
+
+## 6. Adendo: desafogamento e rebalanceamento dos 5 pacotes (2026-11-17)
+
+**Motivo.** Com o 01 em 98% e o 03 em 92% do teto, qualquer ADR, módulo ou teste novo derrubaria o CI. Meta operacional: **todos os 5 pacotes < 450.000 caracteres** (~78% do teto; os pacotes do motor, entre 370 k e 445 k) e aviso preventivo a **82% do teto (~467.000)**. `MAX_CHARS = 570.000` permanece como teto rígido e `removeComments: false` continua valendo. Esta seção prevalece sobre a tabela do §2.2 e os números do §5.
+
+**Antes × Depois (caracteres / palavras):**
+
+| Pacote | Antes | Depois | % do teto (570 k) |
+| :--- | :--- | :--- | :--- |
+| 01 Memória | 560.022 / 71.836 | ≈ 439 k / ≈ 57 k | 98% → 77% |
+| 02a Núcleo | 495.342 / 54.658 | ≈ 423 k / ≈ 46 k | 87% → 74% |
+| 02b Operação + contratos | 463.868 / 48.403 | ≈ 436 k / ≈ 46 k | 81% → 77% |
+| 02c Periferia + scripts | 485.336 / 51.312 | ≈ 440 k / ≈ 48 k | 85% → 77% |
+| 03 Console + testes | 524.384 / 53.355 | ≈ 428 k / ≈ 43 k | 92% → 75% |
+
+**Nova distribuição.**
+- **01** é exclusivo de memória viva e governança: `CLAUDE.md`, `.agents/memory/**`, `.agents/skills/**`, `auditoria/tsconfig.json`. `types.ts`, `phase3-types.ts` e as migrations SQL passam ao **02b**.
+- **02a (núcleo):** `executor`, `smart-locator`, `dom-geometry`, `browser`, `stateful-step-engine`, `rbac`, `navigation-guard`, `semantic-compatibility`, `auth`, `modal-scope`.
+- **02b (operação + contratos):** `server`, `mcp-server`, `sync-supabase`, `invariants`, `att-screen-advisor`, `human-review-rag`, `report`, `firmas-interactive`, `cli`, `exporters`, `verify-all-phase2-boxes`, `worker-daemon`, `worker-pool`, `evidence`, `step-scope`, `supabase`, `seed-human-reviews`, `types`, `manifests/phase3-types.ts` e `auditoria/supabase/**/*.sql`.
+- **02c (periferia + scripts):** todo o restante de `auditoria/src/**/*.ts` (arquivo novo cai aqui automaticamente) + scripts ativos.
+- **03:** Console (`src/**/*.ts(x)`) + testes do motor.
+
+**Exclusões de baixo sinal (continuam no repositório; só saem do contexto):**
+- **01:** `GEMINI.md` (espelho do `CLAUDE.md` pela simetria do §5), `.agents/memory/README.md`, `standards/design_system_siplan.md`, `standards/guia_comandos_claude_antigravity.md`, `.mcp.json`, `package.json`, `auditoria/package.json` (já documentados em ADRs e no `CLAUDE.md`).
+- **Motor (`LEGACY_EXCLUDED` em `upload-to-drive.mjs`):** 13 scripts exploratórios/one-off sem nenhum importador (`capture-all-config-tabs`, `capture-captura-screen`, `check-integrity`, `check-more-routes`, `check-session`, `explore-menu-details`, `explore-menu-tree`, `generate-human-review-routines`, `generate-perfect-phase1`, `list-phase2`, `probe-grid-icons`, `render-all-phase1`, `test-routes-live`), o ramo legado da Fase 1 (`execute-phase1`, `execute-phase2`) e o runner declarativo antigo `run-phase2-master.ts` (`--engine manifest`; cerca de 60% do arquivo é o array estático `ROUTINES`, dado como o `phase3-manifest.ts`). `scripts/`: `dev-all.js`, `sync_openai_vector_store.py` e `antigravity-worker/test_sdk_worker.py`.
+- **03:** `package.json` e `tsconfig.json` do Console, `src/mocks/**`, `src/design-system/**` (scaffold gerado) e as rotas `*.preview.$.tsx`. **Cuidado de glob:** os nomes reais têm colchetes (`[__component].preview.$.tsx`), que o glob lê como classe de caracteres e não casam o arquivo; o padrão correto é `Orion Audit Console/src/routes/*.preview.$.tsx`.
+
+**Validador (`scripts/upload-to-drive.mjs --check`).** `types.ts` deixou de ser exceção e tem dono único (02b); todo `auditoria/src/*.ts` pertence a exatamente 1 pacote **ou** a `LEGACY_EXCLUDED` (que precisa estar no `ignore` do 02c e fora de 02a/02b); 02c deve ignorar `manifests/**`; o 01 não pode incluir arquivos de `auditoria/src/` nem de `auditoria/supabase/`. O aviso preventivo passou de 90% para 82% do teto.
+
+**Verificação.** `npm run pack:context`, `npm run check:context`, `node --check scripts/upload-to-drive.mjs` e `tsc --noEmit` (auditoria) com código 0; nenhum pacote ≥ 450.000 caracteres. Nenhum arquivo de código foi alterado ou apagado.

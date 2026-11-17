@@ -32,6 +32,8 @@ try {
 
 /** Teto por Google Doc: ~570k caracteres (~260 paginas). Acima de ~300 paginas o parser do NotebookLM estoura o timeout (o Docs aceitaria ate ~1,02 M). */
 const MAX_CHARS = 570_000;
+/** Aviso preventivo: 82% do teto (~467.000). A meta operacional dos pacotes e < 450.000 (ADR-034, adendo de desafogamento). */
+const WARN_RATIO = 0.82;
 /** Limite de palavras por fonte do NotebookLM (500k); avisa a partir de 450k. */
 const WARN_WORDS = 450_000;
 const DOC_MIME = 'application/vnd.google-apps.document';
@@ -61,6 +63,18 @@ function readJson(rel) {
 }
 
 /**
+ * Arquivos de auditoria/src excluidos de proposito de TODOS os pacotes (scripts exploratorios/one-off ja superados,
+ * runner declarativo antigo com manifesto estatico e ramo legado da Fase 1). Cada um deve estar no ignore do 02c
+ * e nao pode aparecer em 02a/02b. Lista curta e explicita: um arquivo novo nunca some do contexto em silencio.
+ */
+const LEGACY_EXCLUDED = [
+  'capture-all-config-tabs', 'capture-captura-screen', 'check-integrity', 'check-more-routes', 'check-session',
+  'explore-menu-details', 'explore-menu-tree', 'generate-human-review-routines', 'generate-perfect-phase1',
+  'list-phase2', 'probe-grid-icons', 'render-all-phase1', 'test-routes-live',
+  'execute-phase1', 'execute-phase2', 'run-phase2-master',
+].map((name) => `auditoria/src/${name}.ts`);
+
+/**
  * Consistencia dos configs: include explicito precisa existir (um arquivo renomeado sairia do pacote
  * em silencio) e o nucleo do motor (02a) nao pode se repetir na periferia (02b).
  */
@@ -80,17 +94,25 @@ function checkConfigs() {
     }
   }
   checkEngineDisjoint(configs);
-  if (configs.engine && configs.memory) {
+  if (configs.memory) {
+    // O 01 e exclusivo de memoria/governanca: nenhum arquivo do motor, contrato ou migration pode estar nele.
     const memory = new Set(configs.memory.include ?? []);
-    for (const entry of configs.engine.include ?? []) {
-      if (memory.has(entry)) errors.push(`${entry} aparece nos pacotes 01 e 02a.`);
+    for (const key of ['engine', 'engine2']) {
+      for (const entry of configs[key]?.include ?? []) {
+        if (memory.has(entry)) errors.push(`${entry} aparece nos pacotes 01 e ${key === 'engine' ? '02a' : '02b'}.`);
+      }
+    }
+    for (const entry of memory) {
+      if (entry.startsWith('auditoria/src/') || entry.startsWith('auditoria/supabase/')) {
+        errors.push(`${entry} esta no include do 01, que e exclusivo de memoria (contratos e SQL moram no 02b).`);
+      }
     }
   }
 }
 
 /**
- * 02a.include, 02b.include e 02c devem ser 100% disjuntos e cobrir todo auditoria/src/*.ts
- * (exceto types.ts, que vive no pacote 01): zero sobreposicao e zero arquivo esquecido.
+ * 02a.include, 02b.include e 02c devem ser 100% disjuntos e cobrir todo auditoria/src/*.ts (types.ts inclusive, dono
+ * unico 02b): cada arquivo pertence a exatamente 1 pacote OU a LEGACY_EXCLUDED. Zero sobreposicao, zero esquecido.
  */
 function checkEngineDisjoint(configs) {
   const { engine, engine2, engine3 } = configs;
@@ -99,16 +121,25 @@ function checkEngineDisjoint(configs) {
   const inB = new Set(engine2.include ?? []);
   for (const entry of inA) if (inB.has(entry)) errors.push(`${entry} aparece nos pacotes 02a e 02b.`);
   const ignoreC = new Set(engine3.ignore?.customPatterns ?? []);
+  const isSrcTs = (entry) => entry.startsWith('auditoria/src/') && !entry.startsWith('auditoria/src/manifests/') && entry.endsWith('.ts') && !hasGlob(entry);
   for (const entry of [...inA, ...inB]) {
-    if (!ignoreC.has(entry)) errors.push(`${entry} esta em 02a/02b mas nao no ignore de 02c: sairia duplicado.`);
+    if (isSrcTs(entry) && !ignoreC.has(entry)) errors.push(`${entry} esta em 02a/02b mas nao no ignore de 02c: sairia duplicado.`);
+  }
+  if (!ignoreC.has('auditoria/src/manifests/**')) errors.push('02c deve ignorar auditoria/src/manifests/** (manifestos sao dados, nao logica).');
+  if (!inB.has('auditoria/src/manifests/phase3-types.ts')) errors.push('02b deve incluir auditoria/src/manifests/phase3-types.ts (contrato do manifesto).');
+  if (!inB.has('auditoria/src/types.ts')) errors.push('02b deve incluir auditoria/src/types.ts (contratos de tipos).');
+  const legacy = new Set(LEGACY_EXCLUDED);
+  for (const rel of LEGACY_EXCLUDED) {
+    if (!ignoreC.has(rel)) errors.push(`${rel} e legado excluido mas nao esta no ignore de 02c: entraria no pacote.`);
+    if (inA.has(rel) || inB.has(rel)) errors.push(`${rel} e legado excluido mas aparece no include de 02a/02b.`);
   }
   const srcDir = path.join(ROOT_DIR, 'auditoria', 'src');
   for (const name of fs.readdirSync(srcDir)) {
     if (!name.endsWith('.ts') || name.endsWith('.test.ts')) continue;
     const rel = `auditoria/src/${name}`;
-    if (rel === 'auditoria/src/types.ts') continue;
+    if (legacy.has(rel)) continue;
     const owners = [inA.has(rel) && '02a', inB.has(rel) && '02b', !ignoreC.has(rel) && '02c'].filter(Boolean);
-    if (owners.length !== 1) errors.push(`${rel} pertence a ${owners.length} pacotes do motor (${owners.join(',') || 'nenhum'}); deve estar em exatamente 1.`);
+    if (owners.length !== 1) errors.push(`${rel} pertence a ${owners.length} pacotes do motor (${owners.join(',') || 'nenhum'}); deve estar em exatamente 1 (ou em LEGACY_EXCLUDED).`);
   }
 }
 
@@ -136,7 +167,7 @@ function measureBundles() {
       errors.push(`${bundle.file} tem ${fmt(chars)} caracteres (> ${fmt(MAX_CHARS)}): o Google Docs rejeitaria a conversao. Rebalanceie os bundles em repomix.*.config.json.`);
       continue;
     }
-    if (chars > MAX_CHARS * 0.9) warnings.push(`${bundle.file} usa ${pct}% do limite; considere rebalancear antes que estoure.`);
+    if (chars > MAX_CHARS * WARN_RATIO) warnings.push(`${bundle.file} usa ${pct}% do limite (aviso a partir de ${Math.round(WARN_RATIO * 100)}%, ~${fmt(Math.round(MAX_CHARS * WARN_RATIO))} caracteres); rebalanceie antes que estoure.`);
     if (words > WARN_WORDS) warnings.push(`${bundle.file} tem ${fmt(words)} palavras (> ${fmt(WARN_WORDS)}; limite de ~500.000 por fonte do NotebookLM).`);
     ready.push({ ...bundle, abs, chars });
   }

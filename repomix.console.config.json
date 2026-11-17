@@ -11,8 +11,6 @@
     "showLineNumbers": false
   },
   "include": [
-    "Orion Audit Console/package.json",
-    "Orion Audit Console/tsconfig.json",
     "Orion Audit Console/src/**/*.ts",
     "Orion Audit Console/src/**/*.tsx",
     "auditoria/src/__tests__/**/*.ts"
@@ -21,6 +19,11 @@
     "useGitignore": true,
     "useDefaultPatterns": true,
     "customPatterns": [
+      "Orion Audit Console/package.json",
+      "Orion Audit Console/tsconfig.json",
+      "Orion Audit Console/src/mocks/**",
+      "Orion Audit Console/src/design-system/**",
+      "Orion Audit Console/src/routes/*.preview.$.tsx",
       "Orion Audit Console/src/routeTree.gen.ts",
       "Orion Audit Console/src/.generated/**",
       "**/node_modules/**",

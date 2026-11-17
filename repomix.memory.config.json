@@ -3,7 +3,7 @@
   "output": {
     "filePath": ".repomix-output/01-memoria-e-contratos.md",
     "style": "markdown",
-    "headerText": "ORION TN - Super-Contexto (Parte 1/5): Memoria Viva, ADRs, padroes, skills, contratos de tipos e migrations SQL. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "headerText": "ORION TN - Super-Contexto (Parte 1/5): Memoria Viva exclusiva (CLAUDE.md, ADRs, padroes, skills). Contratos de tipos e migrations SQL estao na Parte 3/5. GEMINI.md (espelho do CLAUDE.md) fica fora dos pacotes. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
     "fileSummary": true,
     "directoryStructure": true,
     "removeComments": false,
@@ -12,21 +12,17 @@
   },
   "include": [
     "CLAUDE.md",
-    "GEMINI.md",
-    ".mcp.json",
-    "package.json",
     ".agents/memory/**/*.md",
     ".agents/skills/**/*.md",
-    "auditoria/package.json",
-    "auditoria/tsconfig.json",
-    "auditoria/src/types.ts",
-    "auditoria/src/manifests/phase3-types.ts",
-    "auditoria/supabase/**/*.sql"
+    "auditoria/tsconfig.json"
   ],
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,
     "customPatterns": [
+      ".agents/memory/README.md",
+      ".agents/memory/standards/design_system_siplan.md",
+      ".agents/memory/standards/guia_comandos_claude_antigravity.md",
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",

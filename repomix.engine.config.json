@@ -3,7 +3,7 @@
   "output": {
     "filePath": ".repomix-output/02a-motor-nucleo.md",
     "style": "markdown",
-    "headerText": "ORION TN - Super-Contexto (Parte 2/5): nucleo do motor de auditoria (executor, SmartLocator, geometria DOM, browser, menu, maquina de estado, exploracao, RBAC, anotador, sessao). Operacao do motor na Parte 3/5; periferia e scripts na Parte 4/5. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
+    "headerText": "ORION TN - Super-Contexto (Parte 2/5): nucleo do motor de auditoria (executor, SmartLocator, geometria DOM, browser, maquina de estado, RBAC, guarda de navegacao, compatibilidade semantica, sessao, escopo de modal). Operacao e contratos na Parte 3/5; periferia e scripts na Parte 4/5. Fonte: GitHub marcusvpo/oriontnagentbrowser (branch main).",
     "fileSummary": true,
     "directoryStructure": true,
     "removeComments": false,
@@ -15,12 +15,12 @@
     "auditoria/src/smart-locator.ts",
     "auditoria/src/dom-geometry.ts",
     "auditoria/src/browser.ts",
-    "auditoria/src/menu-path.ts",
     "auditoria/src/stateful-step-engine.ts",
-    "auditoria/src/reveal-explorer.ts",
     "auditoria/src/rbac.ts",
-    "auditoria/src/annotator.ts",
-    "auditoria/src/auth.ts"
+    "auditoria/src/navigation-guard.ts",
+    "auditoria/src/semantic-compatibility.ts",
+    "auditoria/src/auth.ts",
+    "auditoria/src/modal-scope.ts"
   ],
   "ignore": {
     "useGitignore": true,
