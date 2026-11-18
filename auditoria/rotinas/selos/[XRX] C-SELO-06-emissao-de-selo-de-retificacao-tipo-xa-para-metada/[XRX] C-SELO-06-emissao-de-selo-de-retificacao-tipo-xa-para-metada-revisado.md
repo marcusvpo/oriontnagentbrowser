@@ -4,7 +4,7 @@ titulo: 'Emissão de Selo de Retificação (Tipo XA) para Metadados de Selo já 
 modulo: selos
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
@@ -38,6 +38,23 @@ auditoria_ui:
         passo: 1
         tipo: 'Dependência Cruzada de Rotina'
         motivo: 'O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 1 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo.'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 2 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo.'
       bloqueio_atual:
         passo: 2
         tipo: 'Dependência Cruzada de Rotina'
@@ -79,6 +96,6 @@ De acordo com as normas da Corregedoria (TJSP), selos digitais transmitidos são
 * **Importante: O selo de retificação não gera novas custas de emolumentos ao cliente; trata-se de ato estritamente fiscal e regulatório.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 1 — Dependência Cruzada de Rotina: O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 1 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo. → **superado** (agora: passo 2, Dependência Cruzada de Rotina)
+* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 2 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo. → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)

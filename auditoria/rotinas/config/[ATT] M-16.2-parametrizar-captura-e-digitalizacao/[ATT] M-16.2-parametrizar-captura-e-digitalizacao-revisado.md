@@ -4,12 +4,12 @@ titulo: Parametrizar Captura e Digitalização
 modulo: config
 secao: M
 auditoria_ui:
-  data_execucao: 2026-11-17
+  data_execucao: 2026-11-18
   status: atualizacao_editorial
   review_tags:
     - ATT
   carga: mutation
-  worker_id: worker-4
+  worker_id: worker-2
   versao_homologacao: WildFly 22 / Orion 06.04.01
   ambiente: Produtos (homologacao interna Siplan)
   tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
@@ -42,7 +42,7 @@ auditoria_ui:
         - tipo: tab
           rotulo: Faturamento
           deduzido_do_dom: false
-          resultado: tela_com_erro
+          resultado: sem_efeito
         - tipo: tab
           rotulo: Campos obrigatórios
           deduzido_do_dom: false
@@ -60,7 +60,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: menu-tree | [data-orion-audit-menu-mmwku4coa7cqmgl-130] | x=850, y=171, 175x20
+        evidencia: menu-tree | [data-orion-audit-menu-mmwll6majdnimes-130] | x=850, y=171, 175x20
   historico_reauditoria:
     - data: 2026-11-17
       ambiente_anterior: não registrado (anterior ao ADR-025)
@@ -125,9 +125,34 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-18
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+        motivo: No passo 2, o manual cita "Dispositivo de Captura", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Ante
+      bloqueio_atual:
+        passo: 2
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: Administração > Parâmetros > Captura e digitalização
+          real: Configurações > Parametrizações
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 2
-    capturado_em: 2026-11-17T15:20:35.662Z
+    capturado_em: 2026-11-18T04:00:16.972Z
     rota: "#/configuracoes"
     titulo_painel: OrionTN - Tabelionatos de Notas
     em_modal: false
@@ -176,7 +201,7 @@ auditoria_ui:
     print_contexto: passo-02.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T18:11:14.586Z
+  governanca_atualizado_em: 2026-11-18T15:13:47.812Z
   governanca_comentario: No passo 2, demarcar apenas o item 'Captura e digitalização' no menu lateral esquerdo sem ocluir o texto. No passo 3, demarcar os campos reais do painel central ('Cor para digitalização do DUT', 'Dpi's para digitalização do DUT', 'Mostrar configurações do scanner'), nunca a coluna inteira da sidebar.
 ---
 

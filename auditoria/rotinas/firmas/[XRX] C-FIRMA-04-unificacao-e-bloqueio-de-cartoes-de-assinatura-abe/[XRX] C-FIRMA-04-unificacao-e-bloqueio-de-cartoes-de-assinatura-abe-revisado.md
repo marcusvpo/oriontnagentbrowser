@@ -4,11 +4,11 @@ titulo: 'Unificação e Bloqueio de Cartões de Assinatura Abertos em Duplicidad
 modulo: firmas
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -39,7 +39,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkvlejo3gi956-12] | x=633, y=109, 330x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlhu38xe7kf6q-12] | x=633, y=109, 330x20'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -73,6 +73,29 @@ auditoria_ui:
       bloqueio_atual:
         passo: 3
         tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" n'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Balcão de Firmas > Fichas / Cartões de Assinatura'
+          real: 'Firmas > Cadastros > Cartão de assinatura'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
 ---
@@ -118,5 +141,6 @@ A legislação veda a exclusão física de fichas numeradas. A duplicidade deve 
 
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
-* **Status:** [ATT] atualizacao_editorial → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Balcão de Firmas > Fichas / Cartões de Assinatura" não existe na árvore de navegação real do Orion TN. O menu raiz "Balcão de Firmas" não existe na barra de navegação (menus lidos: "Dashboard", "Firmas", "Notas", → **superado** (agora: passo 3, Dependência Cruzada de Rotina)
+* **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
+* **Bloqueio anterior:** passo 3 — Dependência Cruzada de Rotina: No passo 3, a tela está sem dados (grade com 8 coluna(s) visível(is) (Nº Cartão, Nome, Nome Social, CPF ou CIN, NFS, Data digitação) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Imprimir" (Realize uma busca com resultados para imprimir)). Há botão "Adicionar" n → **mantido** (agora: passo 3, Dependência Cruzada de Rotina)
+* **Cura reaproveitada (passo 1):** "Balcão de Firmas > Fichas / Cartões de Assinatura" → "Firmas > Cadastros > Cartão de assinatura" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

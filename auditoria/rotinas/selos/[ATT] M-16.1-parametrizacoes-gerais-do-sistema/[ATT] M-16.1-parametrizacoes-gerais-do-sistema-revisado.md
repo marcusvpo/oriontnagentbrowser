@@ -4,11 +4,11 @@ titulo: 'Parametrizações Gerais do Sistema'
 modulo: selos
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -58,14 +58,14 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwky6mj197xsci-130] | x=850, y=171, 175x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlkibur8yurup-130] | x=850, y=171, 175x20'
       - passo: 1
         alvo_documentado: 'Parâmetros gerais'
         elemento_real: 'Geral'
         camada: dom_synonym_heuristic
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'dom-measured | group:[data-orion-stateful-stmwky7lkm4cei-0] | x=26, y=94, 211x34'
+        evidencia: 'dom-measured | group:[data-orion-stateful-stmwlkj6ef1qtg-0] | x=26, y=94, 211x34'
       - passo: 2
         alvo_documentado: 'Papel de Segurança (NFS)'
         elemento_real: '(não localizado na tela)'
@@ -113,9 +113,36 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Papel de Segurança (NFS)", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inve'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Parâmetros gerais'
+          real: 'Geral'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Parâmetros gerais'
+          real: 'Configurações > Parametrizações'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 2
-    capturado_em: '2026-11-17T17:16:26.103Z'
+    capturado_em: '2026-11-18T03:40:59.701Z'
     rota: '#/configuracoes'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -219,4 +246,6 @@ Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Parâmetros gerais" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escritura → **superado** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Papel de Segurança (NFS)", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inve → **mantido** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 1):** "Parâmetros gerais" → "Geral" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Parâmetros gerais" → "Configurações > Parametrizações" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

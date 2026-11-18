@@ -4,7 +4,7 @@ titulo: 'Cadastrar Cartão de Assinatura'
 modulo: firmas
 secao: D
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
@@ -81,9 +81,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Preencher com IA", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do b'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 2
-    capturado_em: '2026-11-17T17:44:48.816Z'
+    capturado_em: '2026-11-18T03:20:28.735Z'
     rota: '#/ficha/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false

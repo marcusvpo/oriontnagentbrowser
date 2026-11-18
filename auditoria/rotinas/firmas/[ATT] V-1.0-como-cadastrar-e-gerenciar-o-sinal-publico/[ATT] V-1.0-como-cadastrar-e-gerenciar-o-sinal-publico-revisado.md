@@ -4,11 +4,11 @@ titulo: 'Como Cadastrar e Gerenciar o Sinal Público'
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -70,9 +70,25 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 3, o manual cita "data de recebimento/envio", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 3
-    capturado_em: '2026-11-17T16:23:23.812Z'
+    capturado_em: '2026-11-18T05:44:41.960Z'
     rota: '#/sinalPublico/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -199,5 +215,4 @@ Esta rotina orienta sobre o fluxo completo de gerenciamento do Sinal Público, d
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "\", "data de recebimento/envio", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploraçã → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
-* **Cura reaproveitada (passo 3):** "data de recebimento/envio" → "Data recebimento" — não reconfirmada nesta execução (a dica não foi usada)
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "data de recebimento/envio", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

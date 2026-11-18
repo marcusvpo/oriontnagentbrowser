@@ -4,7 +4,7 @@ titulo: 'Substituição de Certificado Digital A1 Vencido no Servidor Daemon de 
 modulo: selos
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: read_only
@@ -34,9 +34,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 5, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros de Integração > Certificado Digital" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de'
+      bloqueio_atual:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 5
-    capturado_em: '2026-11-17T04:56:37.271Z'
+    capturado_em: '2026-11-18T02:45:28.527Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -93,6 +110,6 @@ A comunicação segura e a assinatura dos lotes de selos exigem certificado ICP-
 * **Prevenção: Agende a renovação do certificado A1 com 15 dias de antecedência do vencimento para evitar interrupções no atendimento da serventia.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 5 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 5, o manual cita "Orion TN", "Configurações > Parâmetros de Integração > Certificado Digital", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca  → **mantido** (agora: passo 5, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 5 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 5, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros de Integração > Certificado Digital" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de → **mantido** (agora: passo 5, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

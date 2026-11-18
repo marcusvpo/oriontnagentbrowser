@@ -4,11 +4,11 @@ titulo: 'Configurar Atalhos do Teclado'
 modulo: config
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_dados_banco
   review_tags: ['DDD']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência de Dados no Banco de Homologação (Grade Vazia)'
@@ -58,14 +58,14 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkuhopof8jhih-130] | x=850, y=171, 175x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlmc74s5vxedm-130] | x=850, y=171, 175x20'
       - passo: 1
         alvo_documentado: 'Atalhos do teclado'
         elemento_real: 'Painel de atalhos'
         camada: dom_synonym_heuristic
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'dom-measured | group:[data-orion-stateful-stmwkuippf85wq-0] | x=26, y=298, 211x32'
+        evidencia: 'dom-measured | group:[data-orion-stateful-stmwlmdfbgbgpv-0] | x=26, y=298, 211x32'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -105,6 +105,34 @@ auditoria_ui:
       bloqueio_atual:
         passo: 4
         tipo: 'Dependência de Dados no Banco de Homologação (Grade Vazia)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_dados_banco'
+      tags_anteriores: ['DDD']
+      status_atual: 'dependencia_dados_banco'
+      tags_atuais: ['DDD']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Dependência de Dados no Banco de Homologação (Grade Vazia)'
+        motivo: 'No passo 4, a validação não pôde prosseguir: grade com 4 coluna(s) visível(is) (Função, Base, Atalho, Complemento) e 0 linhas de dados. Não existe botão Adicionar/Novo na tela. Nenhuma rotina do KB cria esses registros.'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência de Dados no Banco de Homologação (Grade Vazia)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Atalhos do teclado'
+          real: 'Painel de atalhos'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Atalhos do teclado'
+          real: 'Configurações > Parametrizações'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
 ---
@@ -151,5 +179,7 @@ Permite atribuir combinações de teclas rápidas (ex: combinações com CTRL, A
 
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
-* **Status:** [ATT] atualizacao_editorial → [DDD] dependencia_dados_banco
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Atalhos do teclado" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escritur → **superado** (agora: passo 4, Dependência de Dados no Banco de Homologação (Grade Vazia))
+* **Status:** [DDD] dependencia_dados_banco → [DDD] dependencia_dados_banco
+* **Bloqueio anterior:** passo 4 — Dependência de Dados no Banco de Homologação (Grade Vazia): No passo 4, a validação não pôde prosseguir: grade com 4 coluna(s) visível(is) (Função, Base, Atalho, Complemento) e 0 linhas de dados. Não existe botão Adicionar/Novo na tela. Nenhuma rotina do KB cria esses registros. → **mantido** (agora: passo 4, Dependência de Dados no Banco de Homologação (Grade Vazia))
+* **Cura reaproveitada (passo 1):** "Atalhos do teclado" → "Painel de atalhos" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Atalhos do teclado" → "Configurações > Parametrizações" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

@@ -4,11 +4,11 @@ titulo: 'Cadastro de Novo Tipo de Documento para Termo de Comparecimento'
 modulo: config
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -33,7 +33,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.86
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkzh3c09z690-123] | x=659, y=441, 191x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlmzx6fb83sp6-123] | x=659, y=441, 191x21'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -150,9 +150,32 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 3, o manual cita "CRV - SEFAZ SP", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Firmas > Termo de comparecimento > Tipos de documentos'
+          real: 'Configurações > Cadastros auxiliares > Tipo de documento'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 3
-    capturado_em: '2026-11-17T17:47:35.944Z'
+    capturado_em: '2026-11-18T04:47:00.534Z'
     rota: '#/tipoDocumento/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -228,5 +251,5 @@ Orienta o cadastro e parametrização técnica de um novo modelo de Termo de Com
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 3 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "CRV - SEFAZ SP", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do blo → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 3 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "CRV - SEFAZ SP", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
 * **Cura reaproveitada (passo 1):** "Firmas > Termo de comparecimento > Tipos de documentos" → "Configurações > Cadastros auxiliares > Tipo de documento" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

@@ -4,7 +4,7 @@ titulo: 'Disparo Forçado Síncrono de Fichas de Firma para o e-Notariado / CNN'
 modulo: centrais
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT', 'CCC']
   carga: mutation
@@ -36,7 +36,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.88
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkte3565pkepb-55] | x=474, y=88, 190x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlh1f1n7pygd0-55] | x=474, y=88, 190x21'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -72,9 +72,32 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT', 'CCC']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT', 'CCC']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 3, o manual cita "Cartões de Autógrafo / Fichas de Firma", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de '
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Administração > Comunicações > Outras Comunicações > E-Notariado'
+          real: 'Administração > Comunicações > Outras comunicações'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 3
-    capturado_em: '2026-11-17T14:56:54.310Z'
+    capturado_em: '2026-11-18T01:59:13.660Z'
     rota: '#/comunicacoes'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -151,4 +174,5 @@ Por padrão de economia de rede, o Orion TN acumula os cartões de autógrafo ab
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT][CCC] atualizacao_editorial → [ATT][CCC] atualizacao_editorial
-* **Bloqueio anterior:** passo 2 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Comunicações > Outras Comunicações > E-Notariado" não existe na árvore de navegação real do Orion TN. O menu **Administração > Comunicações > Outras Comunicações** existe na barra de navegação e c → **superado** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 3 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "Cartões de Autógrafo / Fichas de Firma", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de  → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 2):** "Administração > Comunicações > Outras Comunicações > E-Notariado" → "Administração > Comunicações > Outras comunicações" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

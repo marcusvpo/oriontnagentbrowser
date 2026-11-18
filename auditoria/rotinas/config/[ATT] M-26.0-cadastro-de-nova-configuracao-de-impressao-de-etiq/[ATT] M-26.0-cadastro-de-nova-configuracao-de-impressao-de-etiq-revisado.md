@@ -4,7 +4,7 @@ titulo: 'Cadastro de Nova Configuração de Impressão de Etiquetas'
 modulo: config
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
@@ -33,7 +33,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.84
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkzklg0gbpxqm-92] | x=677, y=129, 173x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwln4blia1kxml-92] | x=677, y=129, 173x21'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -114,9 +114,32 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 5, o manual cita "Salto (Gap)", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração In'
+      bloqueio_atual:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Configurações de impressão'
+          real: 'Configurações > Modelos de impressão > Configuração de impressão'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 5
-    capturado_em: '2026-11-17T17:51:46.331Z'
+    capturado_em: '2026-11-18T04:52:02.511Z'
     rota: '#/configuracaoImpressaoModelo/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -209,5 +232,4 @@ Detalha o cadastro técnico de um novo perfil geométrico de etiqueta, orientand
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
 * **Bloqueio anterior:** passo 5 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 5, o manual cita "Salto (Gap)", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração In → **mantido** (agora: passo 5, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
-* **Cura reaproveitada (passo 3):** "Largura" → "Largura da etiqueta (cm)" — não reconfirmada nesta execução (a dica não foi usada)
 * **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Configurações de impressão" → "Configurações > Modelos de impressão > Configuração de impressão" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

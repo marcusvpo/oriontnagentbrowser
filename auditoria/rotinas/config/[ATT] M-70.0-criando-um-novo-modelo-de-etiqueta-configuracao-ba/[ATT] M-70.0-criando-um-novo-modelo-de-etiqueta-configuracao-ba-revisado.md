@@ -4,11 +4,11 @@ titulo: 'Criando um Novo Modelo de Etiqueta (Configuração Básica)'
 modulo: config
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -33,7 +33,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkzyusx51imf-91] | x=677, y=109, 173x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlnx98ncheyuh-91] | x=677, y=109, 173x20'
       - passo: 4
         alvo_documentado: 'Reconhecimento de firma por semelhança sem valor econômico'
         elemento_real: '(não localizado na tela)'
@@ -102,9 +102,31 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 4, o manual cita "Reconhecimento de firma por semelhança sem valor econômico", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A '
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Modelos de etiqueta'
+          real: 'Configurações > Modelos de impressão > Etiquetas diversas'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 4
-    capturado_em: '2026-11-17T18:02:15.279Z'
+    capturado_em: '2026-11-18T05:13:07.978Z'
     rota: '#/modeloEtiqueta/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -193,6 +215,5 @@ Primeira etapa na confecção de um modelo de etiqueta térmica, responsável po
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Reconhecimento de firma por semelhança sem valor econômico", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. An → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
-* **Cura reaproveitada (passo 4):** "Serviço" → "Serviço" — não reconfirmada nesta execução (a dica não foi usada)
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Reconhecimento de firma por semelhança sem valor econômico", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A  → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
 * **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Modelos de etiqueta" → "Configurações > Modelos de impressão > Etiquetas diversas" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

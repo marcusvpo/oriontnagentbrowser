@@ -4,11 +4,11 @@ titulo: 'Solicitar Certidão Dentro de Protocolo'
 modulo: certidoes
 secao: D
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -42,9 +42,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Certidões Solicitadas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exp'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-17T05:14:54.632Z'
+    capturado_em: '2026-11-18T03:14:29.501Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -57,6 +74,12 @@ auditoria_ui:
     alvos_do_passo: ['Certidões Solicitadas']
     correspondencias_sugeridas: []
     alvos_sem_correspondencia: ['Certidões Solicitadas']
+    pistas_mapa_rotas:
+      - alvo: 'Certidões Solicitadas'
+        menu: 'Administração > Certidões solicitadas'
+        rota: '#/certidoesSolicitadas'
+        encontrado_em: 'section'
+        rotulo_real: 'Certidões Solicitadas'
     sugestao_reescrita: 'Sugestão de reescrita: Certidões Solicitadas não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
     print_contexto: 'passo-01.png'
 ---
@@ -72,6 +95,7 @@ auditoria_ui:
 > * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
 > * **Botões:** **Clique aqui para ativar agora**.
 > * **Sem correspondência funcional na tela:** **Certidões Solicitadas**.
+> * **Pistas em outras rotas (`orion-route-graph.json`):** "Certidões Solicitadas" aparece em **Administração > Certidões solicitadas** (#/certidoesSolicitadas, seção **Certidões Solicitadas**).
 > * Sugestão de reescrita: **Certidões Solicitadas** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
 > * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
@@ -98,6 +122,6 @@ Permite ao escrevente de notas demandar a expedição de certidões de livros ar
 * **Dica / Caso Real do 0800: Ajuste o espaçamento entrelinhas para 1.15 e margens para 2.0 cm na configuração de página do traslado para eliminar páginas residuais e otimizar o consumo de folhas oficiais.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Certidões Solicitadas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; nã → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Certidões Solicitadas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exp → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

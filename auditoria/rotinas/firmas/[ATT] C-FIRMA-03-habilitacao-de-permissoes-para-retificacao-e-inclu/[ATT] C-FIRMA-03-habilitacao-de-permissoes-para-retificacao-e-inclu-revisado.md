@@ -4,7 +4,7 @@ titulo: Habilitação de Permissões para Retificação e Inclusão de Alertas e
 modulo: firmas
 secao: C
 auditoria_ui:
-  data_execucao: 2026-11-17
+  data_execucao: 2026-11-18
   status: atualizacao_editorial
   review_tags:
     - ATT
@@ -49,7 +49,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: menu-tree | [data-orion-audit-menu-mmwk7fr8c3dds50-129] | x=850, y=150, 175x21
+        evidencia: menu-tree | [data-orion-audit-menu-mmwlhmz7y34umlk-129] | x=850, y=150, 175x21
       - passo: 2
         alvo_documentado: Editar
         elemento_real: Alterar
@@ -169,9 +169,44 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-18
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+        motivo: No passo 4, o manual cita "Permissões Específicas", "Balcão de Firmas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência
+      bloqueio_atual:
+        passo: 4
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: Editar
+          real: Alterar
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 3
+          alvo: Grupo Firmas
+          real: Escrevente de Firmas
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: Configurações > Segurança > Usuários
+          real: Configurações > Usuários
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 4
-    capturado_em: 2026-11-17T04:45:14.104Z
+    capturado_em: 2026-11-18T02:19:15.859Z
     rota: "#/usuario/alterar/1"
     titulo_painel: OrionTN - Tabelionatos de Notas
     em_modal: false
@@ -227,7 +262,7 @@ auditoria_ui:
     print_contexto: passo-04.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T18:11:05.076Z
+  governanca_atualizado_em: 2026-11-18T15:13:38.097Z
   governanca_comentario: "Passos 1 e 2 estão corretos. Nos passos 3 e 4 o agente destacou erroneamente o menu superior 'Firmas' (navbar) como se fosse 'Grupo de Trabalho > Grupo Firmas' (que não existe nesta tela) e acusou falso bloqueio de permissão em 'Balcão de Firmas'. A conta marcus (Perfil de acesso - Gerência webFirmas) possui 100% de permissão liberada. A rotina está desatualizada: o caminho real na tela atual é assinalar a opção 'Escrevente de Firmas' nos checkboxes do lado esquerdo da tela."
 ---
 

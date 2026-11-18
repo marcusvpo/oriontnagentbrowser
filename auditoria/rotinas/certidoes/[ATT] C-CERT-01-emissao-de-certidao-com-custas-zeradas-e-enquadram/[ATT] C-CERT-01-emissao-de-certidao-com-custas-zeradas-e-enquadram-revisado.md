@@ -4,11 +4,11 @@ titulo: 'Emissão de Certidão com Custas Zeradas e Enquadramento de Selagem Ise
 modulo: certidoes
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: read_only
-  worker_id: 'worker-1'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -33,7 +33,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwktakjo6qa53z-23] | x=503, y=129, 183x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlh8y1y21oksj-23] | x=503, y=129, 183x21'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -75,9 +75,32 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Modalidade de Cobrança", "Isenta / Gratuita", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiênci'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Certidões > Novo Pedido de Certidão ou Notas > Certidões'
+          real: 'Notas > Nova certidão e serviço'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 2
-    capturado_em: '2026-11-17T14:54:42.278Z'
+    capturado_em: '2026-11-18T02:06:12.151Z'
     rota: '#/certidoesServicos/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -166,11 +189,11 @@ auditoria_ui:
         tipo: 'text'
       - rotulo: 'selectDivisorServicoprotocoloCustasRegistra00'
         tipo: 'select'
-      - rotulo: 'inputNomeOutrosServicos00e58'
+      - rotulo: 'inputNomeOutrosServicos0e2b5'
         tipo: 'text'
-      - rotulo: 'quantidadeOutrosServicos00e58'
+      - rotulo: 'quantidadeOutrosServicos0e2b5'
         tipo: 'text'
-      - rotulo: 'inputValorOutrosServicos00e58'
+      - rotulo: 'inputValorOutrosServicos0e2b5'
         tipo: 'text'
       - rotulo: 'ckbToggleEditor'
         tipo: 'checkbox'
@@ -226,4 +249,5 @@ Certidões emitidas sob assistência judiciária gratuita ou por requisição ju
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Certidões > Novo Pedido de Certidão" não existe na árvore de navegação real do Orion TN. O menu raiz "Certidões" não existe na barra de navegação (menus lidos: "Dashboard", "Firmas", "Notas", "Relatórios", "Admin → **superado** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 2 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Modalidade de Cobrança", "Isenta / Gratuita", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiênci → **mantido** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 1):** "Certidões > Novo Pedido de Certidão ou Notas > Certidões" → "Notas > Nova certidão e serviço" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

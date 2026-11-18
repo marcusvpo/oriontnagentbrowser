@@ -4,7 +4,7 @@ titulo: 'Reutilizar Posição de Livro Inutilizada'
 modulo: livros
 secao: R
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: read_only
@@ -65,6 +65,29 @@ auditoria_ui:
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
     - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 3, a tela está sem dados (grade com 9 coluna(s) visível(is) (Tipo, Sigla, Nº Livro, Página atual, Lado atual, Posiçao atual) e 0 linhas de dados; controles inativos: "Filtrar" (Preencha ao menos um dos campos obrigatórios para efetuar a busca)). Há botão "Adicionar" na tela, mas o auto-seed'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Número do Livro'
+          real: 'Número'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
       ambiente_anterior: 'Produtos (homologacao interna Siplan)'
       ambiente_atual: 'Produtos (homologacao interna Siplan)'
       status_anterior: 'dependencia_cruzada_rotina'

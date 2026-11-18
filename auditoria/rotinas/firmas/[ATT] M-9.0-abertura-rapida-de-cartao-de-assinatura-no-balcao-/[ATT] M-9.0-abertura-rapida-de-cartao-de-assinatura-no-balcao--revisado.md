@@ -4,11 +4,11 @@ titulo: 'Abertura Rápida de Cartão de Assinatura no Balcão (Dados Pessoais)'
 modulo: firmas
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-1'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -38,7 +38,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwl02ves1byhnn-12] | x=633, y=109, 330x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlo32iig0vyhf-12] | x=633, y=109, 330x20'
       - passo: 2
         alvo_documentado: 'Nome completo'
         elemento_real: 'Nome'
@@ -148,9 +148,46 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 4, o manual cita "Contato e Endereço", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigat'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Nome completo'
+          real: 'Nome'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 2
+          alvo: 'RG/CNH'
+          real: 'RG + CNH'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 3
+          alvo: 'Data de nascimento'
+          real: 'Nascimento'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Firmas > Cadastro > Cartão de assinatura'
+          real: 'Firmas > Cadastros > Cartão de assinatura'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 4
-    capturado_em: '2026-11-17T18:10:34.800Z'
+    capturado_em: '2026-11-18T05:23:36.051Z'
     rota: '#/ficha/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -380,6 +417,8 @@ Etapa inicial da abertura de ficha de firma no balcão de atendimento, destinada
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Nome completo", "RG/CNH", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inves → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
-* **Cura reaproveitada (passo 2):** "Dados pessoais" → "Dados pessoais" — não reconfirmada nesta execução (a dica não foi usada)
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Contato e Endereço", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Investigat → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 2):** "Nome completo" → "Nome" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 2):** "RG/CNH" → "RG + CNH" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 3):** "Data de nascimento" → "Nascimento" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
 * **Cura reaproveitada (passo 1):** "Firmas > Cadastro > Cartão de assinatura" → "Firmas > Cadastros > Cartão de assinatura" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

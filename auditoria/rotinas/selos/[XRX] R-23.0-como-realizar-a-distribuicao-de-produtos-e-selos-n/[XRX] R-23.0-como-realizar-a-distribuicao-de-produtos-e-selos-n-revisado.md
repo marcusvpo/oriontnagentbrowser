@@ -4,11 +4,11 @@ titulo: 'Como Realizar a Distribuição de Produtos e Selos no Estoque'
 modulo: selos
 secao: R
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-1'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -43,7 +43,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkypwuxa648y3-64] | x=474, y=129, 190x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlosxy85n5ilr-64] | x=474, y=129, 190x21'
       - passo: 4
         alvo_documentado: 'Usuários Individuais'
         elemento_real: '(não localizado na tela)'
@@ -117,6 +117,28 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra '
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Administração > Distribuição'
+          real: 'Administração > Controle de Estoque > Distribuição'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
@@ -167,5 +189,4 @@ A rotina de distribuição transfere a custódia de produtos, selos físicos e p
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
 * **Bloqueio anterior:** passo não registrado — Dependência Cruzada de Rotina: No passo 4, a tela está sem dados (grade com 3 coluna(s) visível(is) (Série, Sequência inicial, Sequência final) e 0 linhas de dados; controles inativos: "Concluir" (Preencha os campos obrigatórios para concluir)). Há botão "Adicionar" na tela, mas o auto-seed estava desligado nesta execução. Outra  → **mantido** (agora: passo 4, Dependência Cruzada de Rotina)
-* **Cura reaproveitada (passo 3):** ""+"" → "+" — não reconfirmada nesta execução (a dica não foi usada)
 * **Cura reaproveitada (passo 1):** "Administração > Distribuição" → "Administração > Controle de Estoque > Distribuição" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

@@ -4,7 +4,7 @@ titulo: 'Geração de Recibo, Lavratura do Ato e Tramitação de Selo Digital pa
 modulo: livros
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
@@ -34,7 +34,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkxooih8wqqwt-18] | x=503, y=67, 183x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlpd53ycxqvox-18] | x=503, y=67, 183x21'
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -60,6 +60,29 @@ auditoria_ui:
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
     - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 2 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo.'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Notas > Protocolo'
+          real: 'Notas > Protocolos'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
       ambiente_anterior: 'Produtos (homologacao interna Siplan)'
       ambiente_atual: 'Produtos (homologacao interna Siplan)'
       status_anterior: 'dependencia_cruzada_rotina'

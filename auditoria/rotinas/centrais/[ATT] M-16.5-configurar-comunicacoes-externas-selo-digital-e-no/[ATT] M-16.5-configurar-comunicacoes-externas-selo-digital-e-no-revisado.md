@@ -4,11 +4,11 @@ titulo: 'Configurar Comunicações Externas (Selo Digital, E-notariado, COAF)'
 modulo: centrais
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-1'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -58,14 +58,14 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwksv0iabc9mvl-130] | x=892, y=171, 175x20'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwllsh3ea59t2m-130] | x=850, y=171, 175x20'
       - passo: 1
         alvo_documentado: 'Comunicações externas'
         elemento_real: 'Comunicações'
         camada: dom_synonym_heuristic
         confianca: 0.9
         texto_alterado: false
-        evidencia: 'dom-measured | group:[data-orion-stateful-stmwksvxcd4z8l-0] | x=26, y=231, 211x32'
+        evidencia: 'dom-measured | group:[data-orion-stateful-stmwlltq28egv3-0] | x=26, y=231, 211x32'
       - passo: 2
         alvo_documentado: 'Selo Digital TJSP'
         elemento_real: 'Selo digital'
@@ -120,9 +120,41 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 3, o manual cita "Produção", "Homologação", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inves'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Comunicações externas'
+          real: 'Comunicações'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 2
+          alvo: 'Selo Digital TJSP'
+          real: 'Selo digital'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Comunicações externas'
+          real: 'Configurações > Parametrizações'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 3
-    capturado_em: '2026-11-17T14:49:56.020Z'
+    capturado_em: '2026-11-18T04:25:00.114Z'
     rota: '#/configuracoes'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -286,7 +318,7 @@ Centraliza os parâmetros de conexão técnica, endpoints, chaves de API, usuár
    > [!NOTE] Rota real: **Configurações > Parametrizações**; a aba/seção **Comunicações** foi medida ao vivo (sinônimo contextual da rota) e acionada.
 2. Na aba **Selo Digital TJSP**, preencha a URL do WebService, o usuário, senha e código da serventia fornecidos pelo tribunal.
    [aqui vai a print "passo-02.png"]
-   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Selo Digital TJSP"**, porém na tela atual do Orion TN o elemento se chama **"Selo digital"** (confiança: 95% — Rótulo visível na tela equivalente por inclusão de nome (95%)). O texto do manual não foi alterado.
+   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, a11y_fuzzy_match):** O manual cita **"Selo Digital TJSP"**, porém na tela atual do Orion TN o elemento se chama **"Selo digital"** (confiança: 95% — Cura comprovada numa auditoria anterior (a11y_fuzzy_match) e reconfirmada ao vivo: o elemento "Selo digital" foi medido na tela desta execução). O texto do manual não foi alterado.
 3. Na aba **e-Notariado**, insira a chave de integração (API Token) e configure o modo de ambiente (**Produção** ou **Homologação**).
    [aqui vai a print "passo-03.png"]
    > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Produção"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
@@ -302,4 +334,7 @@ Centraliza os parâmetros de conexão técnica, endpoints, chaves de API, usuár
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Administração > Parâmetros > Comunicações externas" não existe na árvore de navegação real do Orion TN. O menu **Administração** existe na barra de navegação e contém: "Comissões", "Comunicações", "Envio de escri → **superado** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "Produção", "Homologação", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inves → **mantido** (agora: passo 3, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 1):** "Comunicações externas" → "Comunicações" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 2):** "Selo Digital TJSP" → "Selo digital" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)
+* **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Comunicações externas" → "Configurações > Parametrizações" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)

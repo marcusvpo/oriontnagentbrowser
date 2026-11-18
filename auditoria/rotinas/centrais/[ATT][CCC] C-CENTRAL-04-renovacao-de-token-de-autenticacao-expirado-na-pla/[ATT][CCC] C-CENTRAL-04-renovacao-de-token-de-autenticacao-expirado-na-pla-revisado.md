@@ -4,7 +4,7 @@ titulo: 'Renovação de Token de Autenticação Expirado na Plataforma SIGNO / C
 modulo: centrais
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT', 'CCC']
   carga: mutation
@@ -50,9 +50,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT', 'CCC']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT', 'CCC']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Integração SIGNO / CENSEC" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de '
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 4
-    capturado_em: '2026-11-17T04:22:57.428Z'
+    capturado_em: '2026-11-18T01:47:34.704Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -110,6 +127,6 @@ Por segurança, os tokens de API fornecidos pelo Colégio Notarial do Brasil (CN
 * **Organização: Anote na agenda do cartório a data de validade do token emitido no SIGNO para renová-lo preventivamente antes do vencimento.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT][CCC] atualizacao_editorial → [ATT][CCC] atualizacao_editorial
 * **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros Gerais > Integração SIGNO / CENSEC" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de  → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

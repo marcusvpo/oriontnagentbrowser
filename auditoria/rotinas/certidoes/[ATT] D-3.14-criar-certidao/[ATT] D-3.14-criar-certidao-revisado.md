@@ -4,12 +4,12 @@ titulo: Criar Certidão
 modulo: certidoes
 secao: D
 auditoria_ui:
-  data_execucao: 2026-11-17
+  data_execucao: 2026-11-18
   status: atualizacao_editorial
   review_tags:
     - ATT
   carga: mutation
-  worker_id: worker-2
+  worker_id: worker-1
   versao_homologacao: WildFly 22 / Orion 06.04.01
   ambiente: Produtos (homologacao interna Siplan)
   tipo_bloqueio: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
@@ -35,7 +35,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.98
         texto_alterado: false
-        evidencia: menu-tree | [data-orion-audit-menu-mmwk8grc32pcyx7-23] | x=503, y=129, 183x21
+        evidencia: menu-tree | [data-orion-audit-menu-mmwljiq4q7s25tl-23] | x=503, y=129, 183x21
   historico_reauditoria:
     - data: 2026-11-17
       ambiente_anterior: não registrado (anterior ao ADR-025)
@@ -81,9 +81,34 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-18
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+        motivo: No passo 2, o manual cita "Identificação do Solicitante", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio
+      bloqueio_atual:
+        passo: 2
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: Notas > Certidões > Novo Pedido de Certidão
+          real: Notas > Certidões e serviços
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 2
-    capturado_em: 2026-11-17T05:11:22.552Z
+    capturado_em: 2026-11-18T03:09:39.012Z
     rota: "#/certidoesServicos/cadastrar"
     titulo_painel: OrionTN - Tabelionatos de Notas
     em_modal: false
@@ -173,11 +198,11 @@ auditoria_ui:
         tipo: text
       - rotulo: selectDivisorServicoprotocoloCustasRegistra00
         tipo: select
-      - rotulo: inputNomeOutrosServicos04073
+      - rotulo: inputNomeOutrosServicos031ff
         tipo: text
-      - rotulo: quantidadeOutrosServicos04073
+      - rotulo: quantidadeOutrosServicos031ff
         tipo: text
-      - rotulo: inputValorOutrosServicos04073
+      - rotulo: inputValorOutrosServicos031ff
         tipo: text
       - rotulo: ckbToggleEditor
         tipo: checkbox
@@ -193,7 +218,7 @@ auditoria_ui:
     print_contexto: passo-02.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T18:11:10.127Z
+  governanca_atualizado_em: 2026-11-18T15:13:43.295Z
   governanca_comentario: "No passo 1 ('Notas > Certidões > Novo Pedido de Certidão'), o agente curou erroneamente para o campo de busca global ('Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B') em vez de abrir o menu 'Notas' no cabeçalho, o que quebrou o passo 2 ('Identificação do Solicitante'). No menu Notas atual, as opções reais são 'Certidões e serviços' e 'Certidões e serviços em aberto'."
 ---
 

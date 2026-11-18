@@ -4,7 +4,7 @@ titulo: 'Promoção de Colaborador de Auxiliar para Escrevente com Habilitação
 modulo: acesso
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
@@ -58,9 +58,32 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 4, o manual cita "Parâmetros Notariais", "[x] Autorizado a Lavrar Escrituras, Procurações e Atas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou ocult'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 3
+          alvo: 'Cargo / Função'
+          real: 'Cargo'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 4
-    capturado_em: '2026-11-17T04:17:52.509Z'
+    capturado_em: '2026-11-18T01:40:52.124Z'
     rota: '#/usuario/alterar/1'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -149,7 +172,7 @@ A nomeação formal de um escrevente exige atualizações que vão além de uma 
 * **Dica: Após a promoção, lembre-se de cadastrar a assinatura digital (ICP-Brasil) do novo escrevente nos parâmetros do assinador para possibilitar a lavratura remota pelo e-Notariado.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Parâmetros Notariais", "[x] Autorizado a Lavrar Escrituras, Procurações e Atas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não ma → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Parâmetros Notariais", "[x] Autorizado a Lavrar Escrituras, Procurações e Atas", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou ocult → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
 * **Cura reaproveitada (passo 3):** "Cargo / Função" → "Cargo" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

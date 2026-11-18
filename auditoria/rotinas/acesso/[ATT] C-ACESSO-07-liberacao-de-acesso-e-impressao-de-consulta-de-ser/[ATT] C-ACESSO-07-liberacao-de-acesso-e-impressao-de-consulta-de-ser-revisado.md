@@ -4,7 +4,7 @@ titulo: 'Liberação de Acesso e Impressão de Consulta de Serviços Praticados 
 modulo: acesso
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
@@ -42,9 +42,25 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Grupos e Perfis de Acesso", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. O passo cita um caminho de menu: a '
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-17T04:13:11.750Z'
+    capturado_em: '2026-11-18T01:35:01.114Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -57,6 +73,17 @@ auditoria_ui:
     alvos_do_passo: []
     correspondencias_sugeridas: []
     alvos_sem_correspondencia: []
+    pistas_mapa_rotas:
+      - alvo: 'Configurações'
+        menu: 'Configurações > Parametrizações'
+        rota: '#/configuracoes'
+        encontrado_em: 'section'
+        rotulo_real: 'Configurações'
+      - alvo: 'Usuários'
+        menu: 'Configurações > Usuários'
+        rota: '#/usuario'
+        encontrado_em: 'section'
+        rotulo_real: 'Usuários'
     print_contexto: 'passo-01.png'
 ---
 
@@ -71,6 +98,7 @@ auditoria_ui:
 > * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
 > * **Botões:** **Clique aqui para ativar agora**.
 > * **Caminho de menu:** o passo cita um caminho de navegação; a evidência lida da árvore de menus consta no motivo do bloqueio e a rota não foi adivinhada.
+> * **Pistas em outras rotas (`orion-route-graph.json`):** "Configurações" aparece em **Configurações > Parametrizações** (#/configuracoes, seção **Configurações**); "Usuários" aparece em **Configurações > Usuários** (#/usuario, seção **Usuários**).
 > * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
 #### Descrição:
@@ -99,6 +127,6 @@ O relatório de Serviços Praticados é uma ferramenta essencial de prestação 
 * **Dica: Para maior controle de gestão, utilize a restrição de visualização por operador, garantindo que cada atendente visualize apenas os atos que ele próprio selou e praticou.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Grupos e Perfis de Acesso", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégi → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Grupos e Perfis de Acesso", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. O passo cita um caminho de menu: a  → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

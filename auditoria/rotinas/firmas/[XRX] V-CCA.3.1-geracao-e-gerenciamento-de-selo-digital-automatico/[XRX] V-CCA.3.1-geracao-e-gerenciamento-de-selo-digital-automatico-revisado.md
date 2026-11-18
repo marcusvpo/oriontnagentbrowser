@@ -4,11 +4,11 @@ titulo: 'Geração e Gerenciamento de Selo Digital (Automático e Manual) no Car
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -72,6 +72,29 @@ auditoria_ui:
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
     - data: '2026-11-17'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 4, a tela está sem dados (grade com 4 coluna(s) visível(is) (Arquivo, Data, Tipo, Tamanho) e 0 linhas de dados; controles inativos: "Consumir" (Consumir), "Gerar" (É necessário concluir o cadastro para realizar o consumo do Selo Digital.), "Concluir" (Preencha os campos obrigatórios para li'
+      bloqueio_atual:
+        passo: 4
+        tipo: 'Dependência Cruzada de Rotina'
+      curas_reaproveitadas:
+        - passo: 2
+          alvo: 'Selo Digital'
+          real: 'Selo digital'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
       ambiente_anterior: 'Produtos (homologacao interna Siplan)'
       ambiente_atual: 'Produtos (homologacao interna Siplan)'
       status_anterior: 'dependencia_cruzada_rotina'

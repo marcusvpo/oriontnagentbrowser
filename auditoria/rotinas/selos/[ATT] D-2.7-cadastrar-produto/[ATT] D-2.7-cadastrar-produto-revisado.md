@@ -4,11 +4,11 @@ titulo: 'Cadastrar Produto'
 modulo: selos
 secao: D
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-2'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -33,7 +33,7 @@ auditoria_ui:
         camada: menu_path_resolution
         confianca: 0.95
         texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwkxxx5f77ovg-70] | x=286, y=233, 188x21'
+        evidencia: 'menu-tree | [data-orion-audit-menu-mmwljasrjzc5v9-70] | x=286, y=233, 188x21'
       - passo: 3
         alvo_documentado: 'Nome do Produto'
         elemento_real: 'Descrição'
@@ -93,9 +93,42 @@ auditoria_ui:
           usada_como_dica: true
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 6
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 6, o manual cita "Salvar", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investi'
+      bloqueio_atual:
+        passo: 6
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 3
+          alvo: 'Nome do Produto'
+          real: 'Descrição'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 4
+          alvo: 'Unidade de Medida'
+          real: 'Unidade'
+          confirmada_ao_vivo: true
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Configurações > Cadastros Auxiliares > Produto'
+          real: 'Administração > Controle de Estoque > Cadastros > Produto'
+          confirmada_ao_vivo: true
+          usada_como_dica: true
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 6
-    capturado_em: '2026-11-17T17:06:51.268Z'
+    capturado_em: '2026-11-18T03:05:56.844Z'
     rota: '#/produto/cadastrar'
     titulo_painel: 'Estoque - Tabelionatos de Notas'
     em_modal: false
@@ -186,5 +219,7 @@ O cadastro de produtos formaliza todos os itens geridos no cartório, incluindo 
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 3, o manual cita "Nome do Produto", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a tela e nã → **mantido** (agora: passo 6, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 6 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 6, o manual cita "Salvar", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investi → **mantido** (agora: passo 6, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Cura reaproveitada (passo 3):** "Nome do Produto" → "Descrição" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 4):** "Unidade de Medida" → "Unidade" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
 * **Cura reaproveitada (passo 1):** "Configurações > Cadastros Auxiliares > Produto" → "Administração > Controle de Estoque > Cadastros > Produto" — reconfirmada ao vivo nesta execução (a dica anterior localizou o nó)

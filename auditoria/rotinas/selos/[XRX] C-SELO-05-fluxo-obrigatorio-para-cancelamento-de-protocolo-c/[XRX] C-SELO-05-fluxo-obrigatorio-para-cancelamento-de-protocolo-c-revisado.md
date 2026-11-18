@@ -4,16 +4,16 @@ titulo: 'Fluxo Obrigatório para Cancelamento de Protocolo com Selo Digital já 
 modulo: selos
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
   rotinas_pre_requisito: ['D-3.19', 'D-3.23', 'D-3.22']
-  prints_geradas: 2
+  prints_geradas: 3
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
@@ -28,6 +28,23 @@ auditoria_ui:
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 2 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo.'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
       ambiente_atual: 'Produtos (homologacao interna Siplan)'
       status_anterior: 'dependencia_cruzada_rotina'
       tags_anteriores: ['XRX']
@@ -67,6 +84,7 @@ Por determinação normativa, uma vez atribuído o selo digital, o ato entra na 
 #### Passo a passo (texto original preservado):
 1. No menu **Notas**, localize e abra o **Protocolo** que será cancelado.
    [aqui vai a print "passo-01.png"]
+   [aqui vai a print "passo-01-b.png"]
    > [!NOTE] **Demarcações na print:** (1) **Notas** · (2) **Protocolo**
 2. Navegue até a aba **Custas / Selos**.
    [aqui vai a print "passo-02.png"]
@@ -80,6 +98,6 @@ Por determinação normativa, uma vez atribuído o selo digital, o ato entra na 
 * **Norma Notarial: Nunca rasgue ou delete dados sem registrar o motivo do cancelamento; a Corregedoria audita rigorosamente selos sem atos lavrados.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
 * **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: O manual trabalha sobre um protocolo que precisa existir antes (criado em outra rotina) e o alvo do passo 2 não estava na tela. Rotinas que o criam: D-3.19 — Criar Protocolo de Nota; D-3.23 — Gerar Recibo de Protocolo; D-3.22 — Registrar Custas do Protocolo. → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)

@@ -4,11 +4,11 @@ titulo: 'Gerenciamento de Profissões, Contatos, Endereços e Representação de
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -41,9 +41,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Cartão de Assinatura", "Profissão", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privi'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-17T06:34:33.964Z'
+    capturado_em: '2026-11-18T06:05:03.529Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -56,6 +73,22 @@ auditoria_ui:
     alvos_do_passo: ['Cartão de Assinatura', 'Profissão']
     correspondencias_sugeridas: []
     alvos_sem_correspondencia: ['Cartão de Assinatura', 'Profissão']
+    pistas_mapa_rotas:
+      - alvo: 'Cartão de Assinatura'
+        menu: 'Configurações > Parametrizações'
+        rota: '#/configuracoes'
+        encontrado_em: 'section'
+        rotulo_real: 'Cartão de assinatura'
+      - alvo: 'Cartão de Assinatura'
+        menu: 'Firmas > Cadastros > Cartão de assinatura'
+        rota: '#/ficha'
+        encontrado_em: 'section'
+        rotulo_real: 'Cartões de assinatura'
+      - alvo: 'Profissão'
+        menu: 'Configurações > Cadastros auxiliares > Pessoa física > Profissão'
+        rota: '#/profissao'
+        encontrado_em: 'section'
+        rotulo_real: 'Profissão'
     sugestao_reescrita: 'Sugestão de reescrita: Cartão de Assinatura, Profissão não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
     print_contexto: 'passo-01.png'
 ---
@@ -71,6 +104,7 @@ auditoria_ui:
 > * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
 > * **Botões:** **Clique aqui para ativar agora**.
 > * **Sem correspondência funcional na tela:** **Cartão de Assinatura**, **Profissão**.
+> * **Pistas em outras rotas (`orion-route-graph.json`):** "Cartão de Assinatura" aparece em **Configurações > Parametrizações** (#/configuracoes, seção **Cartão de assinatura**); "Cartão de Assinatura" aparece em **Firmas > Cadastros > Cartão de assinatura** (#/ficha, seção **Cartões de assinatura**); "Profissão" aparece em **Configurações > Cadastros auxiliares > Pessoa física > Profissão** (#/profissao, seção **Profissão**).
 > * Sugestão de reescrita: **Cartão de Assinatura**, **Profissão** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
 > * **Referência visual:** passo-01.png (tela exata no momento do bloqueio).
 
@@ -86,7 +120,7 @@ O cartão de assinatura permite estruturar de forma minuciosa as formas de conta
 #### Passo a passo (texto original preservado):
 1. Na tela de cadastro do **Cartão de Assinatura**, localize o campo **Profissão**:
    [aqui vai a print "passo-01.png"]
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Cartão de Assinatura, Profissão, Atenção:, NÃO, Lupa, Ctrl+C, +, Concluir] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Elemento visual [Cartão de Assinatura, Profissão, Atenção:, NÃO, Lupa, Ctrl+C, Concluir] não localizado no DOM nem na Árvore de Acessibilidade; a tela não tem gatilho revelador seguro a testar
    * **Atenção:** O campo profissão utiliza pesquisa obrigatória por tabela. Se você apenas digitar um texto livre e não selecionar um item da lista suspensa da lupa, o sistema **NÃO** gravará a profissão na ficha.
    * Digite o nome da profissão e clique na **Lupa** para buscar.
    * Se a profissão for localizada, clique sobre ela para selecioná-la.
@@ -109,6 +143,6 @@ O cartão de assinatura permite estruturar de forma minuciosa as formas de conta
 * **Dica / Caso Real do 0800: Para falhas em leitores biométricos (Futronic/SecuGen), reinicie o processo do **IntegradorSPCM** na bandeja do Windows e certifique-se de conectar o cabo em portas USB 3.0 diretas.**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Cartão de Assinatura", "Profissão", "Atenção:", "NÃO", "Lupa", "Ctrl+C", "Concluir", que não foi localizado na tela auditada. A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o elemento como bloqueado  → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 1 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 1, o manual cita "Cartão de Assinatura", "Profissão", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privi → **mantido** (agora: passo 1, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

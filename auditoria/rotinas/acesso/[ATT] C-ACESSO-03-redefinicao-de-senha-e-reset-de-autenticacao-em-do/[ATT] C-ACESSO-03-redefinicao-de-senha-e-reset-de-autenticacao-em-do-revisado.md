@@ -4,7 +4,7 @@ titulo: Redefinição de Senha e Reset de Autenticação em Dois Fatores (2FA) p
 modulo: acesso
 secao: C
 auditoria_ui:
-  data_execucao: 2026-11-17
+  data_execucao: 2026-11-18
   status: atualizacao_editorial
   review_tags:
     - ATT
@@ -62,9 +62,28 @@ auditoria_ui:
         tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: 2026-11-18
+      ambiente_anterior: Produtos (homologacao interna Siplan)
+      ambiente_atual: Produtos (homologacao interna Siplan)
+      status_anterior: atualizacao_editorial
+      tags_anteriores:
+        - ATT
+      status_atual: atualizacao_editorial
+      tags_atuais:
+        - ATT
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 4
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+        motivo: 'No passo 4, o manual cita "Geral", "Redefinir Senha Manualmente", "Exigir troca no próximo logon", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o '
+      bloqueio_atual:
+        passo: 4
+        tipo: Defasagem Editorial do Manual (Recurso Inexistente na Tela)
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 4
-    capturado_em: 2026-11-17T04:06:57.450Z
+    capturado_em: 2026-11-18T01:28:05.615Z
     rota: "#/usuario/alterar/1"
     titulo_painel: OrionTN - Tabelionatos de Notas
     em_modal: false
@@ -115,11 +134,17 @@ auditoria_ui:
       - Geral
       - Redefinir Senha Manualmente
       - Exigir troca no próximo logon
+    pistas_mapa_rotas:
+      - alvo: Geral
+        menu: Configurações > Parametrizações
+        rota: "#/configuracoes"
+        encontrado_em: section
+        rotulo_real: Geral
     sugestao_reescrita: "Sugestão de reescrita: Geral, Redefinir Senha Manualmente, Exigir troca no próximo logon não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida."
     print_contexto: passo-04.png
   status_governanca: revisao_solicitada
   governanca_revisor: Marcus (Revisor)
-  governanca_atualizado_em: 2026-11-17T18:11:13.375Z
+  governanca_atualizado_em: 2026-11-18T15:13:46.583Z
   governanca_comentario: "A ausência dos botões de redefinição de senha e reset de 2FA na tela 'Alteração de usuário' não é falta de permissão da conta, mas atualização do sistema: 'Alterar senha', 'Autenticação em dois fatores' e 'Cadastrar biometria' ficam no menu superior direito 'Olá, [username]'."
 ---
 
@@ -135,6 +160,7 @@ auditoria_ui:
 > * **Campos:** **Usuário**, **Nome**, **CPF ou CIN**, **Cargo**, **E-mail**, **Telefone principal**, **Telefone**, **Perfil de Usuário**, **Escrevente de Firmas**, **Escrevente de Notas**, **Escrevente e-Recepção**, **Tabelião**, **Supervisor**, **Substituto**, **Auxiliar**.
 > * **Botões:** **Salvar**, **Excluir**, **Voltar**.
 > * **Sem correspondência funcional na tela:** **Geral**, **Redefinir Senha Manualmente**, **Exigir troca no próximo logon**.
+> * **Pistas em outras rotas (`orion-route-graph.json`):** "Geral" aparece em **Configurações > Parametrizações** (#/configuracoes, seção **Geral**).
 > * Sugestão de reescrita: **Geral**, **Redefinir Senha Manualmente**, **Exigir troca no próximo logon** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
 > * **Referência visual:** passo-04.png (tela exata no momento do bloqueio).
 
@@ -166,6 +192,6 @@ A autenticação em dois fatores (2FA) vincula um segredo simétrico ao aplicati
 * **Dica: Se o código 2FA continuar falhando logo após o cadastro do novo QR Code, verifique se o relógio do celular e o relógio do servidor do cartório estão sincronizados com a hora oficial de Brasília (NTP.br).**
 
 #### Evolução da Reauditoria
-* **Ambiente:** não registrado (anterior ao ADR-025) → Produtos (homologacao interna Siplan)
+* **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
-* **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Geral", "Redefinir Senha Manualmente", "Exigir troca no próximo logon", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "4tabeliao.scs" é um perfil administrativo pleno (Perfil de acesso - Gerência webFirmas) e a aplicação não marca o ele → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
+* **Bloqueio anterior:** passo 4 — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 4, o manual cita "Geral", "Redefinir Senha Manualmente", "Exigir troca no próximo logon", que não foram localizados na tela auditada (nenhum dos elementos citados). A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o  → **mantido** (agora: passo 4, Defasagem Editorial do Manual (Recurso Inexistente na Tela))

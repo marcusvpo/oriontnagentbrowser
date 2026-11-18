@@ -4,11 +4,11 @@ titulo: 'Sanitização de Caracteres Especiais no Envio de Comunicações ao COA
 modulo: centrais
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-17'
+  data_execucao: '2026-11-18'
   status: dependencia_cruzada_rotina
   review_tags: ['XRX']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Dependência Cruzada de Rotina'
@@ -60,6 +60,23 @@ auditoria_ui:
         tipo: 'Dependência Cruzada de Rotina'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-18'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'dependencia_cruzada_rotina'
+      tags_anteriores: ['XRX']
+      status_atual: 'dependencia_cruzada_rotina'
+      tags_atuais: ['XRX']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+        motivo: 'No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Protocolo, Natureza, Data de lavratura, Data comunicação, Data cancelamento, Nº Ocorrência) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Comunicar" (Não há protocolos para comunicar); pré-fil'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Dependência Cruzada de Rotina'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
 ---
 
 > [!CAUTION]
@@ -100,4 +117,4 @@ O parser XML da API do SISCOAF é extremamente rígido. Caracteres reservados de
 #### Evolução da Reauditoria
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [XRX] dependencia_cruzada_rotina → [XRX] dependencia_cruzada_rotina
-* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Protocolo, Natureza, Data de lavratura, Data comunicação, Data cancelamento, Nº Ocorrência) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Comunicar" (Não há protocolos para comunicar)). Não ex → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)
+* **Bloqueio anterior:** passo 2 — Dependência Cruzada de Rotina: No passo 2, a tela está sem dados (grade com 8 coluna(s) visível(is) (Protocolo, Natureza, Data de lavratura, Data comunicação, Data cancelamento, Nº Ocorrência) e 0 linhas de dados; controles inativos: "Filtrar" (Período de pesquisa inválido), "Comunicar" (Não há protocolos para comunicar); pré-fil → **mantido** (agora: passo 2, Dependência Cruzada de Rotina)
