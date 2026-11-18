@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
+import { after, before, describe, test } from 'node:test';
+import { setRouteGraphForTesting } from '../route-crawler.js';
 import yaml from 'yaml';
 import {
   attDiagnosisYamlLines,
@@ -219,6 +220,11 @@ const item = (chain: string[], hasChildren = false): MenuTreeItem => ({
 
 describe('ADR-028 §2 — desempate de menu por menor profundidade de cadeia', () => {
   const paths = extractMenuPaths(stepOf(1, 'Acesse **Notas > Protocolo**.', []));
+
+  // Hermético: sem o grafo vivo de rotas (ADR-030, `orion-route-graph.json` gitignored e regenerado
+  // por `--crawl-map`), que injetaria a pista `tail_as_screen_section` e mudaria o resultado.
+  before(() => setRouteGraphForTesting(null));
+  after(() => setRouteGraphForTesting(undefined));
 
   test('Notas > Protocolos (prof. 2) vence Notas > Consultas > Protocolos (prof. 3)', () => {
     const items = [

@@ -28,7 +28,7 @@ Adicionalmente, era necessário aposentar qualquer dependência de chaves extern
 - **Algoritmo de Deslocamento Anti-Centro:** `computeSetOfMarkTagPlacement` avalia posições cardinais externas e diagonais ao redor da caixa do alvo, aplicando penalidade absoluta se a tag cobrir o ponto central `(cx, cy)` do próprio elemento e minimizando sobreposição com tags vizinhas.
 
 ### 2.2. Etapa 2A — Cliente Exclusivo Antigravity CLI (`auditoria/src/agy-client.ts`)
-- **Provedor Único (Zero APIs Externas):** `OPENAI_API_KEY` e `claude -p` estão vedados. Toda inferência de fallback (Camada 2B textual e Camada 2C visual) utiliza exclusivamente o CLI local `agy` (`agy.exe`) configurado em **`Gemini 4 Hydrogen Extra`** (`--print --model gemini-4-hydrogen-xhigh --effort xhigh --output-format json --disable-slash-commands`).
+- **Provedor Único (Zero APIs Externas):** `OPENAI_API_KEY` e `claude -p` estão vedados. Toda inferência de fallback (Camada 2B textual e Camada 2C visual) utiliza exclusivamente o CLI local `agy` (`agy.exe`) configurado em **`Gemini 4 Hydrogen Extra`** (`--print= --input-format stream-json --model gemini-4-hydrogen-xhigh --effort xhigh --output-format stream-json --disable-slash-commands`; ver **Emenda 2026-11-18** ao final).
 - **Protocolo Seguro no Windows:**
   - Envia o prompt obrigatoriamente via **`STDIN`** (`child.stdin`) para eliminar o limite de caracteres do `cmd.exe` (ADR-014), com timeout configurável (padrão `45s`, `--print-timeout 45s`).
   - Protege todas as chamadas com o singleton **`agyInferenceSemaphore = new AsyncSemaphore(1)`**, impedindo disputa de sessão entre múltiplos workers do `BrowserWorkerPool`.
@@ -60,3 +60,18 @@ Adicionalmente, era necessário aposentar qualquer dependência de chaves extern
   - `npx --prefix "Orion Audit Console" tsc -p "Orion Audit Console/tsconfig.json" --noEmit` e `npm --prefix "Orion Audit Console" test`: **0 erros** (35/35 testes aprovados).
 - **Auditoria Geométrica (`npx --prefix auditoria tsx auditoria/src/verify-all-phase2-boxes.ts --all`):**
   - **150 rotinas**, **433 prints**, **267/267 Zero Auto-Oclusão**, **433/433 pares PNG+WebP**, **0 discrepâncias** nos 8 invariantes.
+
+
+---
+
+## Emenda 2026-11-18 — Contrato do `agy` ≥ 1.5, curadoria pós-lote resiliente
+
+Contexto: a curadoria pós-lote dos 78 passos de `pending-som-queue.json` (reauditoria massiva de 2026-11-17/18) falhou em 100% das chamadas com `exit_code_2`.
+
+- **Causa:** no `agy` 1.5.9 o `--print` consome o token seguinte como prompt (`--print took "--model" as its prompt`). O STDIN não é lido como prompt em modo `text`.
+- **Contrato novo (`agy-client.ts`, `buildAgyCliArgs`/`buildAgyStreamInput`/`extractAgyStreamResult`):** `--print= --input-format stream-json --output-format stream-json`; o prompt (com a menção `@imagem`) entra em **STDIN** como NDJSON `{"event":"user","message":{"content":"..."}}`; a resposta é o `response` do evento final `{"event":"result","result":{"status":"SUCCESS",...}}`. `status != SUCCESS` vira `null` (degradação graciosa). O prompt continua **fora** da linha de comando (ADR-014).
+- **Detector de cota:** `429` agora com limite de palavra (`\b429\b`); antes, contadores de tokens do stream (`11429`) davam falso positivo.
+- **Timeout:** `45s` segue no modo `live`. Uma chamada com imagem em `xhigh` leva ~45 s (medido), então `curate-pending-som.ts` usa `CURATION_TIMEOUT_MS = 180s`.
+- **Falha de infraestrutura nunca rejeita item:** resposta `null` (sessão, cota, timeout, JSON ilegível) mantém o item `pending`; 3 falhas consecutivas interrompem o lote e preservam o restante da fila. Só decisão do modelo (confiança, veto ADR-027, tag inexistente) rejeita. O curador Python (`curate_som_sdk.py`) segue a mesma regra (`Outcome: pending_error`, `inference_errors`).
+- **Nome genérico não é evidência:** candidato cujo nome é vazio, a tag (`input`, `button`...) ou o papel (`textbox`) é rejeitado antes de gravar a Camada 0.1/0.2. Dois sinônimos `→ "input"` (D-2.4, M-16.13) chegaram a ser gravados e foram removidos.
+- **Resultado da primeira curadoria real (78 itens):** 3 curados (D-2.7 `Salvar`→`Concluir`, D-3.3 `Preencher com IA`→`Preencher cartão usando I.A.`, M-26.0 `Salto (Gap)`→campo de espaço entre etiquetas), 72 rejeitados por evidência insuficiente (alvo não presente na tela; muitos em `#/inicio`), 3 pendentes por falha do `agy`.

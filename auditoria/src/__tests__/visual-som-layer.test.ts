@@ -159,7 +159,9 @@ describe('ADR-031 Etapa 1 — Renderizador Set-of-Mark (SoM) Efêmero em Memóri
 describe('ADR-031 Etapa 2A — Protocolo Antigravity CLI (agy-client.ts), Semáforo e Parse JSON', () => {
   it('buildAgyCliArgs e buildAgyStdinPayload configuram Gemini 4 Hydrogen Extra via STDIN', () => {
     const argsText = buildAgyCliArgs({ prompt: 'teste simples', timeoutMs: 45_000 });
-    assert.ok(argsText.includes('--print'));
+    // agy >= 1.5.x: `--print=` (valor vazio colado) + prompt via STDIN em NDJSON (stream-json)
+    assert.ok(argsText.includes('--print='));
+    assert.ok(argsText.includes('--input-format') && argsText.includes('stream-json'));
     assert.ok(argsText.includes('--model'));
     assert.ok(argsText.includes(AGY_MODEL_ID));
     assert.ok(argsText.includes('--effort'));

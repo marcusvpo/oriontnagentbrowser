@@ -679,6 +679,7 @@ async def curate_pending_som_batch(
 
     approved_count = 0
     rejected_count = 0
+    error_count = 0
     decisions_log: list[dict[str, Any]] = []
     approved_ids: set[str] = set()
 
@@ -719,21 +720,16 @@ async def curate_pending_som_batch(
                 settings=settings,
             )
         except Exception as exc:
-            reason = f"Falha na inferência SDK: {exc}"
-            item["status"] = "rejected"
-            item["curationDecision"] = {
-                "tagId": None,
-                "confidence": 0.0,
-                "reason": reason,
-                "curatedAt": datetime.now(timezone.utc).isoformat(),
-            }
-            rejected_count += 1
+            # Falha de infraestrutura (sessão/cota/timeout) NÃO é decisão de curadoria:
+            # o item permanece `pending` na fila para a próxima execução.
+            reason = f"Falha na inferência SDK (item mantido pendente): {exc}"
+            error_count += 1
             decisions_log.append(
                 {
                     "id": item_id,
                     "routineId": routine_id,
                     "stepNumber": step_number,
-                    "Outcome": "rejected",
+                    "Outcome": "pending_error",
                     "reason": reason,
                 }
             )
@@ -884,6 +880,7 @@ async def curate_pending_som_batch(
         "processed": len(pending_to_process),
         "approved": approved_count,
         "rejected": rejected_count,
+        "inference_errors": error_count,
         "remaining_in_queue": len(updated_queue),
         "dry_run": dry_run,
         "decisions": decisions_log,
@@ -945,6 +942,7 @@ async def async_main(argv: Optional[list[str]] = None) -> int:
     print(f"  Processados neste lote:    {summary['processed']}")
     print(f"  Aprovados (RAG 0.1 / 0.2): {summary['approved']}")
     print(f"  Rejeitados / Vetados:      {summary['rejected']}")
+    print(f"  Erros de inferência (mantidos pendentes): {summary.get('inference_errors', 0)}")
     print(f"  Restantes na fila:         {summary['remaining_in_queue']}")
     print("====================================================")
     return 0

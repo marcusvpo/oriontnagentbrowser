@@ -5,7 +5,9 @@ Regras de conformidade:
 - Isolamento estrito de credenciais Supabase: carrega exclusivamente de `auditoria/.env`
   (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_SECRET_KEY`, `DATABASE_URL`/`SUPABASE_DB_URL`).
 - Inicializa o cliente oficial do Google Antigravity Python SDK (`google.antigravity` v0.1.23)
-  usando a sessão local ativa (ou chave de API quando aplicável) e Structured Outputs via Pydantic.
+  usando EXCLUSIVAMENTE a sessão local autenticada do Antigravity (mesma conta do CLI `agy`),
+  sem chave de API e sem cobrança por uso de API, e Structured Outputs via Pydantic.
+  `GEMINI_API_KEY`/`GOOGLE_API_KEY` NÃO são lidas por este worker (ADR-033, emenda de 2026-11-18).
 - Modelo multimodal padrão: `gemini-4-hydrogen-xhigh` (Gemini 4 Hydrogen Extra) com fallback
   automático para `gemini-4-hydrogen-high`.
 """
@@ -87,7 +89,6 @@ class OrionWorkerSettings:
     supabase_url: str
     supabase_service_role_key: str
     database_url: str
-    gemini_api_key: Optional[str]
     primary_model: str = DEFAULT_MULTIMODAL_MODEL
     fallback_model: str = FALLBACK_MULTIMODAL_MODEL
 
@@ -119,11 +120,12 @@ def load_worker_settings(env_path: Optional[Path] = None) -> OrionWorkerSettings
         or os.environ.get("SUPABASE_DB_URL")
         or ""
     ).strip()
-    gemini_api_key = (
-        os.environ.get("GEMINI_API_KEY")
-        or os.environ.get("GOOGLE_API_KEY")
-        or None
-    )
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+        # O SDK lê essas variáveis por conta própria e passaria a cobrar por uso de API.
+        logger.warning(
+            "GEMINI_API_KEY/GOOGLE_API_KEY detectada no ambiente: o SDK pode usá-la e gerar custo de API. "
+            "A ADR-033 prevê somente a sessão local autenticada do Antigravity; remova a variável."
+        )
     primary_model = os.environ.get("ORION_AGY_PRIMARY_MODEL", DEFAULT_MULTIMODAL_MODEL).strip()
     fallback_model = os.environ.get("ORION_AGY_FALLBACK_MODEL", FALLBACK_MULTIMODAL_MODEL).strip()
 
@@ -134,7 +136,6 @@ def load_worker_settings(env_path: Optional[Path] = None) -> OrionWorkerSettings
         supabase_url=supabase_url,
         supabase_service_role_key=supabase_key,
         database_url=database_url,
-        gemini_api_key=gemini_api_key,
         primary_model=primary_model or DEFAULT_MULTIMODAL_MODEL,
         fallback_model=fallback_model or FALLBACK_MULTIMODAL_MODEL,
     )
@@ -181,9 +182,7 @@ def build_agent_config(
         ),
         "workspaces": [str(cfg.project_root)],
     }
-    if cfg.gemini_api_key:
-        kwargs["api_key"] = cfg.gemini_api_key
-
+    # Sem `api_key`: a autenticação é a sessão local do Antigravity (ADR-033).
     return LocalAgentConfig(**kwargs)
 
 
@@ -287,13 +286,21 @@ async def _run_single_model_inference(
         content_parts.append(from_file(resolved_img, description="Captura de tela do Orion TN"))
     content_parts.append(prompt)
 
-    async with Agent(agent_cfg) as agent:
-        response = await agent.chat(content_parts if len(content_parts) > 1 else prompt)
-        structured = await response.structured_output()
-        if structured is not None:
-            return coerce_to_pydantic(structured, schema_cls)
-        raw_text = await response.text()
-        return coerce_to_pydantic(raw_text, schema_cls)
+    try:
+        async with Agent(agent_cfg) as agent:
+            response = await agent.chat(content_parts if len(content_parts) > 1 else prompt)
+            structured = await response.structured_output()
+            if structured is not None:
+                return coerce_to_pydantic(structured, schema_cls)
+            raw_text = await response.text()
+            return coerce_to_pydantic(raw_text, schema_cls)
+    except Exception as exc:
+        if "API key is required" in str(exc):
+            raise RuntimeError(
+                "Sessão local do Antigravity SDK não autenticada. Autentique a sessão local "
+                "(mesma conta do CLI `agy`); este worker não usa chave de API (ADR-033)."
+            ) from exc
+        raise
 
 
 async def generate_structured_multimodal(

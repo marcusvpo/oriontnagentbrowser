@@ -144,14 +144,18 @@ export function resolveVisualAuditMode(args: string[]): VisualAuditMode {
  */
 export function buildAgyCliArgs(req: AgyInvocationRequest): string[] {
   const timeoutSec = Math.max(5, Math.ceil((req.timeoutMs ?? AGY_DEFAULT_TIMEOUT_MS) / 1000));
+  // agy >= 1.5.x: `--print` consome o próximo token como prompt. `--print=` (valor vazio colado à flag)
+  // + `--input-format stream-json` mantém o prompt exclusivamente em STDIN como NDJSON (ADR-014/ADR-031).
   const args: string[] = [
-    '--print',
+    '--print=',
+    '--input-format',
+    'stream-json',
     '--model',
     req.model || AGY_MODEL_ID,
     '--effort',
     req.effort || AGY_EFFORT_LEVEL,
     '--output-format',
-    'json',
+    'stream-json',
     '--print-timeout',
     `${timeoutSec}s`,
     '--disable-slash-commands'
@@ -184,8 +188,37 @@ export function buildAgyStdinPayload(prompt: string, imagePath?: string): string
   ].join('\n\n');
 }
 
+/**
+ * Envelopa o prompt como mensagem NDJSON de entrada do `agy --input-format stream-json`
+ * (`{"event":"user","message":{"content":"..."}}` + `\n`).
+ */
+export function buildAgyStreamInput(stdinPayload: string): string {
+  return `${JSON.stringify({ event: 'user', message: { content: stdinPayload } })}\n`;
+}
+
+/**
+ * Lê a saída `--output-format stream-json` do `agy` e devolve o evento final `result`:
+ * `response` (texto) e `error` quando `status !== 'SUCCESS'`. `null` se não houver evento `result`.
+ */
+export function extractAgyStreamResult(stdout: string): { ok: boolean; response: string; error?: string } | null {
+  let last: Record<string, any> | null = null;
+  for (const line of String(stdout || '').split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t.startsWith('{')) continue;
+    try {
+      const evt = JSON.parse(t);
+      if (evt && evt.event === 'result' && evt.result && typeof evt.result === 'object') last = evt.result;
+    } catch {
+      /* linha parcial/ruído: ignora */
+    }
+  }
+  if (!last) return null;
+  const ok = String(last.status || '').toUpperCase() === 'SUCCESS';
+  return { ok, response: String(last.response ?? ''), error: ok ? undefined : String(last.error || last.status || 'erro') };
+}
+
 function isQuotaOrRateLimitError(text: string): boolean {
-  return /quota|rate[_\s-]?limit|resource_exhausted|429|too many requests|capacity/i.test(text);
+  return /quota|rate[_\s-]?limit|resource_exhausted|\b429\b|too many requests|capacity/i.test(text);
 }
 
 /**
@@ -280,7 +313,7 @@ export async function spawnAgyProcess(req: AgyInvocationRequest): Promise<AgyRaw
     });
 
     try {
-      child.stdin?.write(stdinPayload, 'utf8');
+      child.stdin?.write(buildAgyStreamInput(stdinPayload), 'utf8');
       child.stdin?.end();
     } catch (err: any) {
       finish({
@@ -431,6 +464,15 @@ export async function invokeAgyJson<T = Record<string, unknown>>(
           `   ⚠ [agy-client] Degradação graciosa (${result.errorReason || 'falha na execução'}): seguindo sem bloqueio fatal.`
         );
         return null;
+      }
+      // stream-json: o JSON de domínio está em `result.response` do evento final.
+      const streamResult = extractAgyStreamResult(result.stdout);
+      if (streamResult) {
+        if (!streamResult.ok) {
+          console.warn(`   ⚠ [agy-client] Degradação graciosa (${streamResult.error}): seguindo sem bloqueio fatal.`);
+          return null;
+        }
+        return parseStrictJsonFromAgyOutput<T>(streamResult.response);
       }
       return parseStrictJsonFromAgyOutput<T>(result.stdout);
     } catch {

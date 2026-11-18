@@ -85,3 +85,14 @@ Com a disponibilidade do **Google Antigravity Python SDK (`google-antigravity>=0
 - **Integridade do Ecossistema TypeScript (`auditoria/`):**
   - `npx --prefix auditoria tsc -p auditoria/tsconfig.json --noEmit`: **0 erros**.
   - `npm --prefix auditoria test`: **188/188 testes aprovados em 46 suítes**.
+
+
+---
+
+## Emenda 2026-11-18 — Autenticação somente por sessão local (sem chave de API)
+
+- **Decisão:** o worker Python **não lê** `GEMINI_API_KEY` nem `GOOGLE_API_KEY` e não passa `api_key` ao `LocalAgentConfig` (`config.py`: campo `gemini_api_key` removido). A autenticação do SDK é exclusivamente a **sessão local autenticada do Antigravity** (mesma conta do CLI `agy`), sem custo de API. `auditoria/.env` continua fonte das credenciais do Supabase e dos modelos (`ORION_AGY_PRIMARY_MODEL`/`ORION_AGY_FALLBACK_MODEL`).
+- **Salvaguarda:** se `GEMINI_API_KEY`/`GOOGLE_API_KEY` existir no ambiente, `load_worker_settings` emite aviso (o SDK as lê por conta própria e passaria a cobrar por uso). Sem sessão autenticada, o SDK falha com "A Gemini API key is required"; `config.py` converte em mensagem acionável (*autentique a sessão local; este worker não usa chave de API*).
+- **Fila:** falha de inferência do SDK **não** rejeita mais o item (`Outcome: pending_error`, contador `inference_errors`, item segue `pending`). Um run sem sessão tinha marcado os 78 itens como `rejected`, o que bloqueou o `visual:curate` até a fila ser restaurada.
+- **Pendência operacional:** `curate:sdk` e `verify:semantics` só rodam depois de o usuário autenticar a sessão local do SDK. A curadoria pós-lote da Camada 2C já foi feita pelo `agy` (`visual:curate`, ver emenda da ADR-031).
+- **Verificação:** `test_sdk_worker.py` 7/7; `auditoria` 188/188 testes e `tsc` limpo; Console 39/39 testes e build ok.

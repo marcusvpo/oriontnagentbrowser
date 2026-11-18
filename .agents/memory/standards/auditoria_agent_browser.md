@@ -612,7 +612,7 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * `computeSetOfMarkTagPlacement(box, tagSize, imgWidth, imgHeight, occupiedTags)` desloca cada badge `[1]..[N]` para fora do ponto central `(cx, cy)` do próprio elemento e evita sobreposição com tags vizinhas.
 
 ### 20.2. Cliente Exclusivo Antigravity CLI (`agy-client.ts`)
-* Provedor único das Camadas 2B e 2C: CLI local `agy` configurado em **`Gemini 4 Hydrogen Extra`** (`--print --model gemini-4-hydrogen-xhigh --effort xhigh --output-format json --disable-slash-commands`), aposentando `OPENAI_API_KEY` e `claude -p`.
+* Provedor único das Camadas 2B e 2C: CLI local `agy` configurado em **`Gemini 4 Hydrogen Extra`** (`--print= --input-format stream-json --model gemini-4-hydrogen-xhigh --effort xhigh --output-format stream-json --disable-slash-commands`, prompt em NDJSON via STDIN; ver emenda 2026-11-18 da ADR-031), aposentando `OPENAI_API_KEY` e `claude -p`.
 * Prompt enviado obrigatoriamente via **`STDIN`** (`child.stdin`), timeout configurável (`45s` padrão), serialização global via **`agyInferenceSemaphore = new AsyncSemaphore(1)`**, escrita efêmera de imagem em `auditoria/cache/som-worker-${workerId}-${Date.now()}.png` (`withEphemeralSomImage`) com remoção garantida no `finally`, e degradação graciosa (`null`) diante de erro, timeout ou cota.
 
 ### 20.3. Sub-camada 2C (`smart-locator.ts`) e Modos `--visual-mode live | defer` (`cli.ts`, `curate-pending-som.ts`)
