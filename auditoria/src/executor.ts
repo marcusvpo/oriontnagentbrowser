@@ -7,6 +7,7 @@ import { AgentBrowserClient } from './browser.js';
 import { ensureAuthenticated, isSessionActiveInPage, noteFullReset, noteLightReset } from './auth.js';
 import { locateAndCaptureWithSelfHealing, hasNavigationIntent, buildCalloutsFromGroup, inferStepZone, normalizeText } from './smart-locator.js';
 import { loadHumanReviewsKnowledge } from './human-review-rag.js';
+import { firmasSpecialistHandlesStep } from './firmas-interactive.js';
 import { resolveStatefulStep, runStatefulStepPostAction, type StatefulPostStepResult } from './stateful-step-engine.js';
 import { describeMenuPathMissing, extractMenuPaths } from './menu-path.js';
 import { classifyRoutineWorkload } from './worker-pool.js';
@@ -36,7 +37,7 @@ import { classifyBlock, describeStatus } from './review-classifier.js';
 import { captureAttScreenDiagnosis, contextPrintName, type AttScreenDiagnosis } from './att-screen-advisor.js';
 import { describeTags, reviewPrefix, reviewTagsFor, stripReviewPrefix, type ReviewTag } from './review-taxonomy.js';
 import { stampStepScopes, stripProductNameTargets } from './step-scope.js';
-import { isGlobalSearchName, isStrictNavigationStep } from './navigation-guard.js';
+import { deriveStepGuard, isGlobalSearchName, isStrictNavigationStep } from './navigation-guard.js';
 import {
   readScreenSnapshot,
   snapshotKey,
@@ -962,7 +963,11 @@ export async function executeRoutineAudit(
       let prefilter: GridPrefilterOutcome | null = null;
       if (!implicit && !isOptionsOnly && !hasMenuPath && stepNeedsGridRows(step)) {
         const hashNow = (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
-        if (!prefilterTriedHashes.has(hashNow) && (await countGridRows(client).catch(() => -1)) === 0) {
+        if (
+          !firmasSpecialistHandlesStep(step, hashNow) &&
+          !prefilterTriedHashes.has(hashNow) &&
+          (await countGridRows(client).catch(() => -1)) === 0
+        ) {
           prefilterTriedHashes.add(hashNow);
           prefilter = await autoFilterEmptyGrid(client, { rawPathFor, getNextLetter: () => nextLetter });
           if (prefilter.attempted) {
@@ -1255,10 +1260,12 @@ export async function executeRoutineAudit(
         //    (`passo-NN-b`), continuando a numeração.
         if (notFound().length > 0 && executedAction.kind !== 'none') {
           const names = notFound().map(d => d.documentedTarget);
+          // ADR-035: o contexto de guarda do passo (campo de entrada / busca global) também vale na medição pós-ação
           const after = await client.getDOMGeometry(names, {
             scrollIntoView: true,
             zone: domGeometry.zonePolicy ?? 'any',
-            groupTargets: names
+            groupTargets: names,
+            ...deriveStepGuard(step)
           });
           const seen = new Set((after?.groupMembers || []).map(m => m.query));
           if (after && seen.size > 0) {

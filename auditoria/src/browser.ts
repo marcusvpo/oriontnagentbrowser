@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { BoundingBox, DOMActionNode, DOMResolvedGeometry, SemanticZone, StepZonePolicy } from './types.js';
 import { buildDOMIntrospectionScript, parseDOMGeometryResponse, NAV_ZONE_SELECTOR } from './dom-geometry.js';
+import type { StepGuardContext } from './navigation-guard.js';
 import { config } from './config.js';
 
 const execFileAsync = promisify(execFile);
@@ -524,6 +525,10 @@ export interface DOMGeometryRequestOptions {
   groupTargets?: string[];
   /** Membro do grupo que recebe o carimbo de clique (ADR-017). */
   actionMember?: 'first-clickable' | 'last';
+  /** ADR-035: sobrescreve o contexto de guarda do passo vigente (`setStepGuard`). */
+  fieldIntent?: boolean;
+  allowGlobalSearch?: boolean;
+  allowOptionTier?: boolean;
 }
 
 export interface AccessibilityNode {
@@ -548,6 +553,20 @@ export class AgentBrowserClient {
   private statePath?: string;
   private deviceScaleFactor: number;
   private browserZoom: number;
+  /**
+   * ADR-035: contexto de guarda do passo em localização (campo de entrada, busca global, valor de lista). O
+   * `locateAndCaptureWithSelfHealing` o define no início do passo e o limpa no `finally`; toda medição textual
+   * feita por ele (Camadas 1, 2A, 2B, 2C, curas e pré-filtros) herda o mesmo critério sem mudar cada chamada.
+   */
+  private stepGuard: StepGuardContext | null = null;
+
+  setStepGuard(guard: StepGuardContext | null): void {
+    this.stepGuard = guard;
+  }
+
+  getStepGuard(): StepGuardContext | null {
+    return this.stepGuard;
+  }
 
   constructor(options: boolean | AgentBrowserOptions = false) {
     if (typeof options === 'boolean') {
@@ -996,7 +1015,10 @@ export class AgentBrowserClient {
         zone,
         groupTargets,
         actionMember: options.actionMember,
-        zoom: this.browserZoom
+        zoom: this.browserZoom,
+        fieldIntent: options.fieldIntent ?? this.stepGuard?.fieldIntent,
+        allowGlobalSearch: options.allowGlobalSearch ?? this.stepGuard?.allowGlobalSearch,
+        allowOptionTier: options.allowOptionTier ?? this.stepGuard?.allowOptionTier
       });
       const geometry = parseDOMGeometryResponse(await this.eval(script));
       if (geometry) geometry.zonePolicy = zonePolicy;

@@ -66,6 +66,16 @@ export function isReconhecimentoFirmasUrl(urlOrHash: string | null | undefined):
 }
 
 /**
+ * ADR-035: o especialista de Firmas (ADR-026) já conduz a própria busca/seleção em `#/pedidoFirmas/cadastrar`.
+ * O Pré-Filtro de Grade (ADR-029) roda ANTES dele e, quando consegue popular a grade com `"teste"`, o formulário
+ * muda de estado e o especialista perde os campos (D-3.11 passo 2 caía no fluxo genérico, sem `Nomes para
+ * reconhecimento`/`Finalizar`). Nesses passos o pré-filtro não é acionado.
+ */
+export function firmasSpecialistHandlesStep(step: RoutineStep, urlOrHash: string | null | undefined): boolean {
+  return isReconhecimentoFirmasUrl(urlOrHash) && classifyFirmasStep(step) !== null;
+}
+
+/**
  * Classifica passos interativos da tela `Reconhecimento de firmas` (`#/pedidoFirmas/cadastrar`)
  * com base no texto do manual, sem hardcode de ID de rotina.
  */
@@ -92,7 +102,14 @@ export function classifyFirmasStep(step: RoutineStep): FirmasStepKind | null {
     return 'act_and_print';
   }
 
-  if (/\b(novo pedido|senha sga|pedido\/senha|sga)\b/.test(norm) && !/\b(por nome|pesquis.*nome)\b/.test(norm)) {
+  // ADR-035: alvo que é o ícone `+` ("+" (Adicionar Novo Pedido)) NÃO é o fluxo de pedido por Senha SGA: o `+` da
+  // barra superior é medido pelo localizador padrão (R-10.0 demarcava Pedido/Senha, Senha SGA, Nome e Filtrar)
+  const targetsBarePlus = step.targets.some(t => /^[\s"'“”‘’]*\+[\s"'“”‘’]*(\(.*\))?\s*$/.test(t));
+  if (
+    /\b(novo pedido|senha sga|pedido\/senha|sga)\b/.test(norm) &&
+    !/\b(por nome|pesquis.*nome)\b/.test(norm) &&
+    !targetsBarePlus
+  ) {
     return 'sga_order';
   }
 

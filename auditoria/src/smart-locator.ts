@@ -2,7 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { AgentBrowserClient } from './browser.js';
 import { resolveAndNavigateMenuPath } from './menu-path.js';
-import { forbiddenCandidateReason, forbiddenMeasuredReason, synonymMatchesNode } from './navigation-guard.js';
+import {
+  deriveStepGuard,
+  forbiddenCandidateReason,
+  forbiddenMeasuredReason,
+  synonymMatchesNode,
+  type GuardNode
+} from './navigation-guard.js';
 import { isGenericContainerMatch } from './evidence.js';
 import { isFullAccessSession, probePermissionBlockedTargets, readSessionIdentity } from './rbac.js';
 import { clamp, NAV_ZONE_SELECTOR } from './dom-geometry.js';
@@ -49,6 +55,34 @@ export interface ParsedA11yNode {
   associatedLabel?: string;
   semanticRole?: SemanticRole;
   inNavbar?: boolean;
+  /** Tag do nó no DOM (`th` para cabeçalho de coluna, `input` para placeholder) — ADR-035 */
+  tagName?: string;
+  /** Placeholder/title/aria-label do nó (o nome de um `<input>` costuma ser o placeholder) — ADR-035 */
+  placeholder?: string;
+  /** `id` do nó (reconhece o campo da busca global da barra superior) — ADR-035 */
+  elementId?: string;
+  /** Marca já calculada no DOM: busca global `CTRL + B` ou campo de texto da barra superior — ADR-035 */
+  isGlobalSearch?: boolean;
+}
+
+/**
+ * Converte um nó da árvore de acessibilidade / rótulo visível no nó de guarda (ADR-024/026/035): a mesma
+ * função alimenta as Camadas 2A, 2B (poda + LLM) e a validação da 2C, de modo que cabeçalho de coluna (`th`)
+ * e busca global nunca sejam eleitos em nenhuma delas.
+ */
+export function guardNodeOf(
+  node: Pick<ParsedA11yNode, 'name' | 'role' | 'inNavbar' | 'tagName' | 'placeholder' | 'elementId' | 'isGlobalSearch' | 'semanticRole'>
+): GuardNode {
+  return {
+    name: node.name,
+    role: node.role,
+    tagName: node.tagName,
+    inNavbar: node.inNavbar,
+    placeholder: node.placeholder,
+    id: node.elementId,
+    isGlobalSearch: node.isGlobalSearch,
+    semanticRole: node.semanticRole
+  };
 }
 
 export function buildCollectVisibleLabelNodesScript(): string {
@@ -180,7 +214,28 @@ export function buildCollectVisibleLabelNodesScript(): string {
             el.getAttribute('ng-click') ||
             ''
           ) || undefined;
-        out.push({ name, query, role: roleOverride, sectionTitle, rowContext, associatedLabel });
+        // ADR-035: tag do nó, papel de cabeçalho de coluna e marca de busca global (CTRL + B / campo da barra superior)
+        const tagName = (el.tagName || '').toLowerCase();
+        const isColumnHeader = tagName === 'th' || el.getAttribute('role') === 'columnheader' || !!composedClosest(el, 'thead');
+        const placeholder = clean(el.getAttribute('placeholder') || el.getAttribute('title') || el.getAttribute('aria-label') || '') || undefined;
+        const elementId = el.id || undefined;
+        const isGlobalSearch =
+          /ctrl\\s*\\+\\s*b|pesquise aqui|nome da tela que deseja/i.test(placeholder || '') ||
+          /search.?menu|input.?search|busca.?menu|pesquisa.?menu|menu.?search/i.test(elementId || '') ||
+          ((tagName === 'input' || tagName === 'textarea') && !!composedClosest(el, 'header, nav, .navbar, #navbar'));
+        out.push({
+          name,
+          query,
+          role: roleOverride,
+          sectionTitle,
+          rowContext,
+          associatedLabel,
+          tagName,
+          placeholder,
+          elementId,
+          isGlobalSearch: isGlobalSearch || undefined,
+          semanticRole: isColumnHeader ? 'table_column_header' : undefined
+        });
       };
       for (const doc of docs) {
         for (const el of queryAllDeep(doc, 'label, legend, th')) {
@@ -214,6 +269,10 @@ export async function collectVisibleLabelNodes(client: AgentBrowserClient): Prom
       rowContext?: DOMSemanticSignature['rowContext'];
       associatedLabel?: string;
       semanticRole?: SemanticRole;
+      tagName?: string;
+      placeholder?: string;
+      elementId?: string;
+      isGlobalSearch?: boolean;
     }>
   >(buildCollectVisibleLabelNodesScript());
   return (labels || []).map(l => ({
@@ -225,7 +284,11 @@ export async function collectVisibleLabelNodes(client: AgentBrowserClient): Prom
     sectionTitle: l.sectionTitle,
     rowContext: l.rowContext,
     associatedLabel: l.associatedLabel,
-    semanticRole: l.semanticRole
+    semanticRole: l.semanticRole,
+    tagName: l.tagName,
+    placeholder: l.placeholder,
+    elementId: l.elementId,
+    isGlobalSearch: l.isGlobalSearch
   }));
 }
 
@@ -458,13 +521,17 @@ export function rankSemanticCandidatesInA11y(
       const normNode = normalizeText(node.name);
       if (!normNode) continue;
       // ADR-024 + ADR-026: bloqueia campo em passo de navegação, CTRL + B, "Novo cartão +" sem "cartão" e colapso em navbar
-      if (step && forbiddenCandidateReason(step, { name: node.name, role: node.role, inNavbar: node.inNavbar })) continue;
+      if (step && forbiddenCandidateReason(step, guardNodeOf(node))) continue;
 
       // ADR-027: Matriz de Compatibilidade Intenção × Papel + filtro anti-substring ANTES do Sørensen-Dice
       const compat = step
         ? evaluateSemanticCompatibility(step, docTarget, {
             name: node.name,
             role: node.role,
+            tagName: node.tagName,
+            placeholder: node.placeholder,
+            id: node.elementId,
+            isGlobalSearch: node.isGlobalSearch,
             inNavbar: node.inNavbar,
             sectionTitle: node.sectionTitle,
             rowContext: node.rowContext,
@@ -776,7 +843,7 @@ export function pruneAndPrioritizeNodesForLLM(
     const cleanedName = cleanA11yNodeName(rawNode.name);
     if (!cleanedName) continue;
 
-    if (forbiddenCandidateReason(step, { name: cleanedName, role: rawNode.role, inNavbar: rawNode.inNavbar })) {
+    if (forbiddenCandidateReason(step, { ...guardNodeOf(rawNode), name: cleanedName })) {
       continue;
     }
 
@@ -798,6 +865,10 @@ export function pruneAndPrioritizeNodesForLLM(
       const compat = evaluateSemanticCompatibility(step, docTarget, {
         name: cleanedName,
         role: rawNode.role,
+        tagName: rawNode.tagName,
+        placeholder: rawNode.placeholder,
+        id: rawNode.elementId,
+        isGlobalSearch: rawNode.isGlobalSearch,
         inNavbar: rawNode.inNavbar,
         sectionTitle: cleanSection,
         rowContext: rawNode.rowContext,
@@ -909,7 +980,7 @@ export async function resolveViaLLMOnAccessibilityTree(
     const matchedNode = pruned.find(n => n.ref === parsed.ref || n.ref === normRef);
     if (!matchedNode) return null;
 
-    if (forbiddenCandidateReason(step, { name: matchedNode.name, role: matchedNode.role, inNavbar: matchedNode.inNavbar })) {
+    if (forbiddenCandidateReason(step, guardNodeOf(matchedNode))) {
       return null;
     }
     const targets = step.targets.length > 0 ? step.targets : [step.rawText];
@@ -917,6 +988,10 @@ export async function resolveViaLLMOnAccessibilityTree(
       const compat = evaluateSemanticCompatibility(step, docTarget, {
         name: matchedNode.name,
         role: matchedNode.role,
+        tagName: matchedNode.tagName,
+        placeholder: matchedNode.placeholder,
+        id: matchedNode.elementId,
+        isGlobalSearch: matchedNode.isGlobalSearch,
         inNavbar: matchedNode.inNavbar,
         sectionTitle: matchedNode.sectionTitle,
         rowContext: matchedNode.rowContext,
@@ -1098,16 +1173,21 @@ export function validateVisualCandidateSemantics(
   candidate: Pick<
     SomInteractiveCandidate,
     'name' | 'role' | 'inNavbar' | 'sectionTitle' | 'rowContext' | 'associatedLabel' | 'semanticRole'
-  >,
+  > &
+    Partial<Pick<SomInteractiveCandidate, 'tagName' | 'innerText'>>,
   zonePolicy?: StepZonePolicy
 ): { allowed: boolean; reason?: string } {
   const effectiveZone = zonePolicy ?? step.zone ?? inferStepZone(step.rawText, step.actionType);
   const candidateName = cleanA11yNodeName(candidate.name || candidate.associatedLabel || '');
 
+  // ADR-035: o rótulo do SoM (`associatedLabel`) carrega o placeholder; `tagName` revela `th` e campos de texto
   const navForbidden = forbiddenCandidateReason(step, {
     name: candidateName,
     role: candidate.role,
-    inNavbar: candidate.inNavbar
+    tagName: candidate.tagName,
+    placeholder: candidate.associatedLabel,
+    inNavbar: candidate.inNavbar,
+    semanticRole: candidate.semanticRole
   });
   if (navForbidden) {
     return { allowed: false, reason: navForbidden };
@@ -1133,6 +1213,8 @@ export function validateVisualCandidateSemantics(
     const compat = evaluateSemanticCompatibility(step, docTarget, {
       name: candidateName,
       role: candidate.role,
+      tagName: candidate.tagName,
+      placeholder: candidate.associatedLabel,
       inNavbar: candidate.inNavbar,
       sectionTitle: candidate.sectionTitle,
       rowContext: candidate.rowContext,
@@ -1291,6 +1373,8 @@ export function buildCollectSomCandidatesScript(
       const inferRole = (el, text, inNav, rowCtx) => {
         const t = (text || '').toLowerCase();
         const tag = (el.tagName || '').toLowerCase();
+        // ADR-035: cabeçalho de coluna da grade é papel próprio (nunca campo de entrada)
+        if (tag === 'th' || el.getAttribute('role') === 'columnheader' || composedClosest(el, 'th, [role="columnheader"], thead')) return 'table_column_header';
         if (inNav) return composedClosest(el, '.dropdown-menu, .sub-menu') ? 'navigation_leaf' : 'navigation_root';
         if (tag === 'input' || tag === 'select' || tag === 'textarea') {
           return /pesquis|filtr|busca/i.test(t) ? 'search_filter_input' : 'form_input';
@@ -1604,6 +1688,7 @@ export async function resolveViaSetOfMark2C(
       {
         name: geometry.context.innerText || rawChosen.name,
         role: geometry.context.role || rawChosen.role,
+        tagName: geometry.context.tagName || rawChosen.tagName,
         inNavbar: geometry.context.isTopNav || geometry.context.isVerticalSidebar,
         sectionTitle: geometry.context.semantic.sectionTitle,
         rowContext: geometry.context.semantic.rowContext,
@@ -1701,6 +1786,7 @@ export async function resolveViaVisualGrounding2C(
       {
         name: geometry.context.innerText || anchored.name,
         role: geometry.context.role || anchored.role,
+        tagName: geometry.context.tagName || anchored.tagName,
         inNavbar: geometry.context.isTopNav || geometry.context.isVerticalSidebar,
         sectionTitle: geometry.context.semantic.sectionTitle,
         rowContext: geometry.context.semantic.rowContext,
@@ -1834,8 +1920,26 @@ export interface SmartLocateOptions {
  * - Emite telemetria `SmartLocatorDivergence` sempre que curar uma divergência entre o manual e a tela real.
  * - Todas as camadas obedecem ao Filtro de Zona Semântica (ADR-015): passos de parametrização/formulário
  *   nunca resolvem para `aside`, `.sidebar`, `nav` ou abas, e múltiplos parâmetros viram um Group Bounding Box.
+ * - ADR-035: o contexto de guarda do passo (`deriveStepGuard`: campo de entrada, busca global, valor de lista) é
+ *   fixado no cliente durante TODA a localização e limpo ao final, valendo para as Camadas 1, 2A, 2B e 2C.
  */
 export async function locateAndCaptureWithSelfHealing(
+  client: AgentBrowserClient,
+  step: RoutineStep,
+  rawScreenshotPath: string,
+  options: SmartLocateOptions = {}
+): Promise<SmartLocatorResult> {
+  // `?.`: clientes simulados dos testes offline podem não implementar o contexto de guarda
+  const previousGuard = client.getStepGuard?.() ?? null;
+  client.setStepGuard?.(deriveStepGuard(step));
+  try {
+    return await locateAndCaptureInner(client, step, rawScreenshotPath, options);
+  } finally {
+    client.setStepGuard?.(previousGuard);
+  }
+}
+
+async function locateAndCaptureInner(
   client: AgentBrowserClient,
   step: RoutineStep,
   rawScreenshotPath: string,

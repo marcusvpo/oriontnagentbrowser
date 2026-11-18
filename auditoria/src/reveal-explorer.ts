@@ -2,6 +2,7 @@ import type { AgentBrowserClient, OpenedTab } from './browser.js';
 import { isGenericContainerMatch } from './evidence.js';
 import { ACTIVE_MODAL_SELECTOR, dismissTopModalOnce } from './modal-scope.js';
 import { RESOLVED_COMMIT_SOURCE } from './mutation-guard.js';
+import { deriveStepGuard } from './navigation-guard.js';
 import { PERMISSION_MARK_SELECTOR } from './rbac.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 import type {
@@ -677,7 +678,14 @@ export async function exploreRevealTriggers(client: AgentBrowserClient, request:
 
     const screen = await client.probeScreenLoaded();
     if (screen.ok) {
-      let after = await client.getDOMGeometry(missing, { scrollIntoView: true, zone: zonePolicy, groupTargets: missing });
+      // ADR-035: o contexto de guarda do passo vale também aqui (o localizador já o limpou): `th` da grade que
+      // continua visível atrás do formulário aberto por **Adicionar** nunca substitui o campo revelado
+      let after = await client.getDOMGeometry(missing, {
+        scrollIntoView: true,
+        zone: zonePolicy,
+        groupTargets: missing,
+        ...deriveStepGuard(step)
+      });
       if (after && isGenericContainerMatch(after)) after = null;
       const revealed = (after?.groupMembers || []).map(m => m.query).filter(q => missing.includes(q));
       if (after && revealed.length > 0) {

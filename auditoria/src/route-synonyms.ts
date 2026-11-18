@@ -94,6 +94,8 @@ export const ROUTE_LABEL_SYNONYMS: RouteLabelSynonym[] = [
   { route: '#/ficha/cadastrar', documented: 'RG/CNH', real: ['RG', 'CNH'], kind: 'field', evidence: 'o manual agrupa dois campos que a tela separa: "RG" e "CNH"' },
   // Cadastro de produto (Orion Estoque)
   { route: '#/produto/cadastrar', documented: 'Nome do Produto', real: ['Descrição'], kind: 'field', evidence: 'o nome do produto é o campo "Descrição" (único campo de texto de identificação da tela)' },
+  // Documento apresentado (ADR-035, Raio-X de M-36.0): o filtro de texto chama-se "Pesquisar por documento apresentado"
+  { route: '#/documentoApresentado', documented: 'Pesquisar por descrição', real: ['Pesquisar por documento apresentado'], kind: 'field', evidence: 'único campo de texto do filtro da listagem (os demais são "Inativos" e a quantidade por página); lido ao vivo no Raio-X' },
   // Cadastro de natureza: a busca por descrição é o campo de texto "Natureza" do filtro
   { route: '#/natureza', documented: 'Pesquisar por descrição', real: ['Natureza'], kind: 'field', evidence: 'único campo de texto do filtro; os demais são seleções e marcação' }
 ];

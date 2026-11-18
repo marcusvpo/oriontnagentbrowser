@@ -35,6 +35,7 @@ if str(WORKER_DIR) not in sys.path:
 
 from config import (  # noqa: E402
     CACHE_DIR,
+    PROJECT_ROOT,
     ROTINAS_DIR,
     SEMANTIC_AUDIT_REPORT_FILE,
     OrionWorkerSettings,
@@ -42,6 +43,7 @@ from config import (  # noqa: E402
     create_postgres_connection,
     generate_structured_multimodal,
     load_worker_settings,
+    prepare_agy_image,
     set_sdk_transport_for_tests,
 )
 
@@ -49,6 +51,15 @@ logger = logging.getLogger("orion.semantic_visual_verifier")
 
 MIN_VISUAL_CONFIDENCE_THRESHOLD = 0.85
 GOVERNANCE_CACHE_FILE = CACHE_DIR / "governance.json"
+
+# Assinatura gravada em `governance.json` / `routines.revisor` pelo próprio verificador. Só sinalizações com
+# esta assinatura podem ser liberadas por ele (nunca a governança feita por um revisor humano).
+VERIFIER_REVISOR = "Verificador Semântico SDK (ADR-033)"
+VERIFIER_PENDING_STATUS = "pendente_aprovacao"
+
+# Sub-captura do mesmo passo: `passo-05-b.png` (elemento revelado após a ação), `passo-05-c.png`...
+# Fora do padrão de propósito: `passo-NN-contexto-att` (print de contexto do Raio-X) não é sub-captura.
+_SUB_CAPTURE_RE = re.compile(r"^passo-(\d{2})-([a-z])\.(png|webp)$", re.IGNORECASE)
 
 
 class SemanticAuditResult(BaseModel):
@@ -109,6 +120,28 @@ def parse_revised_markdown_file(md_path: Path) -> Optional[dict[str, Any]]:
         "steps_map": steps_map,
         "mtime": md_path.stat().st_mtime,
     }
+
+
+def find_sub_capture_images(folder: Path, step_num: int) -> list[Path]:
+    """
+    Sub-capturas do passo (`passo-NN-b`, `-c`...), em ordem alfabética. Quando o motor revela um alvo que só
+    aparece após a ação do passo (ex.: **Concluir** depois de **Adicionar**, ADR-017/019), o gatilho fica em
+    `passo-NN` e o elemento revelado em `passo-NN-b`. O verificador precisa ver o conjunto, não só a primeira.
+    Prefere `.png` (legível pelo `agy`); só usa `.webp` quando não há `.png` pareado.
+    """
+    if not folder.exists():
+        return []
+    pad = f"{step_num:02d}"
+    by_letter: dict[str, Path] = {}
+    for entry in sorted(folder.iterdir()):
+        m = _SUB_CAPTURE_RE.match(entry.name)
+        if not m or m.group(1) != pad:
+            continue
+        letter = m.group(2).lower()
+        current = by_letter.get(letter)
+        if current is None or (current.suffix.lower() == ".webp" and entry.suffix.lower() == ".png"):
+            by_letter[letter] = entry
+    return [by_letter[k] for k in sorted(by_letter)]
 
 
 def discover_healed_steps_in_routines(
@@ -176,6 +209,7 @@ def discover_healed_steps_in_routines(
                     "step_text": step_text,
                     "divergences": step_divs,
                     "image_path": image_path,
+                    "sub_images": find_sub_capture_images(folder, step_num),
                     "report_path": info["file_path"],
                 }
             )
@@ -193,25 +227,84 @@ def build_semantic_verification_prompt(candidate: dict[str, Any]) -> str:
             f"(camada: {d.get('camada')}, confiança: {d.get('confianca')})"
         )
 
-    return "\n".join(
+    lines = [
+        "Você é o Auditor Semântico Multimodal Pós-Lote (ADR-033) do sistema Orion TN (Siplan).",
+        f"Rotina: {candidate['routine_id']} ({candidate.get('titulo', '')}) | Módulo: {candidate.get('modulo', '')}",
+        f"Passo auditado: Passo {candidate['step_number']}",
+        f"Texto do passo: \"{candidate.get('step_text', '')}\"",
+        "Histórico de Auto-Cura aplicada neste passo:",
+        "\n".join(divs_summary),
+        "",
+    ]
+
+    sub_images: list[Path] = [Path(p) for p in (candidate.get("sub_images") or [])]
+    if sub_images:
+        lines.append(
+            "Imagens do passo: a imagem principal anexa é `passo-NN` e as sub-capturas abaixo pertencem ao MESMO passo "
+            "(estado da tela depois da ação do passo, com os elementos que só aparecem após ela):"
+        )
+        for sub in sub_images:
+            lines.append(f"[Sub-captura do mesmo passo: {_image_mention(sub)}]")
+        lines.append("")
+
+    lines.extend(
         [
-            "Você é o Auditor Semântico Multimodal Pós-Lote (ADR-033) do sistema Orion TN (Siplan).",
-            f"Rotina: {candidate['routine_id']} ({candidate.get('titulo', '')}) | Módulo: {candidate.get('modulo', '')}",
-            f"Passo auditado: Passo {candidate['step_number']}",
-            f"Texto do passo: \"{candidate.get('step_text', '')}\"",
-            "Histórico de Auto-Cura aplicada neste passo:",
-            "\n".join(divs_summary),
-            "",
             "Auditoria Cruzada Estrita:",
-            "1. Inspecione na imagem anexa a moldura em Carmesim Siplan (#ad0505) e o badge numérico.",
+            "1. Inspecione na(s) imagem(ns) a moldura em Carmesim Siplan (#ad0505) e o badge numérico.",
             "2. Verifique se o controle, campo, aba ou menu focalizado pela demarcação carmesim corresponde "
             "de fato à intenção funcional descrita no texto do passo.",
             "3. Se a moldura estiver destacando um elemento incorreto (ex.: barra superior genérica quando o passo "
-            "pede um campo de formulário, botão 'Novo cartão +' em vez de '+' da grade, ou campo 'Cidade' em vez de 'Autenticidade'), "
+            "pede um campo de formulário, botão 'Novo cartão +' em vez de '+' da grade, cabeçalho de coluna da grade "
+            "quando o passo pede o campo de digitação, ou campo 'Cidade' em vez de 'Autenticidade'), "
             "defina semantic_match=False e explique detalhadamente em discrepancy_reason.",
+            "",
+            "Convenções do motor de auditoria (NÃO são falhas; não reprove por elas):",
+            "a) Gatilho + elemento revelado (ADR-017/019): quando o passo cita um botão que só aparece depois de acionar "
+            "outro (ex.: **Concluir** \"exibido após clicar em **Adicionar**\"), a imagem principal demarca o GATILHO "
+            "(**Adicionar**) e a sub-captura `passo-NN-b` demarca o elemento revelado (**Concluir**), continuando a "
+            "numeração. Julgue o CONJUNTO das imagens: se a união das demarcações cobre o que o passo pede, "
+            "semantic_match=True.",
+            "b) Valor de lista suspensa (ADR-018): quando o passo cita um valor de lista (ex.: \"Reconhecimento AEDO\"), "
+            "a moldura envolve o campo <select> que contém exatamente esse valor e o rótulo do badge repete o texto do "
+            "manual. Aprove se o campo demarcado de fato oferece o valor citado.",
+            "c) A lupa \"LUPA DE DETALHE (2.5x)\" é um recurso visual do anotador para alvos pequenos, não parte da tela.",
+            "d) Badge/rótulo que cobre um campo VIZINHO não invalida a demarcação; avalie somente se o elemento "
+            "enquadrado é o correto.",
+            "",
             f"4. Retorne routine_id=\"{candidate['routine_id']}\" e step_number={candidate['step_number']}.",
         ]
     )
+    return "\n".join(lines)
+
+
+def prepare_sub_images(sub_images: list[Path]) -> tuple[list[Path], list[Path]]:
+    """
+    Devolve `(imagens_legiveis_pelo_agy, temporarios_a_remover)`. Sub-captura `.webp` usa o `.png` pareado quando
+    existe; sem par é convertida para PNG temporário. Sub-captura ausente/ilegível é ignorada (o passo ainda é
+    avaliado pela imagem principal).
+    """
+    prepared: list[Path] = []
+    temps: list[Path] = []
+    for sub in sub_images:
+        try:
+            ready, temp = prepare_agy_image(sub)
+        except Exception as exc:  # arquivo removido/corrompido: não derruba o lote
+            logger.warning("Sub-captura %s ignorada: %s", sub, exc)
+            continue
+        prepared.append(ready)
+        if temp is not None:
+            temps.append(temp)
+    return prepared, temps
+
+
+def _image_mention(path: Path) -> str:
+    """Menção `@caminho-relativo (caminho-absoluto)` no formato lido pelo `agy` (igual à imagem principal)."""
+    abs_path = Path(path).resolve()
+    try:
+        mention = abs_path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        mention = abs_path.as_posix()
+    return f"@{mention} ({abs_path.as_posix()})"
 
 
 def flag_step_for_priority_review(
@@ -249,7 +342,7 @@ def flag_step_for_priority_review(
     if not isinstance(entry, dict):
         entry = {}
     entry["statusGovernanca"] = "revisao_solicitada"
-    entry["revisor"] = "Verificador Semântico SDK (ADR-033)"
+    entry["revisor"] = VERIFIER_REVISOR
     entry["comentario"] = comment
     entry["updatedAt"] = now_iso
     entry["prioritySemanticFlag"] = {
@@ -280,7 +373,7 @@ def flag_step_for_priority_review(
                                 atualizado_em = %s
                             WHERE id = %s;
                             """,
-                            ("Verificador Semântico SDK (ADR-033)", comment, now_iso, result.routine_id),
+                            (VERIFIER_REVISOR, comment, now_iso, result.routine_id),
                         )
                 conn.close()
             except Exception as exc:
@@ -324,7 +417,9 @@ async def verify_healed_routines_batch(
         rid = cand["routine_id"]
         step_num = cand["step_number"]
         img_path: Path = cand["image_path"]
-        prompt = build_semantic_verification_prompt(cand)
+        # ADR-035: o gatilho fica em `passo-NN` e o elemento revelado em `passo-NN-b`; o modelo vê o conjunto
+        sub_ready, sub_temps = prepare_sub_images(list(cand.get("sub_images") or []))
+        prompt = build_semantic_verification_prompt({**cand, "sub_images": sub_ready})
 
         try:
             audit_res, model_used = await generate_structured_multimodal(
@@ -350,6 +445,12 @@ async def verify_healed_routines_batch(
                 discrepancy_reason=f"Erro na verificação multimodal SDK: {exc}",
             )
             model_used = "error"
+        finally:
+            for temp in sub_temps:
+                try:
+                    temp.unlink()
+                except OSError:
+                    pass
 
         needs_priority_review = (
             not audit_res.semantic_match or audit_res.visual_confidence < MIN_VISUAL_CONFIDENCE_THRESHOLD
@@ -392,16 +493,47 @@ async def verify_healed_routines_batch(
         else:
             approved_count += 1
 
+    # ADR-035: execução parcial (`--routines`) mescla no relatório consolidado em vez de apagar as demais rotinas
+    consolidated = results_list
+    if routine_filter and limit is None and not dry_run:
+        kept = [
+            r for r in _load_previous_results(report_output_path) if r.get("routine_id") not in routine_filter
+        ]
+        consolidated = sorted(
+            kept + results_list, key=lambda r: (str(r.get("routine_id")), int(r.get("step_number") or 0))
+        )
+    merged_mode = consolidated is not results_list
+    consolidated_flagged = [r for r in consolidated if r.get("priority_review")]
+
+    # ADR-035: libera só as sinalizações do PRÓPRIO verificador das rotinas reavaliadas que agora passam
+    lifted: list[str] = []
+    if not dry_run:
+        checked = set(routine_filter) if routine_filter else {c["routine_id"] for c in candidates}
+        flagged_now = {str(r["routine_id"]) for r in flagged_priority_list}
+        lifted = lift_stale_semantic_flags(
+            checked - flagged_now,
+            governance_file=governance_file,
+            sync_to_supabase=sync_to_supabase,
+            settings=settings,
+        )
+
     report_payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "confidence_threshold": MIN_VISUAL_CONFIDENCE_THRESHOLD,
-        "total_discovered_steps": len(all_candidates),
-        "evaluated_steps": len(candidates),
-        "approved_steps": approved_count,
-        "flagged_for_priority_review": flagged_count,
+        "total_discovered_steps": len(consolidated) if merged_mode else len(all_candidates),
+        "evaluated_steps": len(consolidated) if merged_mode else len(candidates),
+        "approved_steps": len(consolidated) - len(consolidated_flagged) if merged_mode else approved_count,
+        "flagged_for_priority_review": len(consolidated_flagged) if merged_mode else flagged_count,
         "dry_run": dry_run,
-        "priority_review_items": flagged_priority_list,
-        "results": results_list,
+        "last_run": {
+            "routines": sorted(routine_filter) if routine_filter else None,
+            "evaluated_steps": len(candidates),
+            "approved_steps": approved_count,
+            "flagged_for_priority_review": flagged_count,
+            "lifted_semantic_flags": lifted,
+        },
+        "priority_review_items": consolidated_flagged if merged_mode else flagged_priority_list,
+        "results": consolidated,
     }
 
     if not dry_run:
@@ -409,6 +541,94 @@ async def verify_healed_routines_batch(
         report_output_path.write_text(json.dumps(report_payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
     return report_payload
+
+
+def _load_previous_results(report_path: Path) -> list[dict[str, Any]]:
+    """Resultados do relatório consolidado anterior (vazio se ausente ou ilegível)."""
+    if not report_path.exists():
+        return []
+    try:
+        previous = json.loads(report_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    results = previous.get("results") if isinstance(previous, dict) else None
+    return [r for r in results if isinstance(r, dict)] if isinstance(results, list) else []
+
+
+def lift_stale_semantic_flags(
+    routine_ids: set[str],
+    *,
+    governance_file: Path = GOVERNANCE_CACHE_FILE,
+    sync_to_supabase: bool = False,
+    settings: Optional[OrionWorkerSettings] = None,
+) -> list[str]:
+    """
+    Libera a sinalização `revisao_solicitada` das rotinas que o verificador reavaliou e agora aprova.
+    Só toca em entradas ASSINADAS PELO PRÓPRIO VERIFICADOR (`revisor == VERIFIER_REVISOR`); a governança feita
+    por um revisor humano nunca é alterada. A rotina volta a `pendente_aprovacao` (a aprovação é humana).
+    Devolve os IDs liberados.
+    """
+    if not routine_ids or not governance_file.exists():
+        return []
+    try:
+        gov_data = json.loads(governance_file.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if not isinstance(gov_data, dict):
+        return []
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    lifted: list[str] = []
+    for rid in sorted(routine_ids):
+        entry = gov_data.get(rid)
+        if not isinstance(entry, dict) or entry.get("revisor") != VERIFIER_REVISOR:
+            continue
+        if entry.get("statusGovernanca") != "revisao_solicitada":
+            continue
+        entry["statusGovernanca"] = VERIFIER_PENDING_STATUS
+        entry.pop("prioritySemanticFlag", None)
+        entry.pop("revisor", None)
+        entry["comentario"] = (
+            "[VERIFICADOR SEMÂNTICO ADR-033/035] Sinalização liberada: a reavaliação multimodal aprovou todos os "
+            "passos auto-curados da rotina."
+        )
+        entry["updatedAt"] = now_iso
+        lifted.append(rid)
+
+    if not lifted:
+        return []
+
+    governance_file.write_text(json.dumps(gov_data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    if sync_to_supabase:
+        cfg = settings or load_worker_settings()
+        if cfg.is_postgres_pooler_configured:
+            try:
+                conn = create_postgres_connection(cfg)
+                with conn:
+                    with conn.cursor() as cur:
+                        for rid in lifted:
+                            cur.execute(
+                                """
+                                UPDATE routines
+                                SET status_governanca = %s,
+                                    revisor = NULL,
+                                    comentario_governanca = %s,
+                                    atualizado_em = %s
+                                WHERE id = %s AND revisor = %s AND status_governanca = 'revisao_solicitada';
+                                """,
+                                (
+                                    VERIFIER_PENDING_STATUS,
+                                    gov_data[rid]["comentario"],
+                                    now_iso,
+                                    rid,
+                                    VERIFIER_REVISOR,
+                                ),
+                            )
+                conn.close()
+            except Exception as exc:
+                logger.debug("Fallback offline ao liberar sinalização no PostgreSQL: %s", exc)
+    return lifted
 
 
 def parse_cli_args(argv: Optional[list[str]] = None) -> argparse.Namespace:

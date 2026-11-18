@@ -639,6 +639,16 @@ export interface DOMIntrospectionOptions {
   actionMember?: 'first-clickable' | 'last';
   /** Zoom CSS ativo no documento (ex.: 0.8 para 80%) */
   zoom?: number;
+  /**
+   * ADR-035: o passo pede um controle interativo (digitação/filtro/seleção/formulário). A busca textual exclui
+   * cabeçalhos de coluna (`th`, `[role="columnheader"]`, `thead`), rebaixa títulos `h1`-`h4` a último recurso e
+   * expande um `label` único ao seu bloco de campo (rótulo + controle).
+   */
+  fieldIntent?: boolean;
+  /** ADR-035: o passo cita a busca global (`CTRL + B`); só então ela pode ser candidata. Padrão: `false`. */
+  allowGlobalSearch?: boolean;
+  /** ADR-035: permite que o valor de uma lista suspensa (`option:`) eleja o `<select>` dono. Padrão: `true`. */
+  allowOptionTier?: boolean;
 }
 
 /**
@@ -663,6 +673,9 @@ export function buildDOMIntrospectionScript(
   const zone: SemanticZone = options.zone ?? 'any';
   const actionMember = options.actionMember ?? 'first-clickable';
   const zoomFactor = options.zoom ?? 0.8;
+  const fieldIntent = options.fieldIntent === true;
+  const allowGlobalSearch = options.allowGlobalSearch === true;
+  const allowOptionTier = options.allowOptionTier !== false;
 
   return `
     (() => {
@@ -690,6 +703,9 @@ export function buildDOMIntrospectionScript(
       const zone = ${JSON.stringify(zone)};
       const shouldScroll = ${JSON.stringify(scrollIntoView)};
       const actionMember = ${JSON.stringify(actionMember)};
+      const fieldIntent = ${JSON.stringify(fieldIntent)};
+      const allowGlobalSearch = ${JSON.stringify(allowGlobalSearch)};
+      const allowOptionTier = ${JSON.stringify(allowOptionTier)};
       const NAV_ZONE = ${JSON.stringify(NAV_ZONE_SELECTOR)};
       const MODAL_SEL = ${JSON.stringify(ACTIVE_MODAL_SELECTOR + ", .modal-dialog")};
       const MAIN_SELECTORS = ['main', '[role="main"]', '#content', '#main', '.main-content', '.content-wrapper'];
@@ -1094,6 +1110,24 @@ export function buildDOMIntrospectionScript(
       // RESOLUÇÃO DE CANDIDATOS (seletor CSS direto -> texto exato -> texto parcial -> bindings Angular)
       // ---------------------------------------------------------------------
       const isNativeControl = el => /^(A|BUTTON|INPUT|SELECT|TEXTAREA|LABEL)$/.test(el.tagName || '');
+
+      // ADR-035: cabeçalho de coluna da grade (th / columnheader / qualquer nó dentro de thead)
+      const isColumnHeaderEl = el => !!composedClosest(el, 'th, [role="columnheader"], thead');
+      // ADR-035: título estático h1-h4 (um controle nativo dentro do título, como o gatilho de acordeão, não conta)
+      const isHeadingEl = el => !isNativeControl(el) && !!composedClosest(el, 'h1, h2, h3, h4');
+      // ADR-035: busca global de telas (CTRL + B) ou qualquer campo de texto da barra superior
+      function isGlobalSearchEl(el) {
+        if (!el || !el.tagName || !el.getAttribute) return false;
+        const tag = el.tagName.toLowerCase();
+        const idName = (el.id || '') + ' ' + (el.getAttribute('name') || '');
+        const hint = [el.getAttribute('placeholder'), el.getAttribute('title'), el.getAttribute('aria-label'), el.getAttribute('data-original-title')]
+          .filter(Boolean)
+          .join(' ');
+        if (/ctrl\\s*\\+\\s*b|pesquise aqui|nome da tela que deseja/i.test(hint)) return true;
+        if (/search.?menu|input.?search|busca.?menu|pesquisa.?menu|menu.?search/i.test(idName)) return true;
+        return (tag === 'input' || tag === 'textarea') && !!composedClosest(el, 'header, nav, .navbar, #navbar');
+      }
+
       const sortByBindingAffinity = (list, cleanText) => {
         if (list.length <= 1) return list;
         const normQ = normCompare(cleanText);
@@ -1133,12 +1167,24 @@ export function buildDOMIntrospectionScript(
         const cleanText = rawQuery
           .replace(/^.*:has-text\\(['"]([^'"]+)['"]\\).*$/, '$1')
           .replace(/\\*\\*/g, '')
+          // ADR-035: o manual cita rótulos entre aspas (**"Sem valor fixo"**, **"Valor"**); o texto da tela nunca as tem
+          .replace(/^[\\s"'“”‘’«»]+|[\\s"'“”‘’«»]+$/g, '')
           .trim()
           .toLowerCase();
 
         if (!cleanText) return null;
 
-        const nodes = queryAllDeep(scope, INTERACTIVE).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
+        let nodes = queryAllDeep(scope, INTERACTIVE).filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
+        // ADR-035: a busca global nunca é candidata a campo de tela, salvo quando o passo a cita
+        if (!allowGlobalSearch) nodes = nodes.filter(n => !isGlobalSearchEl(n));
+        // ADR-035: passo de digitação/filtro/formulário exige controle interativo — cabeçalho de coluna fica fora
+        // e título h1-h4 só vale como último recurso (depois de rótulos, campos e valores de lista)
+        let headingNodes = [];
+        if (fieldIntent) {
+          nodes = nodes.filter(n => !isColumnHeaderEl(n));
+          headingNodes = nodes.filter(isHeadingEl);
+          nodes = nodes.filter(n => !isHeadingEl(n));
+        }
         const textOf = n => (n.innerText || n.textContent || '').trim().toLowerCase();
         const valOf = n => (n.getAttribute('value') || n.getAttribute('placeholder') || n.getAttribute('title') || '').trim().toLowerCase();
 
@@ -1165,8 +1211,11 @@ export function buildDOMIntrospectionScript(
           return { els: [partialMatches[0]], matchedSelector: 'text:' + cleanText };
         }
 
-        // 2c. Valor de uma lista suspensa (ADR-018)
-        const selects = queryAllDeep(scope, 'select').filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc));
+        // 2c. Valor de uma lista suspensa (ADR-018). ADR-035: desligado em passo de clique puro (R-10.0: "clique em
+        //     Sim" numa confirmação nunca é o <select> que tem a opção "Sim")
+        const selects = allowOptionTier
+          ? queryAllDeep(scope, 'select').filter(isVisible).filter(e => inZone(e, zs)).filter(e => !isBehindModal(e, doc))
+          : [];
         const owning = selects.filter(sel =>
           Array.from(sel.options).some(o => (o.textContent || '').trim().toLowerCase() === cleanText)
         );
@@ -1207,6 +1256,14 @@ export function buildDOMIntrospectionScript(
               return (isNgDisabled(a.el) ? 1 : 0) - (isNgDisabled(b.el) ? 1 : 0);
             });
             return { els: ngMatches.map(m => m.el), matchedSelector: ngMatches[0].selector };
+          }
+        }
+
+        // 2e. ADR-035: último recurso em passo de campo — título estático h1-h4 de texto idêntico
+        if (headingNodes.length > 0) {
+          const exactHeading = headingNodes.filter(n => textOf(n) === cleanText || valOf(n) === cleanText);
+          if (exactHeading.length > 0) {
+            return { els: sortByBindingAffinity(exactHeading, cleanText), matchedSelector: 'text:' + cleanText };
           }
         }
         return null;
@@ -1418,7 +1475,8 @@ export function buildDOMIntrospectionScript(
           query: d.m.query,
           matchedSelector: d.m.matchedSelector,
           innerText: (d.m.el.innerText || d.m.el.textContent || d.m.el.getAttribute('placeholder') || '').trim().slice(0, 80),
-          cssBox: d.box
+          cssBox: d.box,
+          tagName: isColumnHeaderEl(d.m.el) ? 'th' : (d.m.el.tagName || '').toLowerCase()
         }));
         unresolvedGroupTargets = match.group.unresolved;
         matchedSelector = 'group:' + groupMembers.map(g => g.matchedSelector).join(' + ');
@@ -1480,6 +1538,16 @@ export function buildDOMIntrospectionScript(
           height: Math.round(rect.height * s)
         };
 
+        // ADR-035: passo de campo com alvo único que casou um <label> -> a moldura é o bloco de campo (rótulo +
+        // controle), como na união de grupo (R-18.0: só o texto "Valor" era demarcado, sem a caixa de digitação)
+        if (fieldIntent && el.tagName === 'LABEL') {
+          const blockEls = fieldBlockElements(el, zs);
+          if (blockEls.length > 1) {
+            const blockBox = unionOf(blockEls.map(e => edgeBox(e, frameOffset)).filter(b => b.width > 0 && b.height > 0));
+            if (blockBox) rawBox = blockBox;
+          }
+        }
+
         for (const sib of [el.previousElementSibling, el.nextElementSibling]) {
           if (sib && isVisible(sib)) {
             const sr = sib.getBoundingClientRect();
@@ -1539,11 +1607,18 @@ export function buildDOMIntrospectionScript(
         const clickEl = actionMember === 'last'
           ? memberEls[memberEls.length - 1]
           : memberEls.find(e => composedClosest(e, CLICKABLE)) || memberEls[0];
+        // ADR-035: o preenchimento recai no campo de entrada do grupo; caixa de marcação/opção só como último recurso
+        // (preencher "Sem valor fixo" + "Valor" elegia a caixa de 10x11 e a digitação nunca chegava ao campo).
         let fillEl = null;
+        let fallbackFillEl = null;
         for (const e of memberEls) {
-          fillEl = controlOf(e);
-          if (fillEl) break;
+          const candidate = controlOf(e);
+          if (!candidate) continue;
+          const isToggle = candidate.tagName === 'INPUT' && /^(checkbox|radio)$/i.test(candidate.getAttribute('type') || '');
+          if (!isToggle) { fillEl = candidate; break; }
+          if (!fallbackFillEl) fallbackFillEl = candidate;
         }
+        if (!fillEl) fillEl = fallbackFillEl;
 
         if (clickEl) {
           const token = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1e9).toString(36);
@@ -1658,7 +1733,11 @@ export function buildDOMIntrospectionScript(
           ''
         ).toLowerCase();
         let semanticRole = 'form_input';
-        if (isTopNav) {
+        if (isColumnHeaderEl(el)) {
+          semanticRole = 'table_column_header';
+        } else if (isHeadingEl(el)) {
+          semanticRole = 'page_heading';
+        } else if (isTopNav) {
           semanticRole = isDropdownItem ? 'navigation_leaf' : 'navigation_root';
         } else if (/\\bnovo\\s+(cart[ãa]o|ficha|usu[áa]rio|protocolo|or[çc]amento)\\b/.test(txtNorm)) {
           semanticRole = 'entity_creation_button';
@@ -1705,7 +1784,13 @@ export function buildDOMIntrospectionScript(
           isModal,
           iframeOffset: { x: frameOffset.x, y: frameOffset.y },
           neighborBoxes,
-          semantic: extractSemanticSignature(ctxEl)
+          semantic: extractSemanticSignature(ctxEl),
+          placeholder: isGroup
+            ? undefined
+            : ((ctxEl.getAttribute && (ctxEl.getAttribute('placeholder') || ctxEl.getAttribute('title') || ctxEl.getAttribute('aria-label'))) || undefined),
+          elementId: isGroup ? undefined : (ctxEl.id || undefined),
+          isGlobalSearch: (isGroup ? match.group.members.map(m => m.el) : [ctxEl]).some(isGlobalSearchEl) || undefined,
+          memberTags: isGroup ? groupMembers.map(g => g.tagName) : undefined
         },
         matchedSelector,
         url: window.location.href,

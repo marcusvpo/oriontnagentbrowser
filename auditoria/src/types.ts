@@ -59,7 +59,11 @@ export type SemanticRole =
   | 'entity_creation_button'
   | 'form_input'
   | 'form_submit'
-  | 'form_cancel';
+  | 'form_cancel'
+  /** Cabeçalho de coluna de grade (`th`, `[role="columnheader"]`, controle dentro de `thead`) — ADR-035 */
+  | 'table_column_header'
+  /** Título estático de página/seção (`h1`-`h4`), nunca um campo de entrada — ADR-035 */
+  | 'page_heading';
 
 export type StepIntent =
   | 'navigate_menu'
@@ -117,6 +121,14 @@ export interface DOMElementContext {
   neighborBoxes?: BoundingBox[];
   /** Assinatura Semântica Hierárquica extraída ao vivo no DOM (ADR-027) */
   semantic?: DOMSemanticSignature;
+  /** Placeholder/title/aria-label do nó medido (o `innerText` de um `<input>` é sempre vazio) — ADR-035 */
+  placeholder?: string;
+  /** `id` do nó medido (ex.: o campo da busca global da barra superior) — ADR-035 */
+  elementId?: string;
+  /** Verdadeiro quando o nó (ou algum membro do grupo) é a busca global `CTRL + B` ou um campo da barra superior — ADR-035 */
+  isGlobalSearch?: boolean;
+  /** Tags dos membros de uma união de grupo (`th` para cabeçalho de coluna), para guardas por membro — ADR-035 */
+  memberTags?: string[];
 }
 
 /**
@@ -146,6 +158,8 @@ export interface DOMGroupMember {
   matchedSelector: string;
   innerText: string;
   cssBox: BoundingBox;
+  /** Tag do nó medido (`th` para cabeçalho de coluna, inclusive `[role="columnheader"]`) — ADR-035 */
+  tagName?: string;
 }
 
 /**

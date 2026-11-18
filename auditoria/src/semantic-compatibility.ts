@@ -1,3 +1,9 @@
+import {
+  isColumnHeaderNode,
+  isGlobalSearchNode,
+  stepExpectsInteractiveControl,
+  stepNamesGlobalSearch
+} from './navigation-guard.js';
 import type { DOMSemanticSignature, RoutineStep, SemanticRole, StepIntent } from './types.js';
 
 export interface CompatibilityNodeInput {
@@ -9,6 +15,12 @@ export interface CompatibilityNodeInput {
   rowContext?: DOMSemanticSignature['rowContext'];
   associatedLabel?: string;
   semanticRole?: SemanticRole;
+  /** Placeholder/title/aria-label do nó (ADR-035) */
+  placeholder?: string;
+  /** `id` do nó (reconhece o campo de busca global da barra superior — ADR-035) */
+  id?: string;
+  /** Marca já calculada no DOM: busca global `CTRL + B` / campo de texto da barra superior (ADR-035) */
+  isGlobalSearch?: boolean;
 }
 
 export interface SemanticCompatibilityResult {
@@ -151,6 +163,10 @@ export function inferNodeSemanticRole(node: CompatibilityNodeInput): SemanticRol
   const role = String(node.role || '').toLowerCase();
   const tag = String(node.tagName || '').toLowerCase();
 
+  // ADR-035: cabeçalho de coluna da grade e título estático são papéis próprios (nunca `form_input`)
+  if (isColumnHeaderNode({ role, tagName: tag, semanticRole: node.semanticRole })) return 'table_column_header';
+  if (/^h[1-4]$/.test(tag) || role === 'heading') return 'page_heading';
+
   if (node.semanticRole) return node.semanticRole;
 
   if (node.inNavbar) {
@@ -218,6 +234,46 @@ export function evaluateSemanticCompatibility(
   const candNorm = normSem(candidate.name || candidate.associatedLabel || '');
   const stepNorm = normSem([step.rawText, docTarget, ...step.targets].join(' '));
   const targetNorm = normSem(docTarget);
+
+  // 0. ADR-035: a busca global (CTRL + B / campo da barra superior) nunca é eleita em NENHUMA intenção, salvo se o
+  //    próprio passo a cita (qualquer camada: 1, 2A, 2B, 2C-SoM, 2C-Grounding)
+  // campo de TEXTO (um `combobox`/`select` de paginação dentro de um <nav> não é a busca global)
+  const candInputLike =
+    ['textbox', 'searchbox', 'spinbutton', 'input', 'textarea'].includes(String(candidate.role || '').toLowerCase()) ||
+    ['input', 'textarea'].includes(String(candidate.tagName || '').toLowerCase());
+  if (
+    (isGlobalSearchNode({
+      name: candidate.name,
+      placeholder: candidate.placeholder ?? candidate.associatedLabel,
+      id: candidate.id,
+      isGlobalSearch: candidate.isGlobalSearch
+    }) ||
+      (candInputLike && candidate.inNavbar)) &&
+    !stepNamesGlobalSearch(step)
+  ) {
+    return {
+      compatible: false,
+      weight: 0,
+      reason: `Busca global (CTRL + B) ou campo da barra superior ("${candidate.name}") nunca é alvo de campo de tela`,
+      stepIntent,
+      nodeRole
+    };
+  }
+
+  // 0.1 ADR-035: cabeçalho de coluna (`th`/`columnheader`) e título estático (`h1`-`h4`) não satisfazem um passo
+  //     de digitação, filtro ou formulário — exige-se um controle interativo real (`input`, `select`, `textarea`...)
+  if ((nodeRole === 'table_column_header' || nodeRole === 'page_heading') && stepExpectsInteractiveControl(step)) {
+    return {
+      compatible: false,
+      weight: 0,
+      reason:
+        nodeRole === 'table_column_header'
+          ? `Cabeçalho de coluna da grade ("${candidate.name}") não é campo de entrada: o passo pede digitação/filtro/formulário`
+          : `Título estático ("${candidate.name}") não é campo de entrada: o passo pede digitação/filtro/formulário`,
+      stepIntent,
+      nodeRole
+    };
+  }
 
   // 1. Proibição estrita de colisão por substring intra-palavra (ex.: "Autenticidade" vs "Cidade")
   if (hasIntraWordSubstringCollision(docTarget, candidate.name || candidate.associatedLabel || '')) {

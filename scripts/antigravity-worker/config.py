@@ -385,6 +385,11 @@ def _prepare_agy_image(image_path: Path) -> tuple[Path, Optional[Path]]:
     return tmp_png, tmp_png
 
 
+def prepare_agy_image(image_path: Path) -> tuple[Path, Optional[Path]]:
+    """API pública de `_prepare_agy_image` (ADR-035): o verificador também converte sub-capturas `.webp` sem `.png` pareado."""
+    return _prepare_agy_image(image_path)
+
+
 def _build_agy_payload(prompt: str, image_path: Optional[Path], system_instructions: Optional[str]) -> str:
     parts: list[str] = []
     if image_path is not None:

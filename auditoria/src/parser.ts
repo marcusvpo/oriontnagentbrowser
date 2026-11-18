@@ -87,11 +87,24 @@ export function parseRoutineMarkdown(filePath: string): ParsedRoutine {
   };
 }
 
+/**
+ * ADR-035: frase introdutória em negrito ("**Para definir um preço padrão:**", "**Se possuir scanner conectado:**").
+ * Termina em dois-pontos e abre com conectivo de finalidade/condição: é o enunciado do passo, nunca um controle da
+ * tela (virava alvo "não localizado" e bloqueava a rotina com `[ATT]`). Rótulo de seção real ("**Serventia:**",
+ * "**Seção Final (Outras Informações):**") não começa por esses conectivos e continua sendo alvo.
+ */
+const LEAD_IN_BOLD_RE = /^(para|se|caso|quando|ao|enquanto|sempre que|em caso de|nos casos em que|no caso de)\s+\S[^]*:\s*$/i;
+
+export function isLeadInBoldPhrase(text: string): boolean {
+  return LEAD_IN_BOLD_RE.test(String(text ?? '').trim());
+}
+
 export function extractBoldTargets(text: string): string[] {
   const targets: string[] = [];
   const matches = text.matchAll(/\*\*([^*]+)\*\*/g);
   for (const m of matches) {
     const cleaned = m[1].trim();
+    if (isLeadInBoldPhrase(cleaned)) continue;
     // ADR-029: negrito sem letra nem número ("(**\***)" = asterisco de campo obrigatório escapado) é pontuação do
     // texto, não um controle da tela: nunca é alvo (virava o alvo espúrio "\" e bloqueava a rotina com `[ATT]`).
     if (cleaned && /[\p{L}\p{N}]/u.test(cleaned) && !targets.includes(cleaned)) {

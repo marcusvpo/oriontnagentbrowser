@@ -43,7 +43,11 @@ from curate_som_sdk import (  # noqa: E402
     validate_som_candidate_semantics,
 )
 from semantic_visual_verifier import (  # noqa: E402
+    VERIFIER_REVISOR,
     SemanticAuditResult,
+    build_semantic_verification_prompt,
+    find_sub_capture_images,
+    lift_stale_semantic_flags,
     parse_cli_args as parse_verify_args,
     verify_healed_routines_batch,
 )
@@ -487,6 +491,198 @@ Descrição de teste da rotina M-16.6.
         )
         self.assertFalse(allowed)
         self.assertIn("Autenticidade", str(reason))
+
+
+_ROUTINE_MD = """---
+id: {rid}
+titulo: 'Cadastrar Área de Atuação'
+modulo: config
+secao: M
+auditoria_ui:
+  data_execucao: '2026-11-18'
+  status: validado_com_ajustes
+  auto_cura:
+    acionada: true
+    divergencias_detectadas:
+      - passo: 5
+        alvo_documentado: 'Concluir'
+        elemento_real: 'Concluir'
+        camada: investigative_reveal
+        confianca: 1
+        texto_alterado: true
+---
+
+#### Passo a passo revisado:
+5. Clique no botão **Concluir** (exibido após clicar em **Adicionar**) para salvar a área no sistema.
+   [aqui vai a print "passo-05.png"]
+   [aqui vai a print "passo-05-b.png"]
+"""
+
+
+def _make_routine(rotinas_dir: Path, rid: str, slug: str, *, with_png: bool = True) -> Path:
+    folder = rotinas_dir / "config" / f"{rid}-{slug}"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / f"{rid}-{slug}-revisado.md").write_text(_ROUTINE_MD.format(rid=rid), encoding="utf-8")
+    names = ["passo-05.webp", "passo-05-b.webp", "passo-05-contexto-att.webp"]
+    if with_png:
+        names += ["passo-05.png", "passo-05-b.png"]
+    for name in names:
+        (folder / name).write_bytes(b"RIFFfakeWEBP")
+    return folder
+
+
+class TestSemanticVerifierSubCapturesAndFlags(unittest.TestCase):
+    """ADR-035: o verificador vê o gatilho + o elemento revelado, mescla relatórios parciais e libera flags próprias."""
+
+    def tearDown(self) -> None:
+        worker_config.set_sdk_transport_for_tests(None)
+
+    def test_find_sub_capture_images_ignores_context_print_and_other_steps(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            for name in (
+                "passo-05.png",
+                "passo-05-b.png",
+                "passo-05-b.webp",
+                "passo-05-c.webp",
+                "passo-05-contexto-att.png",
+                "passo-06-b.png",
+            ):
+                (folder / name).write_bytes(b"x")
+            found = find_sub_capture_images(folder, 5)
+            self.assertEqual([p.name for p in found], ["passo-05-b.png", "passo-05-c.webp"])
+            self.assertEqual(find_sub_capture_images(folder, 6)[0].name, "passo-06-b.png")
+            self.assertEqual(find_sub_capture_images(folder, 1), [])
+
+    def test_prompt_lists_sub_captures_and_engine_conventions(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sub = Path(tmp) / "passo-05-b.png"
+            sub.write_bytes(b"x")
+            prompt = build_semantic_verification_prompt(
+                {
+                    "routine_id": "M-41.0",
+                    "titulo": "Cadastrar Área de Atuação",
+                    "modulo": "config",
+                    "step_number": 5,
+                    "step_text": "Clique no botão **Concluir** (exibido após clicar em **Adicionar**).",
+                    "divergences": [],
+                    "sub_images": [sub],
+                }
+            )
+            self.assertIn("passo-05-b.png", prompt)
+            self.assertIn("Sub-captura do mesmo passo", prompt)
+            self.assertIn("Gatilho + elemento revelado", prompt)
+            self.assertIn("Valor de lista suspensa", prompt)
+            without = build_semantic_verification_prompt(
+                {"routine_id": "M-41.0", "step_number": 5, "step_text": "x", "divergences": []}
+            )
+            self.assertNotIn("Sub-captura do mesmo passo", without)
+
+    def test_model_receives_trigger_and_revealed_frame(self) -> None:
+        """Padrão B (M-41.0/M-66.0/M-68.0): sem `passo-05-b` o passo era reprovado; com o conjunto, aprova."""
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_dir = Path(tmp)
+            rotinas_dir = tmp_dir / "auditoria" / "rotinas"
+            _make_routine(rotinas_dir, "M-41.0", "cadastrar-area-de-atuacao")
+            seen_prompts: list[str] = []
+
+            async def transport(prompt: str, image_path: Optional[Path], schema_cls: Type[Any], model_name: str) -> Any:
+                seen_prompts.append(prompt)
+                revealed = "passo-05-b.png" in prompt
+                return SemanticAuditResult(
+                    routine_id="M-41.0",
+                    step_number=5,
+                    semantic_match=revealed,
+                    visual_confidence=0.97,
+                    discrepancy_reason=None if revealed else "Concluir não aparece",
+                )
+
+            report = asyncio.run(
+                verify_healed_routines_batch(
+                    rotinas_dir=rotinas_dir,
+                    report_output_path=tmp_dir / "auditoria" / "cache" / "semantic-audit-report.json",
+                    governance_file=tmp_dir / "auditoria" / "cache" / "governance.json",
+                    custom_transport=transport,
+                )
+            )
+            self.assertEqual(len(seen_prompts), 1)
+            self.assertEqual(report["approved_steps"], 1)
+            self.assertEqual(report["flagged_for_priority_review"], 0)
+            self.assertNotIn("contexto-att", seen_prompts[0], "print de contexto do Raio-X não é sub-captura")
+
+    def test_partial_run_merges_report_and_lifts_only_verifier_flags(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_dir = Path(tmp)
+            rotinas_dir = tmp_dir / "auditoria" / "rotinas"
+            _make_routine(rotinas_dir, "M-41.0", "cadastrar-area-de-atuacao")
+            report_file = tmp_dir / "auditoria" / "cache" / "semantic-audit-report.json"
+            gov_file = tmp_dir / "auditoria" / "cache" / "governance.json"
+            report_file.parent.mkdir(parents=True, exist_ok=True)
+
+            # Relatório consolidado anterior: M-41.0 reprovada + outra rotina (M-15.0) aprovada que NÃO será reexecutada
+            report_file.write_text(
+                json.dumps(
+                    {
+                        "results": [
+                            {"routine_id": "M-15.0", "step_number": 1, "semantic_match": True, "visual_confidence": 0.99, "priority_review": False},
+                            {"routine_id": "M-41.0", "step_number": 5, "semantic_match": False, "visual_confidence": 0.99, "priority_review": True},
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            gov_file.write_text(
+                json.dumps(
+                    {
+                        "M-41.0": {
+                            "statusGovernanca": "revisao_solicitada",
+                            "revisor": VERIFIER_REVISOR,
+                            "prioritySemanticFlag": {"stepNumber": 5},
+                        },
+                        "M-99.0": {"statusGovernanca": "revisao_solicitada", "revisor": "Revisor Humano"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            async def transport(prompt: str, image_path: Optional[Path], schema_cls: Type[Any], model_name: str) -> Any:
+                return SemanticAuditResult(routine_id="M-41.0", step_number=5, semantic_match=True, visual_confidence=0.98)
+
+            report = asyncio.run(
+                verify_healed_routines_batch(
+                    rotinas_dir=rotinas_dir,
+                    report_output_path=report_file,
+                    governance_file=gov_file,
+                    routine_ids=["M-41.0"],
+                    custom_transport=transport,
+                )
+            )
+
+            ids = sorted((r["routine_id"], r["step_number"]) for r in report["results"])
+            self.assertEqual(ids, [("M-15.0", 1), ("M-41.0", 5)], "a rotina não reexecutada permanece no relatório")
+            self.assertEqual(report["flagged_for_priority_review"], 0, "o item reprovado antigo foi substituído")
+            self.assertEqual(report["approved_steps"], 2)
+            self.assertEqual(report["last_run"]["lifted_semantic_flags"], ["M-41.0"])
+
+            gov = json.loads(gov_file.read_text(encoding="utf-8"))
+            self.assertEqual(gov["M-41.0"]["statusGovernanca"], "pendente_aprovacao")
+            self.assertNotIn("prioritySemanticFlag", gov["M-41.0"])
+            self.assertNotIn("revisor", gov["M-41.0"])
+            self.assertEqual(gov["M-99.0"]["statusGovernanca"], "revisao_solicitada", "revisor humano nunca é alterado")
+            self.assertEqual(gov["M-99.0"]["revisor"], "Revisor Humano")
+
+    def test_lift_ignores_human_flags_and_missing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            gov_file = Path(tmp) / "governance.json"
+            self.assertEqual(lift_stale_semantic_flags({"M-1.0"}, governance_file=gov_file), [])
+            gov_file.write_text(
+                json.dumps({"M-1.0": {"statusGovernanca": "revisao_solicitada", "revisor": "Marcus"}}),
+                encoding="utf-8",
+            )
+            self.assertEqual(lift_stale_semantic_flags({"M-1.0"}, governance_file=gov_file), [])
+            self.assertEqual(
+                json.loads(gov_file.read_text(encoding="utf-8"))["M-1.0"]["statusGovernanca"], "revisao_solicitada"
+            )
 
 
 if __name__ == "__main__":

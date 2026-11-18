@@ -2,7 +2,7 @@
 
 **Status:** ATIVO / HOMOLOGADO  
 **Versão Vigente:** BASE V3.2.0 + PIPELINE V2.5 (DOM Real Live + Streaming STDIN + Zona Semântica e União Geométrica + Taxonomia `[ATT]`/`[CCC]`/`[DDD]`/`[XRX]` + Write-Through & Supabase Realtime + Zoom 80% + Grafo Semântico UI, Estado Universal, RAG Soberano, Evolução Determinística ADR-030, Camada Visual 2C SoM/Grounding via `agy` ADR-031, Ecossistema Operacional MCP + Daemon Realtime + Exportadores ADR-032 e Orquestrador Satélite Antigravity Python SDK v0.1.23 ADR-033)  
-**Normas Vinculantes:** ADR-007 a ADR-033  
+**Normas Vinculantes:** ADR-007 a ADR-035  
 **Tecnologia:** `vercel-labs/agent-browser` (Rust CLI/CDP Daemon via STDIN) + Node.js (TypeScript/ESM) + `Sharp` (libvips) + Google Antigravity Python SDK (`google-antigravity>=0.1.23`, satélite pós-lote)
 
 ---
@@ -665,4 +665,35 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 * Define o schema `SemanticAuditResult` (`routine_id`, `step_number`, `semantic_match`, `visual_confidence`, `discrepancy_reason`).
 * Inspeciona os relatórios `*-revisado.md` com `status: validado_com_ajustes` e passos auto-curados (`auditoria_ui.auto_cura.divergencias_detectadas`), confrontando a imagem final demarcada (`passo-NN.webp` ou `.png`) com o texto do passo.
 * Gera `auditoria/cache/semantic-audit-report.json` e, quando `visual_confidence < 0.85` ou `semantic_match == False`, sinaliza a rotina para revisão prioritária (`status_governanca = 'revisao_solicitada'`) no Orion Audit Console.
-* Testes unitários offline em `scripts/antigravity-worker/test_sdk_worker.py` (7/7 aprovados).
+* Testes unitários offline em `scripts/antigravity-worker/test_sdk_worker.py` (7/7 aprovados; 13/13 após a ADR-035).
+
+---
+
+## 23. Calibragem Semântica Pós-Verificação Multimodal (ADR-035)
+
+### 23.1. Cabeçalho de coluna × campo (`navigation-guard.ts`, `semantic-compatibility.ts`, `dom-geometry.ts`, `smart-locator.ts`)
+* `SemanticRole` ganha `table_column_header` (`th`, `[role="columnheader"]`, nó em `thead`) e `page_heading` (`h1`-`h4`). `stepExpectsInteractiveControl(step)`: verdadeiro com verbo/pista de controle (*defina, preencha, informe, digite, selecione, escolha, filtre, pesquise, utilize, marque, campo*) ou ação `fill`/`search`/`select`/`check`; falso se o passo cita *coluna, cabeçalho, ordenar, classificar*.
+* Veto `compatible: false` / `weight: 0` em **todas** as camadas: Camada 1 (script), 2A (`rankSemanticCandidatesInA11y`), 2B (`pruneAndPrioritizeNodesForLLM` + resposta do LLM), 2C (`validateVisualCandidateSemantics`) e pós-medição (`forbiddenMeasuredReason`, também por membro de grupo via `DOMElementContext.memberTags`).
+* `buildDOMIntrospectionScript`: opções `fieldIntent`, `allowGlobalSearch`, `allowOptionTier`. Com `fieldIntent` a busca textual exclui `th`/`columnheader`, rebaixa `h1`-`h4` a último recurso (tier 2e) e, em alvo único, o `<label>` vira o bloco de campo (rótulo + controle). `guardNodeOf` converte qualquer nó no `GuardNode` único das guardas.
+
+### 23.2. Busca global (`CTRL + B`) em todas as camadas
+* `isGlobalSearchNode`: texto, placeholder, `id` (`search.?menu`...) ou marca do DOM; todo campo de **texto** (nunca `select`/`combobox`) em `header, nav, .navbar, #navbar` conta como ela. Vetada em qualquer intenção (regra 0 da matriz) e em `forbiddenCandidateReason`, salvo se o passo a cita (`stepNamesGlobalSearch`). O `innerText` de um `<input>` é vazio: a guarda usa o placeholder.
+
+### 23.3. Contexto de guarda do passo
+* `deriveStepGuard(step)` → `{ fieldIntent, allowGlobalSearch, allowOptionTier }`; `allowOptionTier` é falso em clique puro sem pista de escolha (a camada `option:` da ADR-018 não elege o `<select>` dono de uma opção "Sim"). `locateAndCaptureWithSelfHealing` fixa o contexto via `AgentBrowserClient.setStepGuard` e o restaura em `finally`; `getDOMGeometry` o herda, e `reveal-explorer.ts` e a medição pós-ação do `executor.ts` o reaplicam com `...deriveStepGuard(step)`.
+
+### 23.4. Verificador semântico (`semantic_visual_verifier.py`)
+* `find_sub_capture_images`: `passo-NN-b`, `-c`... (`passo-NN-contexto-att` não é sub-captura); `.png` preferido, `.webp` sem par vira PNG temporário removido no `finally`. O prompt lista as sub-capturas (`@caminho`) e as convenções do motor que **não** são falha (gatilho + revelado ADR-017/019, valor de lista suspensa ADR-018, lupa 2.5x, badge sobre campo vizinho).
+* `--routines` mescla no `semantic-audit-report.json` (`last_run`); `lift_stale_semantic_flags` devolve a `pendente_aprovacao` só sinalizações com `revisor == "Verificador Semântico SDK (ADR-033)"`.
+
+### 23.5. Guia de triagem (`scripts/generate-triage-report.mjs`)
+* Somente leitura sobre `auditoria/rotinas/**/*-revisado.md` e `kb/rotinas`; gera `docs/RELATORIO_TRIAGEM_FASES_2_E_3.md` (quadro por fase/módulo, Antes × Depois via `git show <ref>` e, com `--semantic-before`, a coluna de divergências do verificador, mapa `[ATT]`, encadeamento `[XRX]`, `[DDD]` hardware × dados). `acesso`+`config` = Fase 2; demais = Fase 3. IPs mascarados.
+
+### 23.5-b. Alvos espúrios de parser e preenchimento de grupo
+* `extractBoldTargets` (`parser.ts`) descarta a **frase introdutória** em negrito (`isLeadInBoldPhrase`: termina em `:` e abre com *Para, Se, Caso, Quando, Ao, Enquanto...*; ex.: `**Para definir um preço padrão:**`). Ela é o enunciado do passo, não um controle; como alvo "não localizado" bloqueava a rotina com `[ATT]`. Rótulo de seção real (`**Serventia:**`) continua alvo. Passo só com lead-in vira passo sem alvo (print limpa).
+* `firmasSpecialistHandlesStep` (`firmas-interactive.ts`, usado no `executor.ts`): em `#/pedidoFirmas/cadastrar` o Pré-Filtro de Grade (ADR-029) não roda antes do especialista de Firmas (ADR-026); populada a grade, o formulário mudava e o `D-3.11` perdia **Nome**/**CPF ou CIN** (7 prints → 8 com a guarda).
+* Em grupo, o `fillSelector` (`dom-geometry.ts`) elege o primeiro **campo de entrada**; `input[type=checkbox|radio]` só se for o único controle.
+* Ícone `+` (`+ (Adicionar Novo Pedido)`) que o Raio-X prova inexistente na tela (`R-10.0`, `#/pedidoFirmas/cadastrar`) termina `[ATT]` com evidência: o falso casamento com **Novo cartão +** deixou de acontecer.
+
+### 23.6. Testes
+* `auditoria/src/__tests__/adr035-semantic-calibration.test.ts` (36 casos, mini-DOM compartilhado em `__tests__/mock-dom.ts`) e `scripts/antigravity-worker/test_sdk_worker.py` (13 casos).
