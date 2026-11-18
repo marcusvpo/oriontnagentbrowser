@@ -109,6 +109,35 @@ class TestAntigravitySdkWorker(unittest.TestCase):
         self.assertIn("tag_id", schema_dict.get("properties", {}))
         self.assertIn("actual_target_name", schema_dict.get("properties", {}))
 
+    def test_agy_cli_args_and_stream_protocol(self) -> None:
+        """O transporte real usa o CLI `agy` com NDJSON em STDIN, `--json-schema` e sem prompt na linha de comando."""
+        args = worker_config.build_agy_cli_args(SomTargetDecision, "gemini-4-hydrogen-high", image_dir=Path("."))
+        self.assertIn("--print=", args)
+        self.assertEqual(args[args.index("--input-format") + 1], "stream-json")
+        self.assertEqual(args[args.index("--output-format") + 1], "stream-json")
+        self.assertEqual(args[args.index("--effort") + 1], "high")
+        self.assertIn("--disable-slash-commands", args)
+        self.assertIn("tag_id", json.loads(args[args.index("--json-schema") + 1])["properties"])
+        self.assertIn("--add-dir", args)
+
+        line = worker_config.build_agy_stream_input("Olá")
+        self.assertTrue(line.endswith("\n"))
+        self.assertEqual(json.loads(line), {"event": "user", "message": {"content": "Olá"}})
+
+        stream = "\n".join(
+            [
+                '{"event":"assistant","message":{"content":"..."}}',
+                "ruído",
+                '{"event":"result","result":{"status":"SUCCESS","response":"{\\"tag_id\\":1}"}}',
+            ]
+        )
+        parsed = worker_config.extract_agy_stream_result(stream)
+        self.assertTrue(parsed and parsed["ok"])
+        self.assertEqual(parsed["response"], '{"tag_id":1}')
+        failed = worker_config.extract_agy_stream_result('{"event":"result","result":{"status":"ERROR","error":"x"}}')
+        self.assertTrue(failed and not failed["ok"])
+        self.assertIsNone(worker_config.extract_agy_stream_result("sem eventos"))
+
     def test_model_fallback_from_xhigh_to_high(self) -> None:
         """Verifica se `generate_structured_multimodal` faz fallback automático para `gemini-4-hydrogen-high`."""
         called_models: list[str] = []

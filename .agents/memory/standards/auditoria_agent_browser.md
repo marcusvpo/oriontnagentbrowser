@@ -654,7 +654,7 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 
 ### 22.1. Arquitetura Satélite e Configuração (`scripts/antigravity-worker/config.py`)
 * **Zero Acoplamento no Loop do Navegador:** O motor Playwright/`agent-browser`, `BrowserWorkerPool` e `Sharp` em `auditoria/src/` permanece 100% em TypeScript (Node.js v22). O pacote Python reside em `scripts/antigravity-worker/` (`requirements.txt`: `google-antigravity>=0.1.23`, `pydantic>=2.0`, `python-dotenv>=1.0`, `psycopg2-binary>=2.9`, `PyYAML>=6.0`).
-* **Isolamento de Credenciais Supabase:** `config.py` lê exclusivamente de `auditoria/.env` (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_SECRET_KEY`, `DATABASE_URL`/`SUPABASE_DB_URL` do IPv4 Pooler) e inicializa `LocalAgentConfig` com `response_schema` Pydantic e modelo primário `gemini-4-hydrogen-xhigh` (`Gemini 4 Hydrogen Extra`) com fallback automático para `gemini-4-hydrogen-high`.
+* **Isolamento de Credenciais Supabase:** `config.py` lê exclusivamente de `auditoria/.env` (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_SECRET_KEY`, `DATABASE_URL`/`SUPABASE_DB_URL` do IPv4 Pooler) e inferência via **CLI local `agy`** (`_run_agy_cli_inference`: `--print= --input-format stream-json --output-format stream-json --json-schema`, NDJSON em STDIN, evento `result`, `asyncio.Semaphore(1)`, sem chave de API; `LocalAgentConfig` só monta o schema Pydantic) com modelo primário `gemini-4-hydrogen-xhigh` (`Gemini 4 Hydrogen Extra`) com fallback automático para `gemini-4-hydrogen-high`.
 
 ### 22.2. Curador em Lote de Set-of-Mark (`scripts/antigravity-worker/curate_som_sdk.py` / `npm --prefix auditoria run curate:sdk`)
 * Define o schema `SomTargetDecision` (`tag_id`, `confidence`, `justification`, `actual_target_name`).

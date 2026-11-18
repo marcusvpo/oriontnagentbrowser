@@ -124,8 +124,11 @@ button.chip:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .studio-head { background: var(--color-ink); border-bottom: var(--border-hairline); padding: var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-3); }
 .studio-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; border-top: var(--border-hairline); padding-top: var(--space-4); }
 .studio-actions-secondary { display: flex; gap: var(--space-3); flex-wrap: wrap; }
-.studio-body { display: grid; grid-template-columns: var(--studio-left, 45%) var(--space-2) 1fr; flex: 1; min-height: 0; }
-.studio-pane { min-width: 0; height: 100%; overflow-y: auto; padding: var(--space-6); }
+.studio-workspace { display: grid; grid-template-columns: minmax(0, 1fr); flex: 1; min-height: 0; min-width: 0; }
+.studio-workspace[data-drawer-open="true"] { grid-template-columns: minmax(0, 1fr) clamp(340px, 29vw, 440px); }
+.studio-body { display: grid; grid-template-columns: var(--studio-left, 45%) var(--space-2) 1fr; flex: 1; min-height: 0; min-width: 0; }
+.studio-pane { min-width: 0; height: 100%; overflow-y: auto; padding: var(--space-6); container-type: inline-size; container-name: studio-pane; }
+.studio-workspace[data-drawer-open="true"] .studio-pane { padding: var(--space-4); }
 .studio-pane--right { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); background: var(--color-graphite); }
 .studio-resizer { cursor: col-resize; background: var(--color-ink); border-left: var(--border-hairline); border-right: var(--border-hairline); }
 .studio-resizer:hover, .studio-resizer:focus-visible { background: var(--color-slate); outline: none; }
@@ -397,4 +400,83 @@ button.chip:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
   border-color: var(--color-external-line);
   background: var(--color-external-wash);
   color: var(--color-external);
+}
+
+/* Drawer lateral acoplado do Estúdio (Marcar revisão / Últimas revisões) */
+.studio-drawer {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-graphite);
+  border-left: 1px solid var(--color-filament-strong);
+  animation: studio-drawer-in var(--duration-panel) var(--ease-strict);
+}
+@keyframes studio-drawer-in {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.studio-drawer__header {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-ink);
+  border-bottom: var(--border-hairline);
+}
+.studio-drawer__title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.studio-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+.studio-drawer__footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-ink);
+  border-top: var(--border-hairline);
+}
+.studio-drawer .cols-2 {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.btn-drawer-active {
+  border-color: var(--color-crimson) !important;
+  background: var(--color-crimson-wash) !important;
+  color: var(--color-bone) !important;
+  box-shadow: 0 0 0 1px var(--color-crimson);
+}
+@container studio-pane (max-width: 440px) {
+  .comparison-columns { grid-template-columns: 1fr; }
+  .comparison-columns > div + div {
+    border-left: 0;
+    border-top: var(--border-hairline);
+    padding-left: 0;
+    padding-top: var(--space-3);
+  }
+}
+@media (max-width: 1023px) {
+  .studio-workspace[data-drawer-open="true"] {
+    grid-template-columns: 1fr;
+  }
+  .studio-drawer {
+    height: auto;
+    max-height: 75vh;
+    border-left: 0;
+    border-top: 1px solid var(--color-filament-strong);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-drawer { animation: none; }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Filter, Flag, LayoutDashboard, ListChecks, PanelLeftClose, PanelLeftOpen, Search, Settings, Telescope, Workflow } from "lucide-react";
 import { Badge, Button, Header, Tooltip } from "@/design-system/orion-audit-console---design-system-bdbb01";
@@ -7,6 +7,7 @@ import { useRevisoes, useRotinas } from "@/hooks/useRotinas";
 import { useRealtimeStatus } from "@/hooks/useSupabaseRealtime";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { PRESETS } from "@/lib/search";
+import { computeSidebarAutoCollapse } from "@/lib/sidebar";
 import { isReviewState } from "@/lib/status";
 import { ToastViewport } from "@/lib/toast";
 import { CommandSearch } from "./CommandSearch";
@@ -112,11 +113,52 @@ function Topbar({ crumbs, onSearch }: { crumbs: Crumb[]; onSearch: () => void })
   );
 }
 
-export function AppShell({ crumbs, children, flush }: { crumbs: Crumb[]; children: ReactNode; flush?: boolean }) {
+export function AppShell({
+  crumbs,
+  children,
+  flush,
+  autoCollapseSidebar = false,
+}: {
+  crumbs: Crumb[];
+  children: ReactNode;
+  flush?: boolean;
+  autoCollapseSidebar?: boolean;
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  useEffect(() => { setCollapsed(localStorage.getItem("orion.sidebar") === "1"); }, []);
-  const toggle = () => setCollapsed((c) => { localStorage.setItem("orion.sidebar", c ? "0" : "1"); return !c; });
+  const restoredAfterAutoRef = useRef<boolean | null>(null);
+  const prevAutoRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setCollapsed(localStorage.getItem("orion.sidebar") === "1");
+  }, []);
+
+  useEffect(() => {
+    const wasAuto = prevAutoRef.current;
+    prevAutoRef.current = autoCollapseSidebar;
+    if (wasAuto === autoCollapseSidebar) return;
+
+    setCollapsed((curr) => {
+      const next = computeSidebarAutoCollapse({
+        wasAuto,
+        isAuto: autoCollapseSidebar,
+        collapsed: curr,
+        wasAutoCollapsed: restoredAfterAutoRef.current,
+      });
+      restoredAfterAutoRef.current = next.wasAutoCollapsed;
+      return next.collapsed;
+    });
+  }, [autoCollapseSidebar]);
+
+  const toggle = () => {
+    restoredAfterAutoRef.current = null;
+    setCollapsed((c) => {
+      const next = !c;
+      if (typeof window !== "undefined") localStorage.setItem("orion.sidebar", next ? "1" : "0");
+      return next;
+    });
+  };
   useKeyboardShortcuts({ "mod+k": () => setSearchOpen(true) });
   return (
     <div className="app-shell">

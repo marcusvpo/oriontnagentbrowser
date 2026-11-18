@@ -16,10 +16,10 @@ import { TelemetryView } from "@/components/studio/TelemetryView";
 import { HistoryTimeline } from "@/components/studio/HistoryTimeline";
 import { ScreenshotViewer } from "@/components/studio/ScreenshotViewer";
 import { ApproveDialog } from "@/components/governance/ApproveDialog";
-import { ReviewDialog } from "@/components/governance/ReviewDialog";
+import { ReviewDrawer } from "@/components/governance/ReviewDialog";
 import { ReexecuteDialog } from "@/components/governance/ReexecuteDialog";
 import { EditModeToolbar } from "@/components/governance/EditModeToolbar";
-import { RoutineReviewsModal } from "@/components/reviews/ReviewLibrary";
+import { RoutineReviewsDrawer } from "@/components/reviews/ReviewLibrary";
 import { useRotina, useRotinas } from "@/hooks/useRotinas";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { tagsOfSummary } from "@/lib/status";
@@ -62,12 +62,13 @@ function Estudio() {
   const [editing, setEditing] = useState(false);
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [descDraft, setDescDraft] = useState<string | undefined>();
-  const [dialog, setDialog] = useState<null | "approve" | "review" | "reviews" | "reexec">(null);
+  const [dialog, setDialog] = useState<null | "approve" | "reexec">(null);
+  const [drawer, setDrawer] = useState<null | "review" | "reviews">(null);
   const [leftPct, setLeftPct] = useState(45);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setActive(1); setEditing(false); setDrafts({}); setDescDraft(undefined); }, [id]);
+  useEffect(() => { setActive(1); setEditing(false); setDrafts({}); setDescDraft(undefined); setDrawer(null); }, [id]);
 
   const dirty = editing && rotina ? Object.entries(drafts).some(([n, v]) => rotina.steps.find((s) => s.stepNumber === Number(n))?.validatedText !== v) || (descDraft !== undefined && descDraft !== rotina.original.descricao) : false;
   useBlocker({ shouldBlockFn: () => !window.confirm("Há edições não salvas. Deseja sair mesmo assim?"), disabled: !dirty });
@@ -133,11 +134,17 @@ function Estudio() {
   }
 
   return (
-    <AppShell crumbs={crumbs} flush>
+    <AppShell crumbs={crumbs} flush autoCollapseSidebar={Boolean(drawer)}>
       <div className="studio">
         <StudioHeader rotina={rotina} prevId={idx > 0 ? order[idx - 1] : undefined} nextId={idx >= 0 && idx < order.length - 1 ? order[idx + 1] : undefined}
-          editing={editing} onApprove={() => setDialog("approve")} onEdit={() => { setEditing(true); setTab("passos"); }} onReview={() => setDialog("review")} onOpenReviews={() => setDialog("reviews")} onReexecute={() => setDialog("reexec")} />
-        <div className="studio-body" ref={bodyRef} style={{ ["--studio-left" as string]: `${leftPct}%` }}>
+          editing={editing} activeDrawer={drawer}
+          onApprove={() => setDialog("approve")}
+          onEdit={() => { setEditing(true); setTab("passos"); }}
+          onReview={() => setDrawer((d) => (d === "review" ? null : "review"))}
+          onOpenReviews={() => setDrawer((d) => (d === "reviews" ? null : "reviews"))}
+          onReexecute={() => setDialog("reexec")} />
+        <div className="studio-workspace" data-drawer-open={Boolean(drawer)}>
+          <div className="studio-body" ref={bodyRef} style={{ ["--studio-left" as string]: `${leftPct}%` }}>
           <section className="studio-pane" aria-label="Texto">
             <div className="stack-4">
               {rotina.bloqueio && (
@@ -197,12 +204,26 @@ function Estudio() {
               <ScreenshotViewer steps={rotina.steps} active={active} onSelect={(n) => select(n)} bloqueioTipo={rotina.steps.every((s) => !s.media) ? rotina.bloqueio?.tipo : undefined} />
             )}
           </section>
+          </div>
+          <ReviewDrawer
+            open={drawer === "review"}
+            onClose={() => setDrawer(null)}
+            rotina={rotina}
+            activeStepNumber={active}
+            reviewsCount={rotina.revisoes?.length ?? 0}
+            onOpenReviews={() => setDrawer("reviews")}
+          />
+          <RoutineReviewsDrawer
+            open={drawer === "reviews"}
+            onClose={() => setDrawer(null)}
+            routineId={rotina.summary.id}
+            routineTitle={rotina.summary.titulo}
+            onNewReview={() => setDrawer("review")}
+          />
         </div>
       </div>
       <ApproveDialog open={dialog === "approve"} onClose={() => setDialog(null)} rotina={rotina} edicoes={editing ? edicoes : undefined} descricao={editing ? descDraft : undefined}
         onApproved={() => { setEditing(false); setDrafts({}); setDescDraft(undefined); }} />
-      <ReviewDialog open={dialog === "review"} onClose={() => setDialog(null)} rotina={rotina} />
-      <RoutineReviewsModal open={dialog === "reviews"} onClose={() => setDialog(null)} routineId={rotina.summary.id} routineTitle={rotina.summary.titulo} onNewReview={() => setDialog("review")} />
       <ReexecuteDialog open={dialog === "reexec"} onClose={() => setDialog(null)} rotina={rotina} />
     </AppShell>
   );

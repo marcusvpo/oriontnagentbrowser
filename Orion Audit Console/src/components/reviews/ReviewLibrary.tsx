@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Clock, Flag, History, PencilLine, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Flag, History, PencilLine, Plus } from "lucide-react";
 import {
   Alert, Badge, Button, Card, Checkbox, Divider, EmptyState, Field, Input, Select, Tabs, Textarea,
 } from "@/design-system/orion-audit-console---design-system-bdbb01";
 import { Modal } from "@/components/ui/Modal";
+import { SideDrawer } from "@/components/ui/SideDrawer";
 import { AuditStatusBadge } from "@/components/badges/AuditStatusBadge";
 import { useReviewer } from "@/components/governance/useReviewer";
 import { useRevisoesRotina, useUpdateRevisao } from "@/hooks/useRotinas";
@@ -35,15 +36,7 @@ export const REVIEW_STATUS_META: Record<ReviewStatus, { label: string; badge: "f
   arquivada: { label: "Arquivada", badge: "neutral" },
 };
 
-export function EditReviewModal({
-  review,
-  open,
-  onClose,
-}: {
-  review: RoutineReviewItem | null;
-  open: boolean;
-  onClose: () => void;
-}) {
+function useEditReviewState(review: RoutineReviewItem | null, active: boolean, onDone: () => void) {
   const [reviewer, setReviewer] = useReviewer();
   const [tab, setTab] = useState("editar");
   const [status, setStatus] = useState<ReviewStatus>("aberta");
@@ -57,7 +50,7 @@ export function EditReviewModal({
   const m = useUpdateRevisao(review?.routineId);
 
   useEffect(() => {
-    if (open && review) {
+    if (active && review) {
       setTab("editar");
       setStatus(review.status);
       setCategoria(review.categoria);
@@ -68,17 +61,16 @@ export function EditReviewModal({
       setTouched(false);
       m.reset();
     }
-  }, [open, review]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [active, review]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!review) return null;
-
-  const totalSteps = Math.max(review.rotinaTotalPassos || 0, ...(review.passos || [0]));
+  const totalSteps = review ? Math.max(review.rotinaTotalPassos || 0, ...(review.passos || [0])) : 0;
   const stepNumbers = Array.from({ length: totalSteps }, (_, i) => i + 1);
 
   const motivoErr = touched && motivo.trim().length < 10 ? "O motivo precisa de pelo menos 10 caracteres." : undefined;
   const reviewerErr = touched && !reviewer.trim() ? "Informe quem está atualizando." : undefined;
 
   const save = () => {
+    if (!review) return;
     setTouched(true);
     if (motivo.trim().length < 10 || !reviewer.trim()) return;
     m.mutate(
@@ -97,11 +89,159 @@ export function EditReviewModal({
       {
         onSuccess: (res) => {
           toast("Revisão atualizada", `${review.routineId} salva na versão v${res.revisao.versao}.`);
-          onClose();
+          onDone();
         },
       }
     );
   };
+
+  return {
+    reviewer, setReviewer, tab, setTab, status, setStatus, categoria, setCategoria,
+    passos, setPassos, motivo, setMotivo, resolucao, setResolucao,
+    notaAtualizacao, setNotaAtualizacao, stepNumbers, motivoErr, reviewerErr,
+    save, isPending: m.isPending, error: m.error,
+  };
+}
+
+function EditReviewContent({
+  review,
+  state,
+  inDrawer = false,
+}: {
+  review: RoutineReviewItem;
+  state: ReturnType<typeof useEditReviewState>;
+  inDrawer?: boolean;
+}) {
+  const {
+    reviewer, setReviewer, tab, setTab, status, setStatus, categoria, setCategoria,
+    passos, setPassos, motivo, setMotivo, resolucao, setResolucao,
+    notaAtualizacao, setNotaAtualizacao, stepNumbers, motivoErr, reviewerErr, error,
+  } = state;
+
+  return (
+    <div className="stack-4">
+      <div className="row-between">
+        <span className="t-body-s dim">{review.rotinaTitulo}</span>
+        <Badge status={REVIEW_STATUS_META[review.status].badge}>{REVIEW_STATUS_META[review.status].label}</Badge>
+      </div>
+
+      <Tabs
+        value={tab}
+        onValueChange={setTab}
+        items={[
+          { value: "editar", label: "Editar revisão" },
+          { value: "versoes", label: `Versões (${review.versoes.length || review.versao})` },
+        ]}
+      />
+
+      {tab === "editar" && (
+        <div className="stack-3">
+          {error && <Alert tone="error" title="Erro ao atualizar">{(error as Error).message}</Alert>}
+          <div className="cols-2">
+            <Field label="Status">
+              {(p) => (
+                <Select {...p} value={status} onChange={(e) => setStatus(e.target.value as ReviewStatus)}>
+                  <option value="aberta">Aberta</option>
+                  <option value="em_andamento">Em andamento</option>
+                  <option value="resolvida">Resolvida</option>
+                  <option value="arquivada">Arquivada</option>
+                </Select>
+              )}
+            </Field>
+            <Field label="Categoria">
+              {(p) => (
+                <Select {...p} value={categoria} onChange={(e) => setCategoria(e.target.value as ReviewCategory)}>
+                  {REVIEW_CATEGORIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </Select>
+              )}
+            </Field>
+          </div>
+
+          {stepNumbers.length > 0 && (
+            <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+              <legend className="ds-field__label">Passos afetados</legend>
+              <div className="row-3">
+                {stepNumbers.map((n) => (
+                  <Checkbox
+                    key={n}
+                    checked={passos.includes(n)}
+                    onChange={() => setPassos((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n].sort((a, b) => a - b)))}
+                  >
+                    Passo {n}
+                  </Checkbox>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          <Field label="Motivo / Descrição da revisão" error={motivoErr} hint={`${motivo.trim().length}/10 caracteres mínimos`}>
+            {(p) => <Textarea {...p} rows={inDrawer ? 4 : undefined} value={motivo} onChange={(e) => setMotivo(e.target.value)} />}
+          </Field>
+
+          <Field label="Resolução / Tratativa aplicada" hint="Opcional — registre o que foi corrigido ou decidido.">
+            {(p) => <Textarea {...p} rows={inDrawer ? 3 : undefined} value={resolucao} onChange={(e) => setResolucao(e.target.value)} placeholder="Ex.: Print recapturada em 1440x900 e texto do passo 3 ajustado..." />}
+          </Field>
+
+          <div className="cols-2">
+            <Field label="Atualizado por" error={reviewerErr}>
+              {(p) => <Input {...p} value={reviewer} onChange={(e) => setReviewer(e.target.value)} />}
+            </Field>
+            <Field label="Nota desta atualização (changelog)">
+              {(p) => <Input {...p} value={notaAtualizacao} onChange={(e) => setNotaAtualizacao(e.target.value)} placeholder={`Atualizada para v${review.versao + 1}`} />}
+            </Field>
+          </div>
+        </div>
+      )}
+
+      {tab === "versoes" && (
+        <div className="stack-3" style={inDrawer ? undefined : { maxHeight: "50vh", overflowY: "auto" }}>
+          {(review.versoes.length > 0 ? review.versoes : []).map((v) => (
+            <Card key={v.versao}>
+              <div className="stack-2">
+                <div className="row-between">
+                  <div className="row">
+                    <span className="t-mono crimson">v{v.versao}</span>
+                    <Badge status={REVIEW_STATUS_META[v.status].badge}>{REVIEW_STATUS_META[v.status].label}</Badge>
+                    <span className="chip">{REVIEW_CATEGORY_LABEL[v.categoria]}</span>
+                  </div>
+                  <span className="t-body-s dim">{fmtDate(v.criadoEm)} · {v.alteradoPor}</span>
+                </div>
+                {v.notaAtualizacao && (
+                  <span className="t-body-s" style={{ color: "var(--color-bone)" }}>
+                    <strong>Nota:</strong> {v.notaAtualizacao}
+                  </span>
+                )}
+                <p className="t-body-s" style={{ margin: 0 }}>{v.motivo}</p>
+                {v.resolucao && (
+                  <p className="t-body-s" style={{ margin: 0, color: "var(--color-success)" }}>
+                    <strong>Resolução:</strong> {v.resolucao}
+                  </p>
+                )}
+                {v.passos.length > 0 && (
+                  <div className="row">
+                    {v.passos.map((p) => <span key={p} className="chip t-mono">Passo {p}</span>)}
+                  </div>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function EditReviewModal({
+  review,
+  open,
+  onClose,
+}: {
+  review: RoutineReviewItem | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const state = useEditReviewState(review, open, onClose);
+  if (!review) return null;
 
   return (
     <Modal
@@ -109,10 +249,10 @@ export function EditReviewModal({
       onClose={onClose}
       title={`Revisão ${review.routineId} · v${review.versao}`}
       footer={
-        tab === "editar" ? (
+        state.tab === "editar" ? (
           <>
             <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button variant="primary" loading={m.isPending} onClick={save}>
+            <Button variant="primary" loading={state.isPending} onClick={state.save}>
               Salvar nova versão (v{review.versao + 1})
             </Button>
           </>
@@ -121,115 +261,7 @@ export function EditReviewModal({
         )
       }
     >
-      <div className="stack-4">
-        <div className="row-between">
-          <span className="t-body-s dim">{review.rotinaTitulo}</span>
-          <Badge status={REVIEW_STATUS_META[review.status].badge}>{REVIEW_STATUS_META[review.status].label}</Badge>
-        </div>
-
-        <Tabs
-          value={tab}
-          onValueChange={setTab}
-          items={[
-            { value: "editar", label: "Editar revisão" },
-            { value: "versoes", label: `Versões (${review.versoes.length || review.versao})` },
-          ]}
-        />
-
-        {tab === "editar" && (
-          <div className="stack-3">
-            {m.error && <Alert tone="error" title="Erro ao atualizar">{(m.error as Error).message}</Alert>}
-            <div className="cols-2">
-              <Field label="Status">
-                {(p) => (
-                  <Select {...p} value={status} onChange={(e) => setStatus(e.target.value as ReviewStatus)}>
-                    <option value="aberta">Aberta</option>
-                    <option value="em_andamento">Em andamento</option>
-                    <option value="resolvida">Resolvida</option>
-                    <option value="arquivada">Arquivada</option>
-                  </Select>
-                )}
-              </Field>
-              <Field label="Categoria">
-                {(p) => (
-                  <Select {...p} value={categoria} onChange={(e) => setCategoria(e.target.value as ReviewCategory)}>
-                    {REVIEW_CATEGORIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                  </Select>
-                )}
-              </Field>
-            </div>
-
-            {stepNumbers.length > 0 && (
-              <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
-                <legend className="ds-field__label">Passos afetados</legend>
-                <div className="row-3">
-                  {stepNumbers.map((n) => (
-                    <Checkbox
-                      key={n}
-                      checked={passos.includes(n)}
-                      onChange={() => setPassos((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n].sort((a, b) => a - b)))}
-                    >
-                      Passo {n}
-                    </Checkbox>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-
-            <Field label="Motivo / Descrição da revisão" error={motivoErr} hint={`${motivo.trim().length}/10 caracteres mínimos`}>
-              {(p) => <Textarea {...p} value={motivo} onChange={(e) => setMotivo(e.target.value)} />}
-            </Field>
-
-            <Field label="Resolução / Tratativa aplicada" hint="Opcional — registre o que foi corrigido ou decidido.">
-              {(p) => <Textarea {...p} value={resolucao} onChange={(e) => setResolucao(e.target.value)} placeholder="Ex.: Print recapturada em 1440x900 e texto do passo 3 ajustado..." />}
-            </Field>
-
-            <div className="cols-2">
-              <Field label="Atualizado por" error={reviewerErr}>
-                {(p) => <Input {...p} value={reviewer} onChange={(e) => setReviewer(e.target.value)} />}
-              </Field>
-              <Field label="Nota desta atualização (changelog)">
-                {(p) => <Input {...p} value={notaAtualizacao} onChange={(e) => setNotaAtualizacao(e.target.value)} placeholder={`Atualizada para v${review.versao + 1}`} />}
-              </Field>
-            </div>
-          </div>
-        )}
-
-        {tab === "versoes" && (
-          <div className="stack-3" style={{ maxHeight: "50vh", overflowY: "auto" }}>
-            {(review.versoes.length > 0 ? review.versoes : []).map((v) => (
-              <Card key={v.versao}>
-                <div className="stack-2">
-                  <div className="row-between">
-                    <div className="row">
-                      <span className="t-mono crimson">v{v.versao}</span>
-                      <Badge status={REVIEW_STATUS_META[v.status].badge}>{REVIEW_STATUS_META[v.status].label}</Badge>
-                      <span className="chip">{REVIEW_CATEGORY_LABEL[v.categoria]}</span>
-                    </div>
-                    <span className="t-body-s dim">{fmtDate(v.criadoEm)} · {v.alteradoPor}</span>
-                  </div>
-                  {v.notaAtualizacao && (
-                    <span className="t-body-s" style={{ color: "var(--color-bone)" }}>
-                      <strong>Nota:</strong> {v.notaAtualizacao}
-                    </span>
-                  )}
-                  <p className="t-body-s" style={{ margin: 0 }}>{v.motivo}</p>
-                  {v.resolucao && (
-                    <p className="t-body-s" style={{ margin: 0, color: "var(--color-success)" }}>
-                      <strong>Resolução:</strong> {v.resolucao}
-                    </p>
-                  )}
-                  {v.passos.length > 0 && (
-                    <div className="row">
-                      {v.passos.map((p) => <span key={p} className="chip t-mono">Passo {p}</span>)}
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+      <EditReviewContent review={review} state={state} />
     </Modal>
   );
 }
@@ -316,22 +348,129 @@ export function ReviewCardList({
   );
 }
 
+function InlineEditReviewDrawer({
+  open,
+  review,
+  onBack,
+  onClose,
+}: {
+  open: boolean;
+  review: RoutineReviewItem;
+  onBack: () => void;
+  onClose: () => void;
+}) {
+  const state = useEditReviewState(review, open, onBack);
+
+  return (
+    <SideDrawer
+      open={open}
+      onClose={onClose}
+      kicker="Editando revisão · Painel acoplado"
+      title={`Revisão ${review.routineId} · v${review.versao}`}
+      headerAction={
+        <Button variant="ghost" size="sm" onClick={onBack} aria-label="Voltar para revisões">
+          <ArrowLeft size={14} strokeWidth={1.5} /> Voltar
+        </Button>
+      }
+      footer={
+        state.tab === "editar" ? (
+          <>
+            <Button variant="ghost" onClick={onBack}>Cancelar</Button>
+            <Button variant="primary" loading={state.isPending} onClick={state.save}>
+              Salvar nova versão (v{review.versao + 1})
+            </Button>
+          </>
+        ) : (
+          <Button onClick={onBack}>Voltar à lista</Button>
+        )
+      }
+    >
+      <EditReviewContent review={review} state={state} inDrawer />
+    </SideDrawer>
+  );
+}
+
+export interface RoutineReviewsProps {
+  routineId: string;
+  routineTitle: string;
+  open: boolean;
+  onClose: () => void;
+  onNewReview: () => void;
+  variant?: "modal" | "drawer";
+}
+
 export function RoutineReviewsModal({
   routineId,
   routineTitle,
   open,
   onClose,
   onNewReview,
-}: {
-  routineId: string;
-  routineTitle: string;
-  open: boolean;
-  onClose: () => void;
-  onNewReview: () => void;
-}) {
+  variant = "modal",
+}: RoutineReviewsProps) {
   const { data, isLoading } = useRevisoesRotina(routineId);
   const [editingReview, setEditingReview] = useState<RoutineReviewItem | null>(null);
   const items = data?.data ?? [];
+
+  useEffect(() => {
+    if (!open) setEditingReview(null);
+  }, [open, routineId]);
+
+  const listBody = (
+    <div className="stack-4" style={variant === "drawer" ? undefined : { maxHeight: "65vh", overflowY: "auto" }}>
+      <div className="row-between">
+        <span className="t-body-s dim">{routineTitle}</span>
+        <Badge status={items.some((i) => i.status === "aberta" || i.status === "em_andamento") ? "warning" : "neutral"}>
+          <Flag size={12} strokeWidth={1.5} /> {items.length} revisão(ões)
+        </Badge>
+      </div>
+      {isLoading ? (
+        <p className="t-body-s dim">Carregando revisões...</p>
+      ) : (
+        <ReviewCardList items={items} showRoutineLink={false} onEdit={setEditingReview} />
+      )}
+    </div>
+  );
+
+  const footer = (
+    <>
+      <Link to="/revisoes" className="link-plain">
+        <Button variant="ghost">Abrir biblioteca geral</Button>
+      </Link>
+      <Button
+        variant="primary"
+        onClick={() => {
+          if (variant === "modal") onClose();
+          onNewReview();
+        }}
+      >
+        <Plus size={14} strokeWidth={1.5} /> Nova revisão
+      </Button>
+    </>
+  );
+
+  if (variant === "drawer") {
+    if (editingReview) {
+      return (
+        <InlineEditReviewDrawer
+          open={open}
+          review={editingReview}
+          onBack={() => setEditingReview(null)}
+          onClose={onClose}
+        />
+      );
+    }
+    return (
+      <SideDrawer
+        open={open}
+        onClose={onClose}
+        kicker="Últimas revisões · Painel acoplado"
+        title={`Últimas Revisões · ${routineId}`}
+        footer={footer}
+      >
+        {listBody}
+      </SideDrawer>
+    );
+  }
 
   return (
     <>
@@ -339,38 +478,15 @@ export function RoutineReviewsModal({
         open={open}
         onClose={onClose}
         title={`Últimas Revisões · ${routineId}`}
-        footer={
-          <>
-            <Link to="/revisoes" className="link-plain">
-              <Button variant="ghost">Abrir biblioteca geral</Button>
-            </Link>
-            <Button
-              variant="primary"
-              onClick={() => {
-                onClose();
-                onNewReview();
-              }}
-            >
-              <Plus size={14} strokeWidth={1.5} /> Nova revisão
-            </Button>
-          </>
-        }
+        footer={footer}
       >
-        <div className="stack-4" style={{ maxHeight: "65vh", overflowY: "auto" }}>
-          <div className="row-between">
-            <span className="t-body-s dim">{routineTitle}</span>
-            <Badge status={items.some((i) => i.status === "aberta" || i.status === "em_andamento") ? "warning" : "neutral"}>
-              <Flag size={12} strokeWidth={1.5} /> {items.length} revisão(ões)
-            </Badge>
-          </div>
-          {isLoading ? (
-            <p className="t-body-s dim">Carregando revisões...</p>
-          ) : (
-            <ReviewCardList items={items} showRoutineLink={false} onEdit={setEditingReview} />
-          )}
-        </div>
+        {listBody}
       </Modal>
       <EditReviewModal review={editingReview} open={Boolean(editingReview)} onClose={() => setEditingReview(null)} />
     </>
   );
+}
+
+export function RoutineReviewsDrawer(props: Omit<RoutineReviewsProps, "variant">) {
+  return <RoutineReviewsModal {...props} variant="drawer" />;
 }

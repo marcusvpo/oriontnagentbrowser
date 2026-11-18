@@ -4,20 +4,25 @@ Configuração compartilhada para o orquestrador satélite Antigravity Python SD
 Regras de conformidade:
 - Isolamento estrito de credenciais Supabase: carrega exclusivamente de `auditoria/.env`
   (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_SECRET_KEY`, `DATABASE_URL`/`SUPABASE_DB_URL`).
-- Inicializa o cliente oficial do Google Antigravity Python SDK (`google.antigravity` v0.1.23)
-  usando EXCLUSIVAMENTE a sessão local autenticada do Antigravity (mesma conta do CLI `agy`),
-  sem chave de API e sem cobrança por uso de API, e Structured Outputs via Pydantic.
-  `GEMINI_API_KEY`/`GOOGLE_API_KEY` NÃO são lidas por este worker (ADR-033, emenda de 2026-11-18).
+- A inferência multimodal é feita pelo CLI local `agy` (`agy.exe` no Windows): prompt em STDIN como
+  NDJSON (`--input-format stream-json`), resposta no evento final `result`, `--json-schema` gerado
+  do modelo Pydantic e validação final por `coerce_to_pydantic`. Sem chave de API e sem cobrança por uso
+  (o SDK `google.antigravity` v0.1.23 só monta o `LocalAgentConfig`/schema). `GEMINI_API_KEY`/`GOOGLE_API_KEY`
+  NÃO são lidas por este worker (ADR-033, emendas de 2026-11-18).
 - Modelo multimodal padrão: `gemini-4-hydrogen-xhigh` (Gemini 4 Hydrogen Extra) com fallback
   automático para `gemini-4-hydrogen-high`.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
 import re
+import sys
+import time
+import weakref
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Optional, Type, TypeVar
@@ -27,13 +32,13 @@ from pydantic import BaseModel
 
 try:
     import google.antigravity as agy
-    from google.antigravity import Agent, CapabilitiesConfig, LocalAgentConfig, from_file
+    # O SDK só monta `LocalAgentConfig` (schema/Structured Outputs, sem rede). A inferência real
+    # é feita pelo CLI local `agy` (`_run_agy_cli_inference`), sem chave de API.
+    from google.antigravity import CapabilitiesConfig, LocalAgentConfig
 except ImportError:  # pragma: no cover
     agy = None  # type: ignore
-    Agent = None  # type: ignore
     CapabilitiesConfig = None  # type: ignore
     LocalAgentConfig = None  # type: ignore
-    from_file = None  # type: ignore
 
 logger = logging.getLogger("orion.antigravity_worker")
 
@@ -121,10 +126,10 @@ def load_worker_settings(env_path: Optional[Path] = None) -> OrionWorkerSettings
         or ""
     ).strip()
     if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
-        # O SDK lê essas variáveis por conta própria e passaria a cobrar por uso de API.
+        # O worker não usa chave de API (inferência só pelo CLI `agy`); a variável é ignorada.
         logger.warning(
-            "GEMINI_API_KEY/GOOGLE_API_KEY detectada no ambiente: o SDK pode usá-la e gerar custo de API. "
-            "A ADR-033 prevê somente a sessão local autenticada do Antigravity; remova a variável."
+            "GEMINI_API_KEY/GOOGLE_API_KEY detectada no ambiente e IGNORADA: a ADR-033 prevê inferência "
+            "somente pelo CLI local `agy` (sessão autenticada, sem custo de API); remova a variável."
         )
     primary_model = os.environ.get("ORION_AGY_PRIMARY_MODEL", DEFAULT_MULTIMODAL_MODEL).strip()
     fallback_model = os.environ.get("ORION_AGY_FALLBACK_MODEL", FALLBACK_MULTIMODAL_MODEL).strip()
@@ -182,7 +187,7 @@ def build_agent_config(
         ),
         "workspaces": [str(cfg.project_root)],
     }
-    # Sem `api_key`: a autenticação é a sessão local do Antigravity (ADR-033).
+    # Sem `api_key`: o config só descreve o schema; a inferência real usa o CLI `agy` (ADR-033).
     return LocalAgentConfig(**kwargs)
 
 
@@ -268,39 +273,194 @@ async def _run_single_model_inference(
         raw_res = await custom_transport(prompt, image_path, schema_cls, model_name)
         return coerce_to_pydantic(raw_res, schema_cls)
 
-    if Agent is None or from_file is None:
-        raise RuntimeError("Google Antigravity SDK (`google-antigravity`) indisponível.")
-
-    agent_cfg = build_agent_config(
+    return await _run_agy_cli_inference(
+        prompt=prompt,
+        image_path=image_path,
         schema_cls=schema_cls,
         model_name=model_name,
         system_instructions=system_instructions,
-        settings=settings,
     )
 
-    content_parts: list[Any] = []
+
+# ---------------------------------------------------------------------------
+# Transporte real: CLI local `agy` (ADR-033, emenda 2026-11-18 "worker via agy").
+# Espelha o protocolo de `auditoria/src/agy-client.ts`: prompt em STDIN como NDJSON,
+# resposta no evento final `result` de `--output-format stream-json`.
+# ---------------------------------------------------------------------------
+
+AGY_BINARY = "agy.exe" if sys.platform == "win32" else "agy"
+AGY_CLI_TIMEOUT_SEC = 180
+_QUOTA_PATTERN = re.compile(r"quota|rate[_\s-]?limit|resource_exhausted|\b429\b|too many requests|capacity", re.IGNORECASE)
+_agy_semaphores: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Semaphore]" = weakref.WeakKeyDictionary()
+
+
+def _agy_semaphore() -> asyncio.Semaphore:
+    """`asyncio.Semaphore(1)` por event loop: serializa as chamadas ao `agy` (uma por vez)."""
+    loop = asyncio.get_running_loop()
+    sem = _agy_semaphores.get(loop)
+    if sem is None:
+        sem = asyncio.Semaphore(1)
+        _agy_semaphores[loop] = sem
+    return sem
+
+
+def _effort_for_model(model_name: str) -> str:
+    return "high" if model_name.strip().lower().endswith("-high") else "xhigh"
+
+
+def build_agy_cli_args(
+    schema_cls: Type[BaseModel],
+    model_name: str,
+    image_dir: Optional[Path] = None,
+    timeout_sec: int = AGY_CLI_TIMEOUT_SEC,
+) -> list[str]:
+    """Argumentos do `agy` em modo não interativo; o prompt NUNCA vai na linha de comando (ADR-014)."""
+    args: list[str] = [
+        "--print=",
+        "--input-format",
+        "stream-json",
+        "--model",
+        model_name,
+        "--effort",
+        _effort_for_model(model_name),
+        "--output-format",
+        "stream-json",
+        "--print-timeout",
+        f"{max(5, int(timeout_sec))}s",
+        "--disable-slash-commands",
+        "--json-schema",
+        json.dumps(schema_cls.model_json_schema(), ensure_ascii=False),
+    ]
+    if image_dir is not None:
+        args.extend(["--dangerously-skip-permissions", "--add-dir", str(image_dir)])
+    return args
+
+
+def build_agy_stream_input(payload: str) -> str:
+    """Mensagem NDJSON de entrada do `agy --input-format stream-json`."""
+    return json.dumps({"event": "user", "message": {"content": payload}}, ensure_ascii=False) + "\n"
+
+
+def extract_agy_stream_result(stdout: str) -> Optional[dict[str, Any]]:
+    """Lê o último evento `result` do stream; devolve `{ok, response, error}` ou `None`."""
+    last: Optional[dict[str, Any]] = None
+    for line in (stdout or "").splitlines():
+        text = line.strip()
+        if not text.startswith("{"):
+            continue
+        try:
+            evt = json.loads(text)
+        except Exception:
+            continue
+        if isinstance(evt, dict) and evt.get("event") == "result" and isinstance(evt.get("result"), dict):
+            last = evt["result"]
+    if last is None:
+        return None
+    ok = str(last.get("status", "")).upper() == "SUCCESS"
+    response = last.get("response", "")
+    if not isinstance(response, str):
+        response = json.dumps(response, ensure_ascii=False)
+    return {"ok": ok, "response": response, "error": None if ok else str(last.get("error") or last.get("status") or "erro")}
+
+
+def _prepare_agy_image(image_path: Path) -> tuple[Path, Optional[Path]]:
+    """
+    Devolve `(imagem_para_o_agy, temporario_a_remover)`. `.webp` usa o `.png` pareado da pasta da rotina
+    quando existe; sem par, converte para PNG temporário em `auditoria/cache/` (removido no `finally`).
+    """
+    resolved = Path(image_path).resolve()
+    if not resolved.exists():
+        raise FileNotFoundError(f"Imagem não encontrada para inferência multimodal: {resolved}")
+    if resolved.suffix.lower() != ".webp":
+        return resolved, None
+    paired_png = resolved.with_suffix(".png")
+    if paired_png.exists():
+        return paired_png, None
+    from PIL import Image  # Pillow: só necessário quando não há `.png` pareado
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    tmp_png = CACHE_DIR / f"agy-worker-{os.getpid()}-{int(time.time() * 1000)}.png"
+    with Image.open(resolved) as img:
+        img.convert("RGB").save(tmp_png, format="PNG")
+    return tmp_png, tmp_png
+
+
+def _build_agy_payload(prompt: str, image_path: Optional[Path], system_instructions: Optional[str]) -> str:
+    parts: list[str] = []
     if image_path is not None:
-        resolved_img = Path(image_path).resolve()
-        if not resolved_img.exists():
-            raise FileNotFoundError(f"Imagem não encontrada para inferência multimodal: {resolved_img}")
-        content_parts.append(from_file(resolved_img, description="Captura de tela do Orion TN"))
-    content_parts.append(prompt)
+        abs_path = Path(image_path).resolve()
+        try:
+            mention = abs_path.relative_to(PROJECT_ROOT).as_posix()
+        except ValueError:
+            mention = abs_path.as_posix()
+        parts.append(f"[Imagem Anexa para Inspeção Visual: @{mention} ({abs_path.as_posix()})]")
+    if system_instructions:
+        parts.append(system_instructions)
+    parts.append(prompt)
+    return "\n\n".join(parts)
+
+
+async def _run_agy_cli_inference(
+    prompt: str,
+    image_path: Optional[Path],
+    schema_cls: Type[TModel],
+    model_name: str,
+    system_instructions: Optional[str] = None,
+) -> TModel:
+    """Executa uma inferência multimodal estruturada via CLI local `agy` e valida com Pydantic."""
+    instructions = system_instructions or (
+        "Você é o auditor multimodal especialista do ERP notarial e registral Orion TN (Siplan). "
+        "Analise rigorosamente a imagem fornecida e os metadados do passo e retorne estritamente "
+        "o JSON do schema solicitado, sem texto adicional."
+    )
+    img_for_agy: Optional[Path] = None
+    temp_img: Optional[Path] = None
+    if image_path is not None:
+        img_for_agy, temp_img = _prepare_agy_image(image_path)
 
     try:
-        async with Agent(agent_cfg) as agent:
-            response = await agent.chat(content_parts if len(content_parts) > 1 else prompt)
-            structured = await response.structured_output()
-            if structured is not None:
-                return coerce_to_pydantic(structured, schema_cls)
-            raw_text = await response.text()
-            return coerce_to_pydantic(raw_text, schema_cls)
-    except Exception as exc:
-        if "API key is required" in str(exc):
-            raise RuntimeError(
-                "Sessão local do Antigravity SDK não autenticada. Autentique a sessão local "
-                "(mesma conta do CLI `agy`); este worker não usa chave de API (ADR-033)."
-            ) from exc
-        raise
+        args = build_agy_cli_args(
+            schema_cls,
+            model_name,
+            image_dir=img_for_agy.parent if img_for_agy is not None else None,
+        )
+        payload = build_agy_stream_input(_build_agy_payload(prompt, img_for_agy, instructions))
+        async with _agy_semaphore():
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    AGY_BINARY,
+                    *args,
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=str(PROJECT_ROOT),
+                )
+            except FileNotFoundError as exc:
+                raise RuntimeError(f"CLI `{AGY_BINARY}` não encontrado no PATH (ADR-033).") from exc
+            try:
+                out_b, err_b = await asyncio.wait_for(
+                    proc.communicate(payload.encode("utf-8")), timeout=AGY_CLI_TIMEOUT_SEC + 15
+                )
+            except asyncio.TimeoutError as exc:
+                proc.kill()
+                await proc.wait()
+                raise RuntimeError(f"`agy` excedeu o timeout de {AGY_CLI_TIMEOUT_SEC}s ({model_name}).") from exc
+
+        stdout = out_b.decode("utf-8", errors="replace")
+        stderr = err_b.decode("utf-8", errors="replace")
+        parsed = extract_agy_stream_result(stdout)
+        if parsed is None or not parsed["ok"]:
+            reason = (parsed or {}).get("error") or f"exit_code_{proc.returncode}"
+            if _QUOTA_PATTERN.search(f"{reason}\n{stderr}"):
+                reason = f"quota_exceeded ({reason})"
+            raise RuntimeError(f"`agy` sem resultado válido ({model_name}): {reason}")
+        return coerce_to_pydantic(parsed["response"], schema_cls)
+    finally:
+        if temp_img is not None:
+            try:
+                temp_img.unlink()
+            except OSError:
+                pass
 
 
 async def generate_structured_multimodal(

@@ -11,10 +11,11 @@ import { SECAO_LABEL, reviewPrefix, tagsOfSummary } from "@/lib/status";
 
 interface Props {
   rotina: RoutineDetail; prevId?: string; nextId?: string; editing: boolean;
+  activeDrawer?: "review" | "reviews" | null;
   onApprove: () => void; onEdit: () => void; onReview: () => void; onOpenReviews: () => void; onReexecute: () => void;
 }
 
-export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdit, onReview, onOpenReviews, onReexecute }: Props) {
+export function StudioHeader({ rotina, prevId, nextId, editing, activeDrawer, onApprove, onEdit, onReview, onOpenReviews, onReexecute }: Props) {
   const s = rotina.summary;
   const reviewTags = tagsOfSummary(s);
   const running = s.runner.estado === "na_fila" || s.runner.estado === "em_execucao";
@@ -48,7 +49,12 @@ export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdi
         </div>
       <div className="studio-actions" role="region" aria-label="Ações da rotina">
         <div className="studio-actions-secondary">
-          <Button size="lg" className="btn-reviews-highlight" onClick={onOpenReviews}>
+          <Button
+            size="lg"
+            className={activeDrawer === "reviews" ? "btn-reviews-highlight btn-drawer-active" : "btn-reviews-highlight"}
+            aria-pressed={activeDrawer === "reviews"}
+            onClick={onOpenReviews}
+          >
             <History size={14} strokeWidth={1.75} />
             Últimas Revisões
             <span className="btn-reviews-highlight-count">{rotina.revisoes?.length ?? 0}</span>
@@ -56,7 +62,14 @@ export function StudioHeader({ rotina, prevId, nextId, editing, onApprove, onEdi
           <Button size="lg" onClick={onReexecute} disabled={running} aria-busy={running}>
             {running ? <Spinner label="Reexecução em andamento" /> : <RotateCw size={14} strokeWidth={1.5} />}{running ? "Na fila…" : "Reexecutar"}
           </Button>
-          <Button size="lg" onClick={onReview}><Flag size={14} strokeWidth={1.5} />Marcar revisão</Button>
+          <Button
+            size="lg"
+            className={activeDrawer === "review" ? "btn-drawer-active" : undefined}
+            aria-pressed={activeDrawer === "review"}
+            onClick={onReview}
+          >
+            <Flag size={14} strokeWidth={1.5} />Marcar revisão
+          </Button>
           <Button size="lg" onClick={onEdit} disabled={editing}><PencilLine size={14} strokeWidth={1.5} />Editar texto</Button>
         </div>
           {!editing && <Button size="lg" variant="primary" onClick={onApprove} disabled={s.statusGovernanca === "aprovada"}><ShieldCheck size={14} strokeWidth={1.5} />{s.statusGovernanca === "aprovada" ? "Aprovada" : "Aprovar rotina"}</Button>}
