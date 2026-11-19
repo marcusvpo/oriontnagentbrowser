@@ -59,7 +59,7 @@ export function createRealtimeInvalidator(queryClient: QueryClient, debounceMs =
     notify(table: string, payload: RealtimeChangePayload) {
       const routineId = extractChangedRoutineId(table, payload);
       if (routineId) pendingRoutineIds.add(routineId);
-      if (table === "routine_reviews") needsReviews = true;
+      if (table === "routine_reviews" || table === "review_export_batches") needsReviews = true;
       if (timer) clearTimeout(timer);
       timer = setTimeout(flush, debounceMs);
     },
@@ -90,8 +90,8 @@ export function useSupabaseRealtime() {
       "routines",
       "routine_steps",
       "governance_events",
-      "runner_jobs",
       "routine_reviews",
+      "review_export_batches",
     ] as const;
 
     let channel = supabase.channel("orion-audit-realtime");

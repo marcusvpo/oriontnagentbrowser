@@ -105,9 +105,9 @@ button.chip:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .pager { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .routines-table-region { min-width: 0; }
 .routines-table-region:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
-.routines-table { min-width: calc(var(--space-32) * 12); }
-.routines-table th, .routines-table td { vertical-align: top; }
-.routine-title { width: calc(var(--space-32) * 3); max-width: var(--prose-max); overflow-wrap: break-word; }
+.routines-table { min-width: 100%; }
+.routines-table th, .routines-table td { vertical-align: top; padding: var(--space-3); }
+.routine-title { width: auto; min-width: 220px; max-width: 340px; overflow-wrap: break-word; }
 .routine-routes { align-items: flex-start; }
 .th-sort { background: none; border: 0; padding: 0; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-1); }
 .th-sort:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
@@ -479,4 +479,275 @@ button.chip:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 }
 @media (prefers-reduced-motion: reduce) {
   .studio-drawer { animation: none; }
+}
+
+/* ==========================================================================
+   ADR-036 — Central de Curadoria, Ingestão pelo Agente & Exportação em Massa
+   ========================================================================== */
+:root {
+  --color-ingested: #a78bfa;
+  --color-ingested-bright: #c4b5fd;
+  --color-ingested-wash: rgba(167, 139, 250, 0.12);
+  --color-ingested-wash-subtle: rgba(167, 139, 250, 0.045);
+  --color-ingested-line: rgba(167, 139, 250, 0.48);
+}
+
+.ingested { color: var(--color-ingested); }
+
+.ds-badge--ingested {
+  border-color: var(--color-ingested-line);
+  background: var(--color-ingested-wash);
+  color: var(--color-ingested-bright);
+}
+.ds-badge--ingested-edited {
+  border-color: var(--color-warning-line);
+  background: linear-gradient(90deg, var(--color-ingested-wash) 0%, var(--color-warning-wash) 100%);
+  color: var(--color-warning);
+}
+.ds-badge--pending-export {
+  border-color: var(--color-crimson);
+  background: var(--color-crimson-wash);
+  color: var(--color-crimson-text);
+}
+
+.seg-ingested { background: var(--color-ingested); }
+.seg-pending-export { background: var(--color-crimson); }
+.seg-review-ready { background: var(--color-bone); opacity: 0.72; }
+
+/* Banner de rotina ingerida no Estúdio */
+.ingested-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-ingested-line);
+  background: linear-gradient(90deg, var(--color-ingested-wash) 0%, rgba(19, 19, 21, 0.6) 100%);
+  color: var(--color-bone);
+}
+.ingested-banner__icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-ingested-line);
+  background: var(--color-ingested-wash);
+  color: var(--color-ingested-bright);
+}
+
+/* Destaque de linhas na tabela do Explorador por estágio de curadoria */
+.routines-table tbody tr[data-curation="ingested"] td {
+  background: var(--color-ingested-wash-subtle);
+}
+.routines-table tbody tr[data-curation="ingested"]:hover td {
+  background: rgba(167, 139, 250, 0.09);
+}
+.routines-table tbody tr[data-curation="ingested"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-ingested);
+}
+.routines-table tbody tr[data-curation="approved"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-success);
+}
+.routines-table tbody tr[data-curation="pending-export"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-crimson);
+}
+
+/* Destaque lateral em cards de revisão */
+.review-card--ingested {
+  border-color: var(--color-ingested-line) !important;
+  box-shadow: inset 3px 0 0 var(--color-ingested);
+  background: linear-gradient(180deg, var(--color-ingested-wash-subtle) 0%, var(--color-graphite) 40%) !important;
+}
+.review-card--pending {
+  box-shadow: inset 3px 0 0 var(--color-crimson);
+}
+.review-card--ingested-edited {
+  border-color: var(--color-warning-line) !important;
+  box-shadow: inset 3px 0 0 var(--color-warning);
+}
+
+/* Funil de Curadoria do Dashboard */
+.curation-bar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--color-ink);
+  border: var(--border-hairline);
+}
+.curation-bar > span {
+  display: block;
+  height: 100%;
+  transition: width var(--duration-panel) var(--ease-strict);
+}
+.curation-stages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 1100px) {
+  .curation-stages-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .curation-stages-grid { grid-template-columns: 1fr; }
+}
+.curation-stage-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: var(--border-hairline);
+  background: var(--color-ink);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--duration-color) var(--ease-strict), background-color var(--duration-color) var(--ease-strict);
+}
+.curation-stage-card:hover {
+  border-color: var(--color-filament-strong);
+  background: var(--color-slate);
+}
+.curation-stage-card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.curation-stage-card.curation-tone--approved { border-top: 2px solid var(--color-success); }
+.curation-stage-card.curation-tone--ingested { border-top: 2px solid var(--color-ingested); }
+.curation-stage-card.curation-tone--pending { border-top: 2px solid var(--color-crimson); }
+.curation-stage-card.curation-tone--support { border-top: 2px solid var(--color-warning); }
+.curation-stage-card.curation-tone--ready { border-top: 2px solid var(--color-bone); }
+.curation-stage-card.curation-tone--none { border-top: 2px solid var(--color-filament-strong); }
+
+/* Pílulas rápidas de estágio no Explorador */
+.stage-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.stage-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  border: var(--border-hairline);
+  background: var(--color-graphite);
+  color: var(--color-ash);
+  font: 500 var(--text-body-s)/1 var(--font-body);
+  cursor: pointer;
+  transition: border-color var(--duration-color) var(--ease-strict), background-color var(--duration-color) var(--ease-strict), color var(--duration-color) var(--ease-strict);
+}
+.stage-pill:hover {
+  border-color: var(--color-filament-strong);
+  color: var(--color-bone);
+}
+.stage-pill[aria-pressed="true"] {
+  border-color: var(--color-bone);
+  background: var(--color-slate);
+  color: var(--color-bone);
+}
+.stage-pill[data-tone="ingested"][aria-pressed="true"] {
+  border-color: var(--color-ingested-line);
+  background: var(--color-ingested-wash);
+  color: var(--color-ingested-bright);
+}
+.stage-pill[data-tone="approved"][aria-pressed="true"] {
+  border-color: var(--color-success-line);
+  background: var(--color-success-wash);
+  color: var(--color-success);
+}
+.stage-pill[data-tone="pending"][aria-pressed="true"] {
+  border-color: var(--color-crimson);
+  background: var(--color-crimson-wash);
+  color: var(--color-crimson-text);
+}
+.stage-pill:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.stage-pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  flex: none;
+}
+.stage-pill__count {
+  font: 500 var(--text-overline-xs)/1 var(--font-mono);
+  opacity: 0.8;
+}
+
+/* Modal de exportação em massa e histórico de lotes */
+.export-preview-box {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: var(--border-hairline);
+  background: var(--color-ink);
+  max-height: 140px;
+  overflow-y: auto;
+}
+.batch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: var(--border-hairline);
+  background: var(--color-ink);
+}
+.preset-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  flex: none;
+}
+.preset-dot--ingested { background: var(--color-ingested); }
+.preset-dot--approved { background: var(--color-success); }
+.preset-dot--pending { background: var(--color-crimson); }
+.workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 900px) {
+  .workflow-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .workflow-steps { grid-template-columns: 1fr; }
+}
+.workflow-step {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: var(--border-hairline);
+  background: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Polimentos UX: select sem seta dupla, abas do Estúdio sem corte e modal ajustado ao viewport */
+.ds-select select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  box-sizing: border-box;
+}
+.ds-select select::-ms-expand { display: none; }
+.studio-pane .ds-tabs { gap: var(--space-4); }
+.ds-modal[open] {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+}
+.ds-modal__body {
+  overflow-y: auto;
+  min-height: 0;
+}
+.ds-modal__header, .ds-modal__footer {
+  flex: none;
 }

@@ -1,7 +1,6 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import yaml from 'yaml';
 import { getSupabaseAdmin, isSupabaseConfigured, SUPABASE_URL } from './supabase.js';
@@ -19,9 +18,16 @@ import { auditExternalSteps, externalStepsFromMd, reviewTagsFromMd } from './inv
 import { findRevisedMarkdownById, persistRoutineGovernanceToDisk, type GovernanceDiskUpdate } from './governance-disk.js';
 import { analyzeRoutineScope } from './step-scope.js';
 import { syncSingleRoutineToSupabase } from './sync-supabase.js';
-import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
-import { findRoutineFileById } from './phases.js';
-import { writePreTriagedDddReport } from './hardware-pretriage.js';
+import {
+  buildExportJson,
+  buildExportMarkdown,
+  computeCurationStage,
+  computeReviewIngestionFlags,
+  computeRoutineReviewRollup,
+  type CurationStage,
+  type ExportBundleRoutine,
+  type ReviewIngestionState,
+} from './review-export.js';
 import type { ReviewStatus, RoutineAuditStatus, WorkloadType } from './types.js';
 
 const PORT = parseInt(process.env.API_PORT || '3333', 10);
@@ -92,6 +98,15 @@ export interface RoutineSummary {
   durationSeconds?: number;
   thumbnailUrl?: string;
   updatedAt: string;
+  revisoesCount?: number;
+  revisoesPendentesExportacao?: number;
+  revisoesConsumidasCount?: number;
+  reviewIngestionState?: ReviewIngestionState;
+  ultimaIngestaoEm?: string;
+  ultimoLoteIngestaoId?: string;
+  ultimaIngestaoPor?: string;
+  temNovaRevisaoPosIngestao?: boolean;
+  curationStage?: CurationStage;
 }
 
 /**
@@ -126,8 +141,20 @@ function mapJobRow(row: any): RunnerJobInfo {
   };
 }
 
-export function mapRoutineSummary(row: any, latestJob?: any, revMdContent?: string): RoutineSummary {
+export function mapRoutineSummary(
+  row: any,
+  latestJob?: any,
+  revMdContent?: string,
+  routineReviews: any[] = [],
+): RoutineSummary {
   const reviewTags = extractRoutineReviewTags(row, revMdContent);
+  const rollup = computeRoutineReviewRollup(routineReviews);
+  const curationStage = computeCurationStage({
+    statusGovernanca: row.status_governanca,
+    statusAuditoria: row.status_auditoria,
+    revisoesPendentesExportacao: rollup.revisoesPendentesExportacao,
+    revisoesConsumidasCount: rollup.revisoesConsumidasCount,
+  });
   return {
     id: row.id,
     titulo: row.titulo,
@@ -153,6 +180,15 @@ export function mapRoutineSummary(row: any, latestJob?: any, revMdContent?: stri
     durationSeconds: row.duration_seconds ?? undefined,
     thumbnailUrl: row.thumbnail_url ?? undefined,
     updatedAt: row.updated_at,
+    revisoesCount: rollup.revisoesCount,
+    revisoesPendentesExportacao: rollup.revisoesPendentesExportacao,
+    revisoesConsumidasCount: rollup.revisoesConsumidasCount,
+    reviewIngestionState: rollup.reviewIngestionState,
+    ultimaIngestaoEm: rollup.ultimaIngestaoEm,
+    ultimoLoteIngestaoId: rollup.ultimoLoteIngestaoId,
+    ultimaIngestaoPor: rollup.ultimaIngestaoPor,
+    temNovaRevisaoPosIngestao: rollup.temNovaRevisaoPosIngestao,
+    curationStage,
   };
 }
 
@@ -182,11 +218,37 @@ function mapReviewVersionRow(v: any) {
   };
 }
 
+function mapBatchRow(b: any) {
+  return {
+    id: b.id,
+    operador: b.operador,
+    formato: b.formato === 'json' ? ('json' as const) : ('markdown' as const),
+    nota: b.nota ?? undefined,
+    reviewIds: Array.isArray(b.review_ids) ? b.review_ids : [],
+    routineIds: Array.isArray(b.routine_ids) ? b.routine_ids : [],
+    totalRevisoes: Number(b.total_revisoes ?? 0),
+    totalRotinas: Number(b.total_rotinas ?? 0),
+    criadoEm: b.criado_em,
+  };
+}
+
+async function fetchRecentBatches(limit = 20) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('review_export_batches')
+    .select('*')
+    .order('criado_em', { ascending: false })
+    .limit(limit);
+  if (error) return [];
+  return (data || []).map(mapBatchRow);
+}
+
 async function fetchReviewsList(filters: {
   routineId?: string;
   status?: string;
   categoria?: string;
   modulo?: string;
+  ingestao?: string;
   q?: string;
 } = {}) {
   const supabase = getSupabaseAdmin();
@@ -217,30 +279,48 @@ async function fetchReviewsList(filters: {
     }
   }
 
-  let items = (reviewRows || []).map((r: any) => ({
-    id: r.id,
-    routineId: r.routine_id,
-    rotinaTitulo: r.routines?.titulo ?? r.routine_id,
-    rotinaModulo: r.routines?.modulo ?? 'geral',
-    rotinaFase: r.routines?.fase ?? null,
-    rotinaStatusAuditoria: r.routines?.status_auditoria ?? 'nao_auditada',
-    rotinaReviewTags: r.routines ? extractRoutineReviewTags(r.routines) : [],
-    rotinaTotalPassos: r.routines?.total_passos ?? 0,
-    revisor: r.revisor,
-    categoria: r.categoria,
-    passos: r.passos || [],
-    motivo: r.motivo,
-    resolucao: r.resolucao ?? undefined,
-    status: r.status,
-    versao: r.versao,
-    criadoEm: r.criado_em,
-    atualizadoEm: r.atualizado_em,
-    atualizadoPor: r.atualizado_por ?? r.revisor,
-    versoes: versionsByReview.get(r.id) || [],
-  }));
+  let items = (reviewRows || []).map((r: any) => {
+    const flags = computeReviewIngestionFlags(r);
+    return {
+      id: r.id,
+      routineId: r.routine_id,
+      rotinaTitulo: r.routines?.titulo ?? r.routine_id,
+      rotinaModulo: r.routines?.modulo ?? 'geral',
+      rotinaFase: r.routines?.fase ?? null,
+      rotinaStatusAuditoria: r.routines?.status_auditoria ?? 'nao_auditada',
+      rotinaReviewTags: r.routines ? extractRoutineReviewTags(r.routines) : [],
+      rotinaTotalPassos: r.routines?.total_passos ?? 0,
+      revisor: r.revisor,
+      categoria: r.categoria,
+      passos: r.passos || [],
+      motivo: r.motivo,
+      resolucao: r.resolucao ?? undefined,
+      status: r.status,
+      versao: Number(r.versao ?? 1),
+      criadoEm: r.criado_em,
+      atualizadoEm: r.atualizado_em,
+      atualizadoPor: r.atualizado_por ?? r.revisor,
+      consumidaPeloAgente: flags.consumidaPeloAgente,
+      consumidaEm: r.consumida_em ?? undefined,
+      consumidaPor: r.consumida_por ?? undefined,
+      loteExportacaoId: r.lote_exportacao_id ?? undefined,
+      versaoConsumida:
+        r.versao_consumida !== null && r.versao_consumida !== undefined
+          ? Number(r.versao_consumida)
+          : undefined,
+      editadaPosIngestao: flags.editadaPosIngestao,
+      pendenteExportacao: flags.pendenteExportacao,
+      versoes: versionsByReview.get(r.id) || [],
+    };
+  });
 
   if (filters.modulo) {
     items = items.filter((i: any) => i.rotinaModulo === filters.modulo);
+  }
+  if (filters.ingestao === 'pendentes') {
+    items = items.filter((i: any) => i.pendenteExportacao);
+  } else if (filters.ingestao === 'consumidas') {
+    items = items.filter((i: any) => i.consumidaPeloAgente);
   }
   if (filters.q?.trim()) {
     const t = filters.q.trim().toLowerCase();
@@ -250,37 +330,41 @@ async function fetchReviewsList(filters: {
         i.rotinaTitulo.toLowerCase().includes(t) ||
         i.motivo.toLowerCase().includes(t) ||
         i.revisor.toLowerCase().includes(t) ||
-        (i.resolucao || '').toLowerCase().includes(t)
+        (i.resolucao || '').toLowerCase().includes(t) ||
+        (i.loteExportacaoId || '').toLowerCase().includes(t)
     );
   }
 
   return items;
 }
 
-async function fetchAllRoutinesSummary(): Promise<{ summaries: RoutineSummary[]; rawRows: any[] }> {
+async function fetchAllRoutinesSummary(): Promise<{ summaries: RoutineSummary[]; rawRows: any[]; allReviewRows: any[] }> {
   const supabase = getSupabaseAdmin();
-  const [{ data: rData, error: rErr }, { data: jData, error: jErr }] = await Promise.all([
+  const [{ data: rData, error: rErr }, { data: revData, error: revErr }] = await Promise.all([
     supabase.from('routines').select(
       'id, titulo, modulo, secao, fase, tem_video, workload_type, status_auditoria, tags_revisao, status_governanca, pasta_auditoria, total_passos, prints_geradas, divergencias_count, menor_confianca, rotas_hash, tags, data_execucao, worker_id, duration_seconds, thumbnail_url, auditoria_ui, updated_at'
     ),
-    supabase.from('runner_jobs').select('*').order('enfileirado_em', { ascending: false }),
+    supabase
+      .from('routine_reviews')
+      .select(
+        'id, routine_id, status, versao, consumida_pelo_agente, consumida_em, consumida_por, lote_exportacao_id, versao_consumida'
+      ),
   ]);
 
   if (rErr) throw rErr;
-  if (jErr) throw jErr;
+  if (revErr) throw revErr;
 
-  const latestJobByRoutine = new Map<string, any>();
-  for (const job of jData || []) {
-    if (!latestJobByRoutine.has(job.routine_id)) {
-      latestJobByRoutine.set(job.routine_id, job);
-    }
+  const reviewsByRoutine = new Map<string, any[]>();
+  for (const rev of revData || []) {
+    if (!reviewsByRoutine.has(rev.routine_id)) reviewsByRoutine.set(rev.routine_id, []);
+    reviewsByRoutine.get(rev.routine_id)!.push(rev);
   }
 
-  const summaries = (rData || []).map(row => mapRoutineSummary(row, latestJobByRoutine.get(row.id)));
-  return { summaries, rawRows: rData || [] };
+  const summaries = (rData || []).map(row => mapRoutineSummary(row, undefined, undefined, reviewsByRoutine.get(row.id) || []));
+  return { summaries, rawRows: rData || [], allReviewRows: revData || [] };
 }
 
-async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[]) {
+async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[], allReviewRows: any[] = []) {
   const supabase = getSupabaseAdmin();
   const totalRotinas = allSummaries.length;
   const auditadas = allSummaries.filter(r => r.statusAuditoria !== 'nao_auditada').length;
@@ -390,18 +474,32 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
     }
   }
 
-  const ativosRunner = allSummaries.filter(r => r.runner.estado === 'na_fila' || r.runner.estado === 'em_execucao');
-  const filaRunner = {
-    read_only: ativosRunner.filter(r => r.runner.lane === 'read_only').length,
-    mutation: ativosRunner.filter(r => r.runner.lane === 'mutation').length,
-    emExecucao: ativosRunner.filter(r => r.runner.estado === 'em_execucao').length,
-  };
+  let totalRevisoesPendentes = 0;
+  let totalRevisoesConsumidas = 0;
+  for (const rev of allReviewRows) {
+    const flags = computeReviewIngestionFlags(rev);
+    if (flags.pendenteExportacao) totalRevisoesPendentes++;
+    if (flags.consumidaPeloAgente) totalRevisoesConsumidas++;
+  }
 
-  const { data: recentEvents } = await supabase
-    .from('governance_events')
-    .select('*')
-    .order('em', { ascending: false })
-    .limit(10);
+  const [{ data: recentEvents }, batches] = await Promise.all([
+    supabase.from('governance_events').select('*').order('em', { ascending: false }).limit(12),
+    fetchRecentBatches(1),
+  ]);
+
+  const countStage = (st: CurationStage) => allSummaries.filter(r => r.curationStage === st).length;
+  const curadoria = {
+    aprovadasKb: countStage('aprovadas_kb'),
+    ingeridasAgente: countStage('ingeridas_agente'),
+    revisaoPendenteExportacao: countStage('revisao_pendente'),
+    precisamApoioHumano: countStage('apoio_humano'),
+    prontasConferencia: countStage('prontas_conferencia'),
+    naoAuditadas: countStage('nao_auditadas'),
+    totalRevisoesPendentes,
+    totalRevisoesConsumidas,
+    rotinasComIngestao: allSummaries.filter(r => (r.revisoesConsumidasCount ?? 0) > 0).length,
+    ultimoLote: batches[0] ?? null,
+  };
 
   const atividadeRecente = (recentEvents || []).map(e => ({
     ...mapEventRow(e),
@@ -421,7 +519,7 @@ async function buildDashboardStats(allSummaries: RoutineSummary[], rawRows: any[
     porCarga,
     porModulo,
     porCamadaDivergencia,
-    filaRunner,
+    curadoria,
     atividadeRecente,
   };
 }
@@ -568,18 +666,17 @@ async function fetchRoutineDetail(id: string) {
     { data: rRow, error: rErr },
     { data: sRows, error: sErr },
     { data: eRows, error: eErr },
-    { data: jRows, error: jErr },
+    revisoes,
   ] = await Promise.all([
     supabase.from('routines').select('*').eq('id', id).maybeSingle(),
     supabase.from('routine_steps').select('*').eq('routine_id', id).order('step_number', { ascending: true }),
     supabase.from('governance_events').select('*').eq('routine_id', id).order('em', { ascending: false }),
-    supabase.from('runner_jobs').select('*').eq('routine_id', id).order('enfileirado_em', { ascending: false }).limit(1),
+    fetchReviewsList({ routineId: id }),
   ]);
 
   if (rErr) throw rErr;
   if (sErr) throw sErr;
   if (eErr) throw eErr;
-  if (jErr) throw jErr;
   if (!rRow) return null;
 
   const hasExplicitExternalInDb = (sRows || []).some(s => s.step_scope === 'external_portal');
@@ -594,7 +691,7 @@ async function fetchRoutineDetail(id: string) {
       }
     : rRow;
 
-  const summary = mapRoutineSummary(mergedRow, jRows?.[0], effectiveMd);
+  const summary = mapRoutineSummary(mergedRow, undefined, effectiveMd, revisoes);
   const steps = mapStepRowsWithScope({
     rRow: mergedRow,
     sRows: sRows || [],
@@ -648,7 +745,7 @@ async function fetchRoutineDetail(id: string) {
     markdownRevisado: effectiveMd || rRow.markdown_original || '',
     bloqueio: rRow.bloqueio ?? undefined,
     historico: (eRows || []).map(mapEventRow),
-    revisoes: await fetchReviewsList({ routineId: id }),
+    revisoes,
   };
 }
 
@@ -674,121 +771,89 @@ async function mirrorGovernanceToDiskAndSupabase(routineId: string, update: Gove
   }
 }
 
-let mutationRunnerChain: Promise<void> = Promise.resolve();
+async function buildExportBundleRoutines(selectedReviews: any[]): Promise<ExportBundleRoutine[]> {
+  const supabase = getSupabaseAdmin();
+  const routineIds = Array.from(new Set(selectedReviews.map((r: any) => r.routineId))).sort((a, b) =>
+    a.localeCompare(b, 'pt-BR', { numeric: true }),
+  );
+  if (routineIds.length === 0) return [];
 
-function runCliRoutine(routineId: string, modo: string): Promise<{ ok: boolean; error?: string }> {
-  return new Promise(resolve => {
-    const tsxCli = path.join(auditoriaRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
-    const cliArgs = [tsxCli, 'src/cli.ts', '--routine', routineId];
-    if (modo === 'headed') cliArgs.push('--headed');
-    if (process.env.ORION_DRY_RUN_MUTATIONS !== 'false') cliArgs.push('--dry-run-mutations');
+  const [{ data: rRows, error: rErr }, { data: sRows, error: sErr }] = await Promise.all([
+    supabase.from('routines').select('*').in('id', routineIds),
+    supabase
+      .from('routine_steps')
+      .select('routine_id, step_number, status, step_scope, portal_externo, original_text, validated_text, is_modified, error_message')
+      .in('routine_id', routineIds)
+      .order('step_number', { ascending: true }),
+  ]);
+  if (rErr) throw rErr;
+  if (sErr) throw sErr;
 
-    const child = spawn(process.execPath, cliArgs, {
-      cwd: auditoriaRoot,
-      shell: false,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    let stderrTail = '';
-    child.stderr?.on('data', chunk => {
-      stderrTail = (stderrTail + String(chunk)).slice(-800);
-    });
-    child.on('error', err => resolve({ ok: false, error: err.message }));
-    child.on('close', code => {
-      if (code === 0) resolve({ ok: true });
-      else resolve({ ok: false, error: stderrTail.trim() || `Runner encerrou com código ${code}` });
-    });
+  const routineById = new Map<string, any>();
+  for (const r of rRows || []) routineById.set(r.id, r);
+
+  const stepsByRoutine = new Map<string, any[]>();
+  for (const s of sRows || []) {
+    if (!stepsByRoutine.has(s.routine_id)) stepsByRoutine.set(s.routine_id, []);
+    stepsByRoutine.get(s.routine_id)!.push(s);
+  }
+
+  const reviewsByRoutine = new Map<string, any[]>();
+  for (const rev of selectedReviews) {
+    if (!reviewsByRoutine.has(rev.routineId)) reviewsByRoutine.set(rev.routineId, []);
+    reviewsByRoutine.get(rev.routineId)!.push(rev);
+  }
+
+  return routineIds.map(id => {
+    const r = routineById.get(id) || {};
+    const revs = reviewsByRoutine.get(id) || [];
+    const steps = (stepsByRoutine.get(id) || []).map((s: any) => ({
+      stepNumber: Number(s.step_number),
+      status: String(s.status || 'ok'),
+      stepScope: s.step_scope || 'orion_tn',
+      portalExterno: s.portal_externo || undefined,
+      originalText: String(s.original_text || ''),
+      validatedText: String(s.validated_text || s.original_text || ''),
+      isModified: Boolean(s.is_modified),
+      errorMessage: s.error_message || undefined,
+    }));
+    return {
+      id,
+      titulo: r.titulo || revs[0]?.rotinaTitulo || id,
+      modulo: r.modulo || revs[0]?.rotinaModulo || 'geral',
+      secao: r.secao || id[0] || 'R',
+      fase: r.fase !== null && r.fase !== undefined ? Number(r.fase) : null,
+      statusAuditoria: r.status_auditoria || 'nao_auditada',
+      reviewTags: extractRoutineReviewTags(r),
+      statusGovernanca: r.status_governanca || 'pendente_aprovacao',
+      dataExecucao: r.data_execucao ?? undefined,
+      rotasHash: Array.isArray(r.rotas_hash) ? r.rotas_hash : [],
+      bloqueio: r.bloqueio ?? null,
+      diagnosticoTelaAtt: r.auditoria_ui?.diagnostico_tela_att ?? null,
+      steps,
+      revisoes: revs.map((rev: any) => ({
+        id: rev.id,
+        versao: rev.versao,
+        status: rev.status,
+        categoria: rev.categoria,
+        revisor: rev.revisor,
+        atualizadoPor: rev.atualizadoPor,
+        criadoEm: rev.criadoEm,
+        atualizadoEm: rev.atualizadoEm,
+        passos: rev.passos || [],
+        motivo: rev.motivo,
+        resolucao: rev.resolucao,
+        consumidaAnteriormente: rev.consumidaPeloAgente,
+        versaoConsumidaAnterior: rev.versaoConsumida,
+      })),
+    };
   });
 }
 
-function enqueueRunnerExecution(
-  routineId: string,
-  jobId: string,
-  opts: { lane?: string; modo?: string } = {}
-) {
-  const executeJob = async () => {
-    const supabase = getSupabaseAdmin();
-    try {
-      await supabase
-        .from('runner_jobs')
-        .update({ estado: 'em_execucao', posicao_fila: null, iniciado_em: new Date().toISOString() })
-        .eq('job_id', jobId);
-
-      const hwEntry = PHASE3_MANIFEST.find(e => e.id === routineId && e.hardwarePreTriage.isHardwareDependent);
-      let ok = false;
-      let errMessage = '';
-
-      if (hwEntry) {
-        const kbFile = findRoutineFileById(routineId);
-        if (!kbFile) {
-          errMessage = `Arquivo KB não encontrado para ${routineId}`;
-        } else {
-          await writePreTriagedDddReport(hwEntry, kbFile, { syncToSupabase: true });
-          ok = true;
-        }
-      } else {
-        const res = await runCliRoutine(routineId, opts.modo || 'headless');
-        ok = res.ok;
-        errMessage = res.error || '';
-        if (ok) {
-          await syncSingleRoutineToSupabase(routineId, {
-            onlyWebp: true,
-            preserveExistingGovernance: false,
-            quiet: true,
-          });
-        }
-      }
-
-      const fim = new Date().toISOString();
-      if (ok) {
-        await supabase
-          .from('runner_jobs')
-          .update({ estado: 'concluida', finalizado_em: fim })
-          .eq('job_id', jobId);
-        await supabase.from('governance_events').insert({
-          id: `ev-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-          routine_id: routineId,
-          tipo: 'reexecucao_concluida',
-          autor: 'runner',
-          em: fim,
-          descricao: 'Reexecução concluída e sincronizada com o Supabase em tempo real.',
-        });
-      } else {
-        await supabase
-          .from('runner_jobs')
-          .update({ estado: 'falhou', finalizado_em: fim, erro: errMessage.slice(0, 500) })
-          .eq('job_id', jobId);
-        await supabase.from('governance_events').insert({
-          id: `ev-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-          routine_id: routineId,
-          tipo: 'reexecucao_falhou',
-          autor: 'runner',
-          em: fim,
-          descricao: `Falha na reexecução: ${errMessage.slice(0, 300)}`,
-        });
-      }
-    } catch (err: any) {
-      const fim = new Date().toISOString();
-      const msg = String(err?.message || err);
-      await supabase
-        .from('runner_jobs')
-        .update({ estado: 'falhou', finalizado_em: fim, erro: msg.slice(0, 500) })
-        .eq('job_id', jobId);
-      await supabase.from('governance_events').insert({
-        id: `ev-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-        routine_id: routineId,
-        tipo: 'reexecucao_falhou',
-        autor: 'runner',
-        em: fim,
-        descricao: `Falha inesperada na reexecução: ${msg.slice(0, 300)}`,
-      });
-    }
-  };
-
-  if (opts.lane === 'mutation') {
-    mutationRunnerChain = mutationRunnerChain.then(executeJob, executeJob);
-  } else {
-    void executeJob();
-  }
+function makeBatchId(nowIso: string): string {
+  const day = nowIso.slice(0, 10);
+  const rand = Math.random().toString(16).slice(2, 6);
+  return `lote-${day}-${rand}`;
 }
 
 // --- FILTRO DE ROTINAS & INICIALIZAÇÃO ---
@@ -800,6 +865,8 @@ export interface RoutineFilterInput {
   statusesAuditoria?: string[];
   statusesGovernanca?: string[];
   tagsRevisao?: string[];
+  ingestao?: string[];
+  estagio?: string | null;
   carga?: string | null;
   temVideo?: string | null;
   comDivergencias?: string | null;
@@ -828,6 +895,20 @@ export function filterRoutineSummaries(summaries: RoutineSummary[], f: RoutineFi
   if (wantedTags.length > 0) {
     filtered = filtered.filter(r => r.reviewTags.some(t => wantedTags.includes(t)));
   }
+  const wantedIng = (f.ingestao || [])
+    .flatMap(raw => String(raw).split(',').map(s => s.trim()))
+    .filter(Boolean);
+  if (wantedIng.length > 0) {
+    filtered = filtered.filter(r => {
+      if (wantedIng.includes('ingerida_pelo_agente') && (r.revisoesConsumidasCount ?? 0) > 0) {
+        return true;
+      }
+      return r.reviewIngestionState ? wantedIng.includes(r.reviewIngestionState) : false;
+    });
+  }
+  if (f.estagio) {
+    filtered = filtered.filter(r => r.curationStage === f.estagio);
+  }
   if (f.carga) filtered = filtered.filter(r => r.workloadType === f.carga);
   if (f.temVideo !== null && f.temVideo !== undefined && f.temVideo !== '') {
     const tv = f.temVideo === 'true';
@@ -849,7 +930,8 @@ export function filterRoutineSummaries(summaries: RoutineSummary[], f: RoutineFi
           r.tags.some(t => t.toLowerCase().includes(q)) ||
           r.rotasHash.some(h => h.toLowerCase().includes(q)) ||
           reviewTagsPrefix(r.reviewTags).trim().toLowerCase().includes(q) ||
-          r.reviewTags.some(t => t.toLowerCase() === q)
+          r.reviewTags.some(t => t.toLowerCase() === q) ||
+          (r.ultimoLoteIngestaoId || '').toLowerCase().includes(q)
       );
     }
   }
@@ -941,6 +1023,8 @@ const server = http.createServer(async (req, res) => {
         ...params.getAll('tag'),
       ];
       const cargaParam = params.get('carga');
+      const ingestaoParam = params.getAll('ingestao');
+      const estagioParam = params.get('estagio');
       const temVideoParam = params.get('temVideo');
       const comDivergenciasParam = params.get('comDivergencias');
       const q = params.get('q')?.trim().toLowerCase();
@@ -949,7 +1033,7 @@ const server = http.createServer(async (req, res) => {
       const sort = params.get('sort') || 'id';
       const order = params.get('order') || 'asc';
 
-      const { summaries: allSummaries, rawRows } = await fetchAllRoutinesSummary();
+      const { summaries: allSummaries, rawRows, allReviewRows } = await fetchAllRoutinesSummary();
       const filtered = filterRoutineSummaries(allSummaries, {
         fase: faseParam,
         modulos: moduloParam,
@@ -957,6 +1041,8 @@ const server = http.createServer(async (req, res) => {
         statusesAuditoria: statusAuditoriaParam,
         statusesGovernanca: statusGovernancaParam,
         tagsRevisao: tagRevisaoParam,
+        ingestao: ingestaoParam,
+        estagio: estagioParam,
         carga: cargaParam,
         temVideo: temVideoParam,
         comDivergencias: comDivergenciasParam,
@@ -977,7 +1063,7 @@ const server = http.createServer(async (req, res) => {
       const total = filtered.length;
       const startIdx = (page - 1) * pageSize;
       const paged = filtered.slice(startIdx, startIdx + pageSize);
-      const stats = await buildDashboardStats(allSummaries, rawRows);
+      const stats = await buildDashboardStats(allSummaries, rawRows, allReviewRows);
 
       sendJson(200, { data: paged, meta: { total, page, pageSize, stats } });
       return;
@@ -1270,25 +1356,27 @@ const server = http.createServer(async (req, res) => {
       const updated = await fetchRoutineDetail(id);
       const createdReviews = await fetchReviewsList({ routineId: id });
       const revisao = createdReviews.find((r: any) => r.id === reviewId);
-      try {
-        const { refreshHumanReviewsCache } = await import('./human-review-rag.js');
-        refreshHumanReviewsCache().catch(() => undefined);
-      } catch {}
       sendJson(200, { rotina: updated, evento: mapEventRow(evt), revisao });
       return;
     }
 
-    // 5b. GET /api/revisoes (Biblioteca global de revisões)
+    // 5b. GET /api/revisoes (Biblioteca global de revisões + histórico de lotes exportados)
     if (req.method === 'GET' && pathname === '/api/revisoes') {
       const params = reqUrl.searchParams;
-      const allItems = await fetchReviewsList({});
-      const filtered = await fetchReviewsList({
-        routineId: params.get('routineId') || undefined,
-        status: params.get('status') || undefined,
-        categoria: params.get('categoria') || undefined,
-        modulo: params.get('modulo') || undefined,
-        q: params.get('q') || undefined,
-      });
+      const [allItems, filtered, lotes] = await Promise.all([
+        fetchReviewsList({}),
+        fetchReviewsList({
+          routineId: params.get('routineId') || undefined,
+          status: params.get('status') || undefined,
+          categoria: params.get('categoria') || undefined,
+          modulo: params.get('modulo') || undefined,
+          ingestao: params.get('ingestao') || undefined,
+          q: params.get('q') || undefined,
+        }),
+        fetchRecentBatches(20),
+      ]);
+      const pendingItems = allItems.filter((i: any) => i.pendenteExportacao);
+      const consumedItems = allItems.filter((i: any) => i.consumidaPeloAgente);
       sendJson(200, {
         data: filtered,
         meta: {
@@ -1297,7 +1385,202 @@ const server = http.createServer(async (req, res) => {
           emAndamento: allItems.filter((i: any) => i.status === 'em_andamento').length,
           resolvidas: allItems.filter((i: any) => i.status === 'resolvida').length,
           arquivadas: allItems.filter((i: any) => i.status === 'arquivada').length,
+          pendentesExportacao: pendingItems.length,
+          consumidas: consumedItems.length,
+          rotinasPendentesExportacao: new Set(pendingItems.map((i: any) => i.routineId)).size,
+          rotinasConsumidas: new Set(consumedItems.map((i: any) => i.routineId)).size,
         },
+        lotes,
+      });
+      return;
+    }
+
+    // 5b2. GET /api/revisoes/lotes
+    if (req.method === 'GET' && pathname === '/api/revisoes/lotes') {
+      const lotes = await fetchRecentBatches(50);
+      sendJson(200, { data: lotes });
+      return;
+    }
+
+    // 5b3. GET /api/revisoes/lotes/:batchId/download
+    const batchDlMatch = pathname.match(/^\/api\/revisoes\/lotes\/([^/]+)\/download$/);
+    if (req.method === 'GET' && batchDlMatch) {
+      const batchId = decodeURIComponent(batchDlMatch[1]);
+      const formatParam = reqUrl.searchParams.get('formato');
+      const supabase = getSupabaseAdmin();
+      const { data: batchRow, error: bErr } = await supabase
+        .from('review_export_batches')
+        .select('*')
+        .eq('id', batchId)
+        .maybeSingle();
+      if (bErr) throw bErr;
+      if (!batchRow) {
+        sendJson(404, { error: { code: 'not_found', message: `Lote ${batchId} não encontrado.` } });
+        return;
+      }
+      const batch = mapBatchRow(batchRow);
+      const allReviews = await fetchReviewsList({});
+      const selected = allReviews.filter(
+        (r: any) => batch.reviewIds.includes(r.id) || r.loteExportacaoId === batchId
+      );
+      const routines = await buildExportBundleRoutines(selected);
+      const formato = formatParam === 'json' || formatParam === 'markdown' ? formatParam : batch.formato;
+      const content =
+        formato === 'json'
+          ? buildExportJson({
+              batchId: batch.id,
+              operador: batch.operador,
+              nota: batch.nota,
+              marcarComoIngeridas: true,
+              exportedAt: batch.criadoEm,
+              routines,
+            })
+          : buildExportMarkdown({
+              batchId: batch.id,
+              operador: batch.operador,
+              nota: batch.nota,
+              marcarComoIngeridas: true,
+              exportedAt: batch.criadoEm,
+              routines,
+            });
+      sendJson(200, {
+        batch,
+        filename: `orion-revisoes-${batch.id}.${formato === 'json' ? 'json' : 'md'}`,
+        mimeType: formato === 'json' ? 'application/json;charset=utf-8' : 'text/markdown;charset=utf-8',
+        content,
+        totalRevisoes: selected.length,
+        totalRotinas: routines.length,
+        routineIds: routines.map(r => r.id),
+        reviewIds: selected.map((r: any) => r.id),
+      });
+      return;
+    }
+
+    // 5b4. POST /api/revisoes/exportar (Exportação em massa para ingestão manual no Antigravity)
+    if (req.method === 'POST' && pathname === '/api/revisoes/exportar') {
+      const body = await readBody();
+      const escopo: 'pendentes' | 'selecionadas' | 'todas_ativas' = body.escopo || 'pendentes';
+      const formato: 'markdown' | 'json' = body.formato === 'json' ? 'json' : 'markdown';
+      const marcarComoIngeridas = body.marcarComoIngeridas !== false;
+      const operador = String(body.operador || '').trim();
+      const nota = body.nota ? String(body.nota).trim() : undefined;
+
+      if (marcarComoIngeridas && !operador) {
+        sendJson(422, {
+          error: {
+            code: 'validation',
+            message: 'Informe o nome do operador responsável pela exportação/ingestão.',
+          },
+        });
+        return;
+      }
+
+      const allReviews = await fetchReviewsList({});
+      let selected = allReviews;
+      if (escopo === 'pendentes') {
+        selected = allReviews.filter((r: any) => r.pendenteExportacao);
+      } else if (escopo === 'selecionadas') {
+        const wanted = new Set(Array.isArray(body.reviewIds) ? body.reviewIds.map(String) : []);
+        selected = allReviews.filter((r: any) => wanted.has(r.id));
+      } else {
+        selected = allReviews.filter((r: any) => r.status === 'aberta' || r.status === 'em_andamento');
+      }
+
+      if (selected.length === 0) {
+        sendJson(409, {
+          error: {
+            code: 'empty_export',
+            message: 'Nenhuma revisão elegível encontrada para este escopo de exportação.',
+          },
+        });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const batchId = marcarComoIngeridas ? makeBatchId(now) : `copia-${now.slice(0, 10)}`;
+      const routines = await buildExportBundleRoutines(selected);
+      const reviewIds = selected.map((r: any) => r.id);
+      const routineIds = routines.map(r => r.id);
+      let batch: ReturnType<typeof mapBatchRow> | null = null;
+
+      if (marcarComoIngeridas) {
+        const supabase = getSupabaseAdmin();
+        const batchInsert = {
+          id: batchId,
+          operador,
+          formato,
+          nota: nota || null,
+          review_ids: reviewIds,
+          routine_ids: routineIds,
+          total_revisoes: reviewIds.length,
+          total_rotinas: routineIds.length,
+          criado_em: now,
+        };
+        const { error: bInsErr } = await supabase.from('review_export_batches').insert(batchInsert);
+        if (bInsErr) throw bInsErr;
+
+        await Promise.all(
+          selected.map((rev: any) =>
+            supabase
+              .from('routine_reviews')
+              .update({
+                consumida_pelo_agente: true,
+                consumida_em: now,
+                consumida_por: operador,
+                lote_exportacao_id: batchId,
+                versao_consumida: rev.versao,
+              })
+              .eq('id', rev.id)
+          )
+        );
+
+        const events = routineIds.map((rid, idx) => {
+          const countInRoutine = selected.filter((r: any) => r.routineId === rid).length;
+          return {
+            id: `ev-ing-${Date.now()}-${idx}-${Math.random().toString(16).slice(2, 5)}`,
+            routine_id: rid,
+            tipo: 'revisao_ingerida_agente',
+            autor: operador,
+            em: now,
+            descricao: `${countInRoutine} revisão(ões) exportada(s) e marcada(s) como ingerida(s) pelo agente (lote ${batchId}).${nota ? ` Nota: ${nota}` : ''}`,
+            meta: { batchId, formato, totalRevisoesRotina: countInRoutine },
+          };
+        });
+        if (events.length > 0) {
+          await supabase.from('governance_events').insert(events);
+        }
+
+        batch = mapBatchRow(batchInsert);
+      }
+
+      const content =
+        formato === 'json'
+          ? buildExportJson({
+              batchId,
+              operador: operador || 'Operador',
+              nota,
+              marcarComoIngeridas,
+              exportedAt: now,
+              routines,
+            })
+          : buildExportMarkdown({
+              batchId,
+              operador: operador || 'Operador',
+              nota,
+              marcarComoIngeridas,
+              exportedAt: now,
+              routines,
+            });
+
+      sendJson(200, {
+        batch,
+        filename: `orion-revisoes-${batchId}.${formato === 'json' ? 'json' : 'md'}`,
+        mimeType: formato === 'json' ? 'application/json;charset=utf-8' : 'text/markdown;charset=utf-8',
+        content,
+        totalRevisoes: reviewIds.length,
+        totalRotinas: routineIds.length,
+        routineIds,
+        reviewIds,
       });
       return;
     }
@@ -1397,115 +1680,22 @@ const server = http.createServer(async (req, res) => {
 
       const items = await fetchReviewsList({ routineId: existing.routine_id });
       const revisao = items.find((i: any) => i.id === reviewId);
-      try {
-        const { refreshHumanReviewsCache } = await import('./human-review-rag.js');
-        refreshHumanReviewsCache().catch(() => undefined);
-      } catch {}
       sendJson(200, { revisao });
       return;
     }
 
-    // 6. POST /api/rotinas/:id/reexecutar
-    const reexecuteMatch = pathname.match(/^\/api\/rotinas\/([^/]+)\/reexecutar$/);
-    if (req.method === 'POST' && reexecuteMatch) {
-      const id = decodeURIComponent(reexecuteMatch[1]);
-      const body = await readBody();
-      const supabase = getSupabaseAdmin();
-
-      const { data: existing } = await supabase.from('routines').select('id, workload_type').eq('id', id).maybeSingle();
-      if (!existing) {
-        sendJson(404, { error: { code: 'not_found', message: `Rotina ${id} não encontrada.` } });
-        return;
-      }
-
-      const { data: activeJobs } = await supabase
-        .from('runner_jobs')
-        .select('job_id, estado')
-        .eq('routine_id', id)
-        .in('estado', ['na_fila', 'em_execucao']);
-
-      if (activeJobs && activeJobs.length > 0) {
-        sendJson(409, { error: { code: 'already_queued', message: 'Rotina já está na fila de execução.' } });
-        return;
-      }
-
-      const lane = body.lane || existing.workload_type || 'read_only';
-      const jobId = `job-${Date.now().toString(16)}`;
-      const posicaoFila = body.prioridade === 'alta' ? 1 : 2;
-      const enfileiradoEm = new Date().toISOString();
-
-      await supabase.from('runner_jobs').insert({
-        job_id: jobId,
-        routine_id: id,
-        estado: 'na_fila',
-        lane,
-        modo: body.modo || 'headless',
-        prioridade: body.prioridade || 'normal',
-        solicitante: body.solicitante || 'Operador',
-        motivo: body.motivo || null,
-        passos: body.passos || null,
-        posicao_fila: posicaoFila,
-        enfileirado_em: enfileiradoEm,
+    // 6. Endpoints legados de acionamento do runner desativados (ADR-036: motor roda exclusivamente local)
+    if (
+      req.method === 'POST' &&
+      (pathname === '/api/rotinas/reexecutar-lote' || /^\/api\/rotinas\/[^/]+\/reexecutar$/.test(pathname))
+    ) {
+      sendJson(410, {
+        error: {
+          code: 'runner_disabled',
+          message:
+            'O motor de auditoria é executado exclusivamente no ambiente local. Exporte as revisões pela Central de Revisões para calibrar e rodar o motor.',
+        },
       });
-
-      await supabase.from('governance_events').insert({
-        id: `ev-q-${Date.now()}`,
-        routine_id: id,
-        tipo: 'reexecucao_enfileirada',
-        autor: body.solicitante || 'Operador',
-        em: enfileiradoEm,
-        descricao: `Reexecução enfileirada na lane ${lane} (${body.modo || 'headless'}, prioridade ${body.prioridade || 'normal'}).${body.motivo ? ' Motivo: ' + body.motivo : ''}`,
-      });
-
-      enqueueRunnerExecution(id, jobId, { lane, modo: body.modo || 'headless' });
-
-      sendJson(202, { jobId, lane, posicaoFila, estimativaSegundos: 15, enfileiradoEm });
-      return;
-    }
-
-    // 7. POST /api/rotinas/reexecutar-lote
-    if (req.method === 'POST' && pathname === '/api/rotinas/reexecutar-lote') {
-      const body = await readBody();
-      const ids: string[] = body.ids || [];
-      const supabase = getSupabaseAdmin();
-      const jobs: any[] = [];
-      const rejeitadas: any[] = [];
-
-      for (const id of ids) {
-        const { data: active } = await supabase
-          .from('runner_jobs')
-          .select('job_id')
-          .eq('routine_id', id)
-          .in('estado', ['na_fila', 'em_execucao']);
-
-        if (active && active.length > 0) {
-          rejeitadas.push({ id, motivo: 'Rotina já está na fila.' });
-          continue;
-        }
-
-        const { data: rRow } = await supabase.from('routines').select('workload_type').eq('id', id).maybeSingle();
-        const lane = rRow?.workload_type || 'read_only';
-        const jobId = `job-${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 6)}`;
-        const enfileiradoEm = new Date().toISOString();
-        const posicaoFila = jobs.length + 1;
-
-        await supabase.from('runner_jobs').insert({
-          job_id: jobId,
-          routine_id: id,
-          estado: 'na_fila',
-          lane,
-          modo: body.modo || 'headless',
-          prioridade: body.prioridade || 'normal',
-          solicitante: 'lote',
-          posicao_fila: posicaoFila,
-          enfileirado_em: enfileiradoEm,
-        });
-
-        enqueueRunnerExecution(id, jobId, { lane, modo: body.modo || 'headless' });
-        jobs.push({ id, jobId, lane, posicaoFila, estimativaSegundos: 15 + jobs.length * 10, enfileiradoEm });
-      }
-
-      sendJson(200, { jobs, rejeitadas });
       return;
     }
 

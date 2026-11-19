@@ -1,4 +1,4 @@
-// DTOs da API do Orion Audit Console.
+// DTOs da API do Orion Audit Console (V3 — Central de Curadoria & Calibragem).
 import type {
   ActionType, AnnotationLayoutResult, AuditRoutineReport, DOMResolvedGeometry, ExecutedStepAction,
   ParsedRoutine, SmartLocatorDivergence, StepZonePolicy, WorkloadType
@@ -16,6 +16,30 @@ export type GovernanceStatus = 'pendente_aprovacao' | 'aprovada' | 'revisao_soli
 export type RunnerJobState = 'idle' | 'na_fila' | 'em_execucao' | 'concluida' | 'falhou';
 export type ReviewCategory = 'divergencia_texto' | 'print_incorreta' | 'tela_bloqueada' | 'hardware_driver' | 'outro';
 export type ReviewStatus = 'aberta' | 'em_andamento' | 'resolvida' | 'arquivada';
+
+/** Estado do ciclo de ingestão de revisões humanas no motor/agente (ADR-036). */
+export type ReviewIngestionState = 'sem_revisoes' | 'pendente_exportacao' | 'ingerida_pelo_agente';
+
+/** Estágio humano de curadoria de uma rotina (partição exata 100% da base). */
+export type CurationStage =
+  | 'aprovadas_kb'
+  | 'ingeridas_agente'
+  | 'revisao_pendente'
+  | 'apoio_humano'
+  | 'prontas_conferencia'
+  | 'nao_auditadas';
+
+export interface ReviewExportBatch {
+  id: string;
+  operador: string;
+  formato: 'markdown' | 'json';
+  nota?: string;
+  reviewIds: string[];
+  routineIds: string[];
+  totalRevisoes: number;
+  totalRotinas: number;
+  criadoEm: string;
+}
 
 export interface RoutineReviewVersion {
   versao: number;
@@ -49,6 +73,14 @@ export interface RoutineReviewItem {
   criadoEm: string;
   atualizadoEm: string;
   atualizadoPor: string;
+  /** Ciclo de ingestão pelo agente (ADR-036) */
+  consumidaPeloAgente?: boolean;
+  consumidaEm?: string;
+  consumidaPor?: string;
+  loteExportacaoId?: string;
+  versaoConsumida?: number;
+  editadaPosIngestao?: boolean;
+  pendenteExportacao?: boolean;
   versoes: RoutineReviewVersion[];
 }
 
@@ -57,6 +89,7 @@ export interface ListReviewsQuery {
   status?: ReviewStatus;
   categoria?: ReviewCategory;
   modulo?: Modulo;
+  ingestao?: 'pendentes' | 'consumidas' | 'todas';
   q?: string;
 }
 
@@ -68,7 +101,12 @@ export interface ListReviewsResponse {
     emAndamento: number;
     resolvidas: number;
     arquivadas: number;
+    pendentesExportacao: number;
+    consumidas: number;
+    rotinasPendentesExportacao: number;
+    rotinasConsumidas: number;
   };
+  lotes?: ReviewExportBatch[];
 }
 
 export interface UpdateReviewPayload {
@@ -85,6 +123,37 @@ export interface UpdateReviewPayload {
 export interface UpdateReviewResponse {
   revisao: RoutineReviewItem;
 }
+
+export interface SaveRoutineTextPayload {
+  revisor: string;
+  descricao?: string;
+  edicoes?: Array<{ stepNumber: number; validatedText: string }>;
+}
+
+export interface SaveRoutineTextResponse {
+  rotina: RoutineDetail;
+}
+
+export interface ExportReviewsPayload {
+  escopo: 'pendentes' | 'selecionadas' | 'todas_ativas';
+  reviewIds?: string[];
+  formato: 'markdown' | 'json';
+  marcarComoIngeridas: boolean;
+  operador: string;
+  nota?: string;
+}
+
+export interface ExportReviewsResponse {
+  batch: ReviewExportBatch | null;
+  filename: string;
+  mimeType: string;
+  content: string;
+  totalRevisoes: number;
+  totalRotinas: number;
+  routineIds: string[];
+  reviewIds: string[];
+}
+
 /** Bloco `auditoria_ui` injetado no YAML do arquivo *-revisado.md */
 export interface AuditoriaUiFrontmatter {
   data_execucao: string;               // 'YYYY-MM-DD'
@@ -142,7 +211,7 @@ export interface RoutineSummary {
   /** Alias mantido por compatibilidade com versões anteriores da API */
   tagsRevisao?: ReviewTagCode[];
   statusGovernanca: GovernanceStatus;
-  runner: RunnerJobInfo;
+  runner?: RunnerJobInfo;
   pastaAuditoria: string | null;       // ex.: '[DDD] C-ACESSO-05-falha-de-conexao...' ou '[ATT][CCC] C-CENTRAL-02-...'
   totalPassos: number;
   printsGeradas: number;
@@ -155,6 +224,16 @@ export interface RoutineSummary {
   durationSeconds?: number;
   thumbnailUrl?: string;
   updatedAt: string;                   // ISO, usado para concorrência otimista
+  /** Ciclo de revisão humana & ingestão pelo agente (ADR-036) */
+  revisoesCount?: number;
+  revisoesPendentesExportacao?: number;
+  revisoesConsumidasCount?: number;
+  reviewIngestionState?: ReviewIngestionState;
+  ultimaIngestaoEm?: string;
+  ultimoLoteIngestaoId?: string;
+  ultimaIngestaoPor?: string;
+  temNovaRevisaoPosIngestao?: boolean;
+  curationStage?: CurationStage;
 }
 export interface StepMedia {
   webpUrl?: string; pngUrl: string; rawUrl?: string;  // URLs opacas servidas pela API; nunca montar caminho no front
@@ -224,7 +303,15 @@ export interface StepView {
 }
 export interface GovernanceEvent {
   id: string;
-  tipo: 'auditoria_executada' | 'aprovada' | 'texto_editado' | 'revisao_solicitada' | 'reexecucao_enfileirada' | 'reexecucao_concluida' | 'reexecucao_falhou';
+  tipo:
+    | 'auditoria_executada'
+    | 'aprovada'
+    | 'texto_editado'
+    | 'revisao_solicitada'
+    | 'revisao_ingerida_agente'
+    | 'reexecucao_enfileirada'
+    | 'reexecucao_concluida'
+    | 'reexecucao_falhou';
   autor: string;                       // 'runner' ou o nome do revisor
   em: string;                          // ISO
   descricao: string;
@@ -249,6 +336,18 @@ export interface PhaseStats {
   fase: PhaseNumber | null; titulo: string; total: number; auditadas: number;
   porStatus: Record<RoutineAuditState, number>;
 }
+export interface CurationStats {
+  aprovadasKb: number;
+  ingeridasAgente: number;
+  revisaoPendenteExportacao: number;
+  precisamApoioHumano: number;
+  prontasConferencia: number;
+  naoAuditadas: number;
+  totalRevisoesPendentes: number;
+  totalRevisoesConsumidas: number;
+  rotinasComIngestao: number;
+  ultimoLote?: ReviewExportBatch | null;
+}
 export interface DashboardStats {
   totalRotinas: number; auditadas: number; naoAuditadas: number; aprovadas: number;
   taxaAprovacao: number;               // 0..1 (aprovadas / auditadas)
@@ -258,7 +357,8 @@ export interface DashboardStats {
   porCarga: Record<WorkloadType, number>;
   porModulo: Array<{ modulo: Modulo; total: number; auditadas: number }>;
   porCamadaDivergencia: Record<string, number>;
-  filaRunner: { read_only: number; mutation: number; emExecucao: number };
+  filaRunner?: { read_only: number; mutation: number; emExecucao: number };
+  curadoria?: CurationStats;
   atividadeRecente: Array<GovernanceEvent & { rotinaId: string }>;
 }
 export interface ListRoutinesQuery {
@@ -269,7 +369,10 @@ export interface ListRoutinesQuery {
   statusGovernanca?: GovernanceStatus[];
   /** Filtro por tag (ADR-024): casa a tag principal E as adicionais ([CCC] encontra `[ATT][CCC]`) */
   tagRevisao?: ReviewTagCode[];
-  carga?: WorkloadType;
+  /** Filtro por ciclo de ingestão de revisões (ADR-036) */
+  ingestao?: ReviewIngestionState[];
+  /** Filtro por estágio humano de curadoria (ADR-036) */
+  estagio?: CurationStage;
   temVideo?: boolean;
   comDivergencias?: boolean;
   q?: string;                          // texto livre; se começar com '#/', busca em rotasHash
@@ -295,16 +398,4 @@ export interface RequestReviewPayload {
   revisor: string; categoria: ReviewCategory; motivo: string; passos?: number[];
 }
 export interface RequestReviewResponse { rotina: RoutineDetail; evento: GovernanceEvent; revisao?: RoutineReviewItem; }
-export interface ReexecutePayload {
-  solicitante: string;
-  motivo?: string;
-  passos?: number[];                   // vazio/ausente = todos
-  modo: 'headless' | 'headed';
-  prioridade: 'normal' | 'alta';
-  lane?: WorkloadType;                 // padrão: workloadType da rotina
-}
-export interface ReexecuteResponse {
-  jobId: string; lane: WorkloadType; posicaoFila: number;
-  estimativaSegundos: number; enfileiradoEm: string;
-}
 export interface ApiErrorBody { error: { code: string; message: string; details?: unknown } }

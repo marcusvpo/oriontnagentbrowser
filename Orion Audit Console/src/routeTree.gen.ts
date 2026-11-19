@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as FilaRouteImport } from './routes/fila'
 import { Route as RevisoesRouteImport } from './routes/revisoes'
 import { Route as RotinasIndexRouteImport } from './routes/rotinas.index'
 import { Route as RotinasIdRouteImport } from './routes/rotinas.$id'
@@ -26,11 +25,6 @@ const IndexRoute = IndexRouteImport.update({
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FilaRoute = FilaRouteImport.update({
-  id: '/fila',
-  path: '/fila',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RevisoesRoute = RevisoesRouteImport.update({
@@ -64,7 +58,6 @@ const Char91__mockupChar93PreviewSplatRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/fila': typeof FilaRoute
   '/revisoes': typeof RevisoesRoute
   '/rotinas/$id': typeof RotinasIdRoute
   '/rotinas/': typeof RotinasIndexRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/fila': typeof FilaRoute
   '/revisoes': typeof RevisoesRoute
   '/rotinas/$id': typeof RotinasIdRoute
   '/rotinas': typeof RotinasIndexRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/fila': typeof FilaRoute
   '/revisoes': typeof RevisoesRoute
   '/rotinas/$id': typeof RotinasIdRoute
   '/rotinas/': typeof RotinasIndexRoute
@@ -97,7 +88,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/configuracoes'
-    | '/fila'
     | '/revisoes'
     | '/rotinas/$id'
     | '/rotinas/'
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/configuracoes'
-    | '/fila'
     | '/revisoes'
     | '/rotinas/$id'
     | '/rotinas'
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/configuracoes'
-    | '/fila'
     | '/revisoes'
     | '/rotinas/$id'
     | '/rotinas/'
@@ -128,7 +116,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
-  FilaRoute: typeof FilaRoute
   RevisoesRoute: typeof RevisoesRoute
   RotinasIdRoute: typeof RotinasIdRoute
   RotinasIndexRoute: typeof RotinasIndexRoute
@@ -150,13 +137,6 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/configuracoes'
       preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fila': {
-      id: '/fila'
-      path: '/fila'
-      fullPath: '/fila'
-      preLoaderRoute: typeof FilaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revisoes': {
@@ -200,7 +180,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
-  FilaRoute: FilaRoute,
   RevisoesRoute: RevisoesRoute,
   RotinasIdRoute: RotinasIdRoute,
   RotinasIndexRoute: RotinasIndexRoute,

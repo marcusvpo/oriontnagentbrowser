@@ -8,9 +8,9 @@ import { componentTagger } from "lovable-tagger";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin.ts";
 
 export default defineConfig(({ command, mode }) => {
-  // Cloudflare Workers plugin only on build (produces the worker output);
-  // the workerd runtime isn't available for the dev server.
-  const useCloudflare = command === "build";
+  // Cloudflare Workers apenas quando explicitamente selecionado;
+  // build padrão gera SPA estática (dist/client) 100% compatível com a Vercel.
+  const useCloudflare = command === "build" && process.env.DEPLOY_TARGET === "cloudflare";
 
   return {
     server: {
@@ -26,7 +26,14 @@ export default defineConfig(({ command, mode }) => {
       mockupPreviewPlugin({ designSystemPolling: true }),
       tsConfigPaths({ projects: ["./tsconfig.json"] }),
       ...(useCloudflare ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
-      tanstackStart(),
+      tanstackStart({
+        spa: {
+          enabled: true,
+          prerender: {
+            outputPath: "/index.html",
+          },
+        },
+      }),
       viteReact(),
       ...(mode === "development" ? [componentTagger()] : []),
     ],

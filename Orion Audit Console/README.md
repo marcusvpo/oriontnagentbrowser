@@ -1,53 +1,54 @@
-# Orion Audit Console — Painel de Gestão e Auditoria Operacional
+# Orion Audit Console — Central de Curadoria, Auditoria e Calibragem
 
-Console web de alta fidelidade para revisão, triagem de divergências, inspeção geométrica e governança das 471 rotinas do ecossistema Orion TN.
+Plataforma web minimalista para avaliação humana, documentação visual e geração de conhecimento para calibragem do motor do ecossistema **Orion TN** (471 rotinas).
 
 ---
 
-## 🚀 Como Executar
+## 🎯 Arquitetura Operacional (Desacoplada do Motor Local)
 
-### Opção 1: Execução Full-Stack (Recomendado — Na Raiz do Projeto)
-Abre o backend API Node.js (porta `3333`) conectado aos 471 manuais reais + 64 rotinas auditadas e o Frontend Vite (porta `8080`):
+O **Orion Audit Console** é 100% desacoplado do motor local (`agent-browser` / VPN):
+1. **Motor Local (PC + VPN):** executa auditorias manualmente via Antigravity / Claude Code e envia textos, diagnósticos e prints `.webp` ao **Supabase** (`sync-supabase` / write-through).
+2. **Curadoria Web (`https://orionaudit.vercel.app`):** SD e equipe de Produtos validam prints e passo a passo (*Original × Revisado*), aprovam rotinas prontas para a **Base KB do assistente** ou registram revisões detalhadas.
+3. **Exportação em Massa & Ingestão:** na tela **Revisões & Exportação**, baixe o pacote consolidado em Markdown (`.md`) ou JSON (`.json`) e marque as revisões/rotinas como **Ingeridas pelo agente** (destaque violeta + popup de proteção contra reedição acidental).
+4. **Calibragem Manual:** anexe o `.md` baixado no Antigravity para análise profunda e evolução do motor antes da próxima rodada local.
 
+---
+
+## 🚀 Deploy na Vercel (`orionaudit.vercel.app`)
+
+1. Importe o repositório `marcusvpo/oriontnagentbrowser` (branch `main`).
+2. **Project Name:** `orionaudit` *(gera `https://orionaudit.vercel.app`, se disponível)*.
+3. **Root Directory:** `Orion Audit Console` *(o arquivo `vercel.json` já define `buildCommand`, `outputDirectory: "dist/client"`, SPA rewrite e Serverless API `/api/*`)*.
+4. **Environment Variables:**
+   * `VITE_USE_MOCK` = `false`
+   * `VITE_SUPABASE_URL` = `https://<PROJECT_REF>.supabase.co`
+   * `VITE_SUPABASE_PUBLISHABLE_KEY` = `<chave publishable/anon>`
+   * `SUPABASE_URL` = `https://<PROJECT_REF>.supabase.co`
+   * `SUPABASE_SECRET_KEY` = `<service_role / secret key>` *(sem prefixo `VITE_`!)*
+   * `SUPABASE_STORAGE_BUCKET` = `audit-screenshots`
+   *(Não é necessário preencher `VITE_API_BASE_URL` na Vercel — em produção o app chama `/api/*` no mesmo domínio automaticamente.)*
+
+---
+
+## 💻 Execução Local
+
+### Full-Stack (na raiz do repositório)
 ```bash
 npm run dev
 ```
+* **Frontend:** http://localhost:8080
+* **API Local:** http://localhost:3333/api/health
 
-Acesse no navegador:
-* **Frontend:** [http://localhost:8080](http://localhost:8080)
-* **Backend API:** [http://localhost:3333/api/rotinas](http://localhost:3333/api/rotinas)
-
----
-
-### Opção 2: Executar dentro da pasta `Orion Audit Console`
-
-Se você estiver com o terminal aberto dentro desta pasta:
-
+### Somente Frontend (dentro de `Orion Audit Console`)
 ```bash
-# Modo Conectado ao Backend Real (usa http://localhost:3333)
+# Modo conectado à API local (http://localhost:3333)
 npm run dev
 
-# Modo Simulado (Mock isolado sem backend)
+# Modo simulado (mock em memória, sem backend)
 npm run dev:mock
 
-# Rodar Suíte de Testes Unitários
+# Testes unitários, lint e build de produção (Vercel SPA)
 npm test
+npm run lint
+npm run build
 ```
-
----
-
-## ⚙️ Variáveis de Ambiente (`.env`)
-
-| Variável | Padrão | Descrição |
-| :--- | :--- | :--- |
-| `VITE_USE_MOCK` | `false` | `false` conecta à API local; `true` ativa o banco de dados simulado em memória |
-| `VITE_API_BASE_URL` | `http://localhost:3333` | Endereço do servidor API local Node.js |
-
----
-
-## 📐 Estrutura e Recursos
-
-1. **Dashboard Executivo:** Métricas das 471 rotinas, gráficos de progresso por Fase (1 a 6), divisão por carga (`read_only` vs. `mutation`), módulos e camadas do SmartLocator.
-2. **Explorador e Triagem:** Filtros avançados com busca semântica e suporte a rotas hash (ex: `#/configuracoes`).
-3. **Estúdio de Inspeção Visual:** Visualização lado a lado do texto original vs. revisado (com diff por palavras), alertas de divergência da auto-cura e visualizador interativo de screenshots (.webp e .png) com zoom/pan e checklist dos 7 invariantes geométricos.
-4. **Governança:** Aprovação de rotinas, edição de manuais, solicitação de revisão técnica e disparo de reexecução no Worker Pool.
