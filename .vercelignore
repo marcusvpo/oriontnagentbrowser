@@ -1,0 +1,21 @@
+# Ignorar pastas do motor local, base RAG e documentos pesados no deploy da Vercel
+# (A Vercel precisa apenas de: api/, Orion Audit Console/, package.json, package-lock.json e vercel.json)
+auditoria/
+kb/
+doc conhecimento final/
+docs/
+rotinas/
+novas transcricoes/
+novos contextos/
+orion-tn-tickets/
+testes playground/
+timestamp/
+transcricoes que estavam faltando/
+txts brutos/
+scripts/
+.agents/
+.claude/
+.repomix-output/
+*.md
+*.py
+repomix.*.config.json

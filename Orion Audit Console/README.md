@@ -18,7 +18,7 @@ O **Orion Audit Console** é 100% desacoplado do motor local (`agent-browser` / 
 
 1. Importe o repositório `marcusvpo/oriontnagentbrowser` (branch `main`).
 2. **Project Name:** `orionaudit` *(gera `https://orionaudit.vercel.app`, se disponível)*.
-3. **Root Directory:** `Orion Audit Console` *(o arquivo `vercel.json` já define `buildCommand`, `outputDirectory: "dist/client"`, SPA rewrite e Serverless API `/api/*`)*.
+3. **Root Directory:** deixe **vazio (`./` — raiz do repositório)** e **Application Preset:** `Other` *(o [`vercel.json`](../vercel.json) e a pasta [`api/`](../api/) ficam na raiz para evitar espaços no nome da Serverless Function na Vercel, apontando `outputDirectory: "Orion Audit Console/dist/client"` e `buildCommand: "npm run build --prefix \"Orion Audit Console\""`)*.
 4. **Environment Variables:**
    * `VITE_USE_MOCK` = `false`
    * `VITE_SUPABASE_URL` = `https://<PROJECT_REF>.supabase.co`

@@ -7,7 +7,7 @@ import {
   computeCurationStage,
   computeReviewIngestionFlags,
   computeRoutineReviewRollup,
-} from "../../../api/_lib/exportFormat";
+} from "../../../../api/_lib/exportFormat";
 import { IngestionBadge } from "@/components/badges/IngestionBadge";
 import { CurationPipelineCard } from "@/components/dashboard/CurationPipelineCard";
 import { AgentKnowledgeCard } from "@/components/dashboard/AgentKnowledgeCard";
