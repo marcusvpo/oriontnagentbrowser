@@ -33,7 +33,7 @@ versao_sistema: Orion TN 6.0
 Todo livro notarial exige termos de abertura (no frontispício) e de encerramento (no fecho), com a qualificação da serventia, capacidade de folhas e assinatura da autoridade delegatária.
 
 #### Passo a passo:
-1. Acesse o menu **Livros > Gestão de Livros Notariais**.
+1. Acesse o menu **Administração > Controle de Livros**.
 2. Selecione o tipo de livro (ex.: **Escrituras**, **Procurações** ou **Testamentos**).
 3. Para **Novo Livro (Abertura)**:
 4. Clique em **Cadastrar Novo Livro**, informe o número, total de folhas e selecione **Emitir Termo de Abertura**.

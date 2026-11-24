@@ -39,7 +39,7 @@ O software validador oficial da Receita Federal para a DOI é legado e não exib
 3. Abra o arquivo utilizando o **Notepad++** ou **Bloco de Notas** do Windows.
 4. Pressione `Ctrl + G` e digite o número da linha correspondente ao erro.
 5. No início dessa linha ou no registro de controle imediatamente anterior, localize o campo de identificação que contém o **Número do Protocolo** ou a data de lavratura.
-6. Com o número em mãos, abra o protocolo no **Orion TN** em **Notas > Protocolo**.
+6. Com o número em mãos, abra o protocolo no **Orion TN** em **Notas > Consultas > Protocolos**.
 7. Acesse a aba **Imóveis** ou **Partes** e aplique a correção do dado faltante indicado pela Receita.
 8. Exporte o lote novamente e revalide no programa oficial.
 

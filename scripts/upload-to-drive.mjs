@@ -71,6 +71,8 @@ const LEGACY_EXCLUDED = [
   'capture-all-config-tabs', 'capture-captura-screen', 'check-integrity', 'check-more-routes', 'check-session',
   'explore-menu-details', 'explore-menu-tree', 'generate-human-review-routines', 'generate-perfect-phase1',
   'list-phase2', 'probe-grid-icons', 'render-all-phase1', 'test-routes-live',
+  // ADR-037: captura one-off das prints de menu; o produto versionado e auditoria/mapeamento-menus/ + auditoria/data/
+  'capture-all-menu-prints',
   'execute-phase1', 'execute-phase2', 'run-phase2-master',
 ].map((name) => `auditoria/src/${name}.ts`);
 

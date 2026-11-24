@@ -1,6 +1,20 @@
 import type { AgentBrowserClient } from './browser.js';
 import { resolveMenuPathViaHumanReview } from './human-review-rag.js';
-import { canonNormalize, resolveCanonicalMenuPath, type CanonicalMenuBasis } from './menu-canonical.js';
+import { AGY_DEFAULT_TIMEOUT_MS, invokeAgyText } from './agy-client.js';
+import { canonNormalize, isUserMenuRootLabel, resolveCanonicalMenuPath, USER_MENU_ROOT, type CanonicalMenuBasis } from './menu-canonical.js';
+import {
+  buildClosedSemanticPrompt,
+  chainUnderAnchor,
+  closedSemanticAnchor,
+  parseClosedSemanticAnswer,
+  resolveClosedSemantic,
+  resolveSingleSegmentScreen,
+  SEM_EQUIVALENTE_NA_ARVORE,
+  type ClosedSemanticResolution,
+  type SingleSegmentResolution
+} from './menu-catalog.js';
+import { detectImplicitScreenNavigation, IMPLICIT_NAV_MAX_STEP, type ImplicitScreenNavigation } from './menu-implicit-nav.js';
+import { COHERENCE_CHECKED_BASES } from './menu-landing-coherence.js';
 import { closeActiveModals } from './modal-scope.js';
 import { findRouteEntriesByTabOrSection } from './route-crawler.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
@@ -59,7 +73,42 @@ export interface MenuPathMatch {
   /** Quantos segmentos do manual a cadeia real substituiu (só com `canonicalBasis`) */
   consumed?: number;
   canonicalBasis?: CanonicalMenuBasis;
+  /** Base da cura das Camadas 2/3 da ADR-037 (tela de segmento único ou semântica fechada) */
+  cureBasis?: MenuCureBasis;
 }
+
+/**
+ * Bases de cura de navegação. As três primeiras vêm da ADR-029 (`menu-canonical.ts`); as demais da ADR-037:
+ * `single_segment_screen` (Camada 2: tela citada sem `>` nos passos 1 a 3), `closed_semantic` (Camada 3 determinística)
+ * e `closed_semantic_agy` (Camada 3 via `agy`, só em `--visual-mode live`).
+ */
+export type MenuCureBasis = CanonicalMenuBasis | 'single_segment_screen' | 'closed_semantic' | 'closed_semantic_agy';
+
+/** Contexto da rotina para as Camadas 2 e 3 da ADR-037. Sem contexto, as duas camadas ficam desligadas. */
+export interface MenuNavigationContext {
+  modulo?: string;
+  routineTitle?: string;
+  /** Texto bruto dos passos 1 a 3 da rotina (Camada 3) */
+  stepTexts?: string[];
+  /** Texto bruto dos passos seguintes ao atual (desempate de homônimos na Camada 2) */
+  nextStepsText?: string[];
+  /** Camada 3 via `agy` (só quando o modo visual é `live`); falha do `agy` nunca bloqueia */
+  allowAgy?: boolean;
+}
+
+/** Decisão pura das Camadas 2/3 (sem navegador): navegar até um item da árvore VIVA, ou não. */
+export type MenuNavigationPlan =
+  | {
+      kind: 'navigate';
+      basis: 'single_segment_screen' | 'closed_semantic' | 'closed_semantic_agy';
+      item: MenuTreeItem;
+      /** Cadeia do catálogo canônico (o marcador `Olá, [usuário]` vira a raiz real em `item.chain`) */
+      catalogChain: string[];
+      confidence: number;
+      evidence: string;
+    }
+  | { kind: 'no_equivalent'; closed: Extract<ClosedSemanticResolution, { status: typeof SEM_EQUIVALENTE_NA_ARVORE }> }
+  | { kind: 'skip'; reason: string; single?: SingleSegmentResolution; closed?: ClosedSemanticResolution };
 
 const MENU_LEAF_SYNONYMS: Record<string, string[]> = {
   'balcao de firmas': ['reconhecimento de firmas']
@@ -436,7 +485,7 @@ export function chooseMenuItem(
 export function buildMenuPathMissingEvidence(paths: DocumentedMenuPath[], items: MenuTreeItem[]): MenuPathMissingEvidence {
   const documented = paths.reduce((a, b) => (b.segments.length > a.segments.length ? b : a), paths[0]);
   const segs = documented.segments;
-  const roots = items.filter(i => i.chain.length === 1).map(i => i.chain[0]);
+  const roots = items.filter(i => i.chain.length === 1).map(i => neutralUserMenuChain(i.chain)[0]);
 
   let existing: string[] = [];
   for (let k = 1; k < segs.length; k++) {
@@ -445,7 +494,7 @@ export function buildMenuPathMissingEvidence(paths: DocumentedMenuPath[], items:
   }
   const siblings = items
     .filter(i => i.chain.length === existing.length + 1 && existing.every((seg, idx) => normalizeText(seg) === normalizeText(i.chain[idx])))
-    .map(i => i.chain[i.chain.length - 1]);
+    .map(i => neutralUserMenuChain(i.chain)[i.chain.length - 1]);
 
   const leaf = segs[segs.length - 1];
   const leafElsewhereSet = new Set(
@@ -461,7 +510,8 @@ export function buildMenuPathMissingEvidence(paths: DocumentedMenuPath[], items:
     const kindPt = h.matchedIn === 'tab' ? 'aba' : h.matchedIn === 'section' ? 'seção' : 'título';
     leafElsewhereSet.add(`${h.entry.chain.join(' > ')} (${kindPt}: ${h.matchedLabel})`);
   }
-  const leafElsewhere = Array.from(leafElsewhereSet);
+  // A evidência vai para o relatório: a raiz real do menu do usuário nunca expõe o nome do usuário
+  const leafElsewhere = Array.from(new Set(Array.from(leafElsewhereSet).map(r => neutralizeUserMenuText(r, items))));
 
   return {
     documented: segs.join(' > '),
@@ -484,7 +534,239 @@ export function describeMenuPathMissing(e: MenuPathMissingEvidence): string {
     e.leafElsewhere && e.leafElsewhere.length > 0
       ? ` Item de nome igual ou parecido em outra rota (apenas pista, não validado como equivalente): ${e.leafElsewhere.map(r => `"${r}"`).join('; ')}.`
       : ` Nenhum item de nome igual ou parecido existe em outro ponto da árvore (${e.treeSize} itens lidos).`;
-  return `O caminho "${e.documented}" não existe na árvore de navegação real do Orion TN. ${where}${elsewhere} Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto.`;
+  const closed = e.closedSemantic
+    ? ` Semântica fechada sobre o catálogo canônico (Camada 3, ADR-037): ${SEM_EQUIVALENTE_NA_ARVORE} — ${e.closedSemantic.justification}${
+        e.closedSemantic.topCandidates.length > 0 ? `; candidatos mais próximos: ${e.closedSemantic.topCandidates.map(c => `"${c}"`).join('; ')}` : ''
+      }.`
+    : '';
+  return `O caminho "${e.documented}" não existe na árvore de navegação real do Orion TN. ${where}${elsewhere}${closed} Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto.`;
+}
+
+// ------------------------------------------------------------------------------------------------------------------
+// ADR-037: Camadas 2 (tela citada sem `>`) e 3 (semântica fechada) — decisão PURA sobre a árvore lida ao vivo
+// ------------------------------------------------------------------------------------------------------------------
+
+/** Segmento do catálogo casa com o segmento vivo (`Olá, [usuário]` casa com a raiz real `Olá, <nome>`). */
+const catalogSegmentMatches = (catalogSeg: string, liveSeg: string) =>
+  catalogSeg === USER_MENU_ROOT ? isUserMenuRootLabel(liveSeg) : canonNormalize(catalogSeg) === canonNormalize(liveSeg);
+
+/**
+ * Item da árvore VIVA (não bloqueado) que corresponde a uma cadeia do catálogo canônico. O catálogo nunca é evidência:
+ * sem item vivo único, `null` (nada é navegado).
+ */
+/**
+ * Cadeia para TEXTO (manual, divergência, relatório, rótulo da demarcação): a raiz real do menu do usuário
+ * (`Olá, <nome>`) vira o marcador neutro `Olá, [usuário]`. A travessia e a medição seguem com a cadeia viva.
+ */
+export function neutralUserMenuChain(chain: string[]): string[] {
+  return chain.length > 0 && chain[0] !== USER_MENU_ROOT && isUserMenuRootLabel(chain[0]) ? [USER_MENU_ROOT, ...chain.slice(1)] : [...chain];
+}
+
+/** Substitui, num texto livre, toda raiz real do menu do usuário lida na árvore viva pelo marcador neutro. */
+export function neutralizeUserMenuText(text: string, items: Array<Pick<MenuTreeItem, 'chain'>>): string {
+  const liveRoots = Array.from(
+    new Set(items.map(i => i.chain[0]).filter(r => r && r !== USER_MENU_ROOT && isUserMenuRootLabel(r)))
+  ).sort((a, b) => b.length - a.length);
+  let out = String(text ?? '');
+  for (const root of liveRoots) out = out.split(root).join(USER_MENU_ROOT);
+  // Rede de segurança: saudação com nome próprio vinda de outra fonte (ex.: evidência da tabela de equivalências)
+  return out.replace(/\bOl[aá],\s*(?!\[usu)[A-ZÀ-Ý][\p{L}'.-]*/gu, USER_MENU_ROOT);
+}
+
+export function liveItemForCatalogChain(catalogChain: string[], items: MenuTreeItem[]): MenuTreeItem | null {
+  const hits = items.filter(
+    i => !i.disabled && i.chain.length === catalogChain.length && i.chain.every((seg, k) => catalogSegmentMatches(catalogChain[k], seg))
+  );
+  // Itens alternativos do mesmo `<li>` repetem os seletores: contam como um só nó
+  const distinct = Array.from(new Map(hits.map(h => [h.selectors.join('|'), h])).values());
+  return distinct.length === 1 ? distinct[0] : null;
+}
+
+/** `location.hash` da tela inicial do Orion TN (nenhuma tela de rotina aberta). */
+export function isHomeHash(hash: string | null | undefined): boolean {
+  const h = String(hash ?? '').split('?')[0].replace(/\/+$/, '').toLowerCase();
+  return h === '' || h === '#' || h === '#/inicio' || h === '#/home';
+}
+
+/** O `href` (hash) da folha é a tela já aberta? Ignora query string e id numérico final. */
+export function isAlreadyOnScreen(currentHash: string | null | undefined, leafHref: string | null | undefined): boolean {
+  const key = (h: string) =>
+    String(h ?? '')
+      .split('?')[0]
+      .replace(/\/\d+$/, '')
+      .replace(/\/+$/, '')
+      .toLowerCase();
+  const href = String(leafHref ?? '').trim();
+  if (!href.startsWith('#/')) return false;
+  const cur = key(String(currentHash ?? ''));
+  return cur !== '' && cur === key(href);
+}
+
+/**
+ * Passo de navegação implícita acionável: a ação do passo é o clique de navegação. Em passo de formulário
+ * ("Na tela **X**, preencha...") o executor preencheria o item de menu: as Camadas 2/3 não se aplicam.
+ */
+export function isImplicitNavigationActionable(step: Pick<RoutineStep, 'actionType'>): boolean {
+  return step.actionType === 'click' || step.actionType === 'navigate';
+}
+
+const SINGLE_SEGMENT_CONFIDENCE: Record<string, number> = { exact_leaf: 0.92, screen_alias: 0.9, leaf_key: 0.88 };
+
+/**
+ * Camada 2 (e Camada 3 quando o rótulo não está no catálogo): decide, sem navegador, se o passo `Acesse **X**` vira
+ * navegação até um item da árvore viva.
+ * - `resolveSingleSegmentScreen` resolvido para uma TELA (folha) que existe viva -> `single_segment_screen`;
+ * - homônimo não desempatado, submenu intermediário ou cadeia ausente na árvore viva -> `skip` (nada é adivinhado);
+ * - rótulo fora do catálogo: Camada 3 determinística, SÓ na tela inicial (depois que a rotina abriu uma tela, o
+ *   negrito pode ser elemento dessa tela). Sem destino inequívoco -> `skip` (o passo segue o fluxo normal).
+ */
+export function planImplicitScreenNavigation(input: {
+  step: Pick<RoutineStep, 'stepNumber' | 'rawText' | 'actionType'>;
+  implicit: ImplicitScreenNavigation;
+  items: MenuTreeItem[];
+  context: MenuNavigationContext;
+  atHome: boolean;
+}): MenuNavigationPlan {
+  const { step, implicit, items, context } = input;
+  if (step.stepNumber > IMPLICIT_NAV_MAX_STEP) return { kind: 'skip', reason: `passo ${step.stepNumber} > ${IMPLICIT_NAV_MAX_STEP}` };
+  if (!isImplicitNavigationActionable(step)) return { kind: 'skip', reason: `ação "${step.actionType}" não é navegação` };
+
+  const single = resolveSingleSegmentScreen(implicit.label, {
+    modulo: context.modulo,
+    routineTitle: context.routineTitle,
+    nextStepsText: context.nextStepsText
+  });
+  if (single.status === 'resolved') {
+    if (!single.isLeaf) return { kind: 'skip', reason: `"${single.chain.join(' > ')}" é submenu, não tela`, single };
+    const item = liveItemForCatalogChain(single.chain, items);
+    if (!item) return { kind: 'skip', reason: `"${single.chain.join(' > ')}" não existe (ou não é único) na árvore lida ao vivo`, single };
+    return {
+      kind: 'navigate',
+      basis: 'single_segment_screen',
+      item,
+      catalogChain: single.chain,
+      confidence: SINGLE_SEGMENT_CONFIDENCE[single.basis] ?? 0.88,
+      evidence: `Tela citada sem caminho (Camada 2, ADR-037): ${single.evidence}`
+    };
+  }
+  if (single.status === 'ambiguous') return { kind: 'skip', reason: single.evidence, single };
+
+  if (!input.atHome) return { kind: 'skip', reason: 'rótulo fora do catálogo e a rotina já não está na tela inicial', single };
+  const closed = resolveClosedSemantic({ stepTexts: context.stepTexts || [step.rawText], modulo: context.modulo, routineTitle: context.routineTitle });
+  return planFromClosedSemantic(closed, items, { single, onNoEquivalent: 'skip' });
+}
+
+/**
+ * Camada 3 para um caminho explícito (`A > B`) dos passos 1 a 3 que não existe na árvore viva nem por equivalência:
+ * destino inequívoco que existe vivo -> `closed_semantic`; senão `no_equivalent` (bloqueio `[ATT]` rápido com a
+ * justificativa e os candidatos, sem explorar menus).
+ */
+export function planExplicitClosedSemantic(input: {
+  step: Pick<RoutineStep, 'stepNumber' | 'rawText'>;
+  items: MenuTreeItem[];
+  context: MenuNavigationContext;
+  /** Segmentos do caminho documentado: a Camada 3 fica restrita ao maior prefixo dele que existe no catálogo */
+  documentedChain?: string[];
+}): MenuNavigationPlan {
+  if (input.step.stepNumber > IMPLICIT_NAV_MAX_STEP) return { kind: 'skip', reason: `passo ${input.step.stepNumber} > ${IMPLICIT_NAV_MAX_STEP}` };
+  const closed = resolveClosedSemantic({
+    stepTexts: input.context.stepTexts || [input.step.rawText],
+    modulo: input.context.modulo,
+    routineTitle: input.context.routineTitle,
+    documentedChain: input.documentedChain
+  });
+  return planFromClosedSemantic(closed, input.items, { onNoEquivalent: 'no_equivalent' });
+}
+
+function planFromClosedSemantic(
+  closed: ClosedSemanticResolution,
+  items: MenuTreeItem[],
+  opts: { single?: SingleSegmentResolution; onNoEquivalent: 'skip' | 'no_equivalent' }
+): MenuNavigationPlan {
+  if (closed.status === 'resolved') {
+    const item = liveItemForCatalogChain(closed.chain, items);
+    if (item) {
+      return {
+        kind: 'navigate',
+        basis: 'closed_semantic',
+        item,
+        catalogChain: closed.chain,
+        confidence: Number(Math.min(0.9, Math.max(0.7, closed.score)).toFixed(2)),
+        evidence: `Semântica fechada sobre o catálogo canônico (Camada 3, ADR-037): "${closed.chain.join(' > ')}" — ${closed.justification}`
+      };
+    }
+    const reason = `a semântica fechada indicou "${closed.chain.join(' > ')}", que não existe (ou não é único) na árvore lida ao vivo`;
+    if (opts.onNoEquivalent === 'skip') return { kind: 'skip', reason, single: opts.single, closed };
+    return {
+      kind: 'no_equivalent',
+      closed: { status: SEM_EQUIVALENTE_NA_ARVORE, topCandidates: [{ chain: closed.chain, score: closed.score }], justification: reason }
+    };
+  }
+  if (opts.onNoEquivalent === 'skip') return { kind: 'skip', reason: closed.justification, single: opts.single, closed };
+  return { kind: 'no_equivalent', closed };
+}
+
+/**
+ * Resposta do `agy` (Camada 3 opcional) aceita só se for cadeia literal do catálogo, estiver sob a MESMA âncora do
+ * caminho documentado que a Camada 3 determinística usa (`closedSemanticAnchor`) E existir na árvore viva.
+ */
+export function planFromAgyAnswer(raw: string | null | undefined, items: MenuTreeItem[], documentedChain?: string[]): MenuNavigationPlan | null {
+  if (!raw) return null;
+  const parsed = parseClosedSemanticAnswer(raw);
+  if (!parsed || parsed.status !== 'resolved') return null;
+  if (!chainUnderAnchor(parsed.chain, closedSemanticAnchor(documentedChain))) return null;
+  const item = liveItemForCatalogChain(parsed.chain, items);
+  if (!item) return null;
+  return {
+    kind: 'navigate',
+    basis: 'closed_semantic_agy',
+    item,
+    catalogChain: parsed.chain,
+    confidence: 0.75,
+    evidence: `Semântica fechada via agy sobre a lista fechada do catálogo canônico (Camada 3, ADR-037): "${parsed.chain.join(' > ')}" (resposta literal da lista, confirmada na árvore lida ao vivo)`
+  };
+}
+
+/** Converte a decisão `navigate` num `MenuPathMatch` curado (nunca `exact`: a divergência sempre é registrada). */
+export function matchFromNavigationPlan(
+  plan: Extract<MenuNavigationPlan, { kind: 'navigate' }>,
+  documented: DocumentedMenuPath
+): MenuPathMatch {
+  return { item: plan.item, documented, exact: false, confidence: plan.confidence, reason: plan.evidence, cureBasis: plan.basis };
+}
+
+/** Caminho sintético de um único segmento para a tela citada sem `>` (o `sourceText` é o negrito do manual). */
+export function syntheticPathFromImplicit(implicit: ImplicitScreenNavigation): DocumentedMenuPath {
+  return { segments: [implicit.label], sourceText: implicit.sourceText };
+}
+
+const describeClosedForEvidence = (closed: Extract<ClosedSemanticResolution, { status: typeof SEM_EQUIVALENTE_NA_ARVORE }>) => ({
+  justification: closed.justification,
+  topCandidates: closed.topCandidates.map(c => `${c.chain.join(' > ')} (${c.score})`)
+});
+
+/** Camada 3 via `agy`: só no modo `live`, nunca bloqueia (qualquer falha devolve `null`). */
+async function askAgyClosedSemantic(
+  context: MenuNavigationContext,
+  step: RoutineStep,
+  items: MenuTreeItem[],
+  documentedChain?: string[]
+): Promise<MenuNavigationPlan | null> {
+  if (!context.allowAgy || process.env.ORION_MENU_AGY === 'false') return null;
+  try {
+    const prompt = buildClosedSemanticPrompt({
+      stepTexts: context.stepTexts || [step.rawText],
+      modulo: context.modulo,
+      routineTitle: context.routineTitle,
+      documentedChain
+    });
+    const raw = await invokeAgyText({ prompt, timeoutMs: AGY_DEFAULT_TIMEOUT_MS });
+    const plan = planFromAgyAnswer(raw, items, documentedChain);
+    if (plan?.kind === 'navigate') console.log(`   [Rota de Menu] Camada 3 (agy): "${plan.catalogChain.join(' > ')}" confirmada na árvore viva.`);
+    return plan;
+  } catch {
+    return null;
+  }
 }
 
 interface CascadeRect {
@@ -657,10 +939,20 @@ export async function resolveAndNavigateMenuPath(
   step: RoutineStep,
   rawScreenshotPath: string,
   priorChains: string[][] = [],
-  options: { ignoreDisabledBlocks?: boolean } = {}
+  options: { ignoreDisabledBlocks?: boolean; context?: MenuNavigationContext } = {}
 ): Promise<SmartLocatorResult | null> {
   const paths = extractMenuPaths(step);
-  if (paths.length === 0) return null;
+  const context = options.context;
+
+  // ADR-037 Camada 2: "Acesse **X**" sem `>` nos passos 1 a 3. Só com o contexto da rotina (executor do KB) e só em
+  // passo cuja ação é o clique de navegação. A cadeia do catálogo é CANDIDATA: precisa existir na árvore lida agora e
+  // é percorrida segmento a segmento pela mesma cascata real dos caminhos explícitos.
+  if (paths.length === 0) {
+    if (!context) return null;
+    const implicit = detectImplicitScreenNavigation(step);
+    if (!implicit || !isImplicitNavigationActionable(step)) return null;
+    return resolveImplicitScreenNavigation(client, step, rawScreenshotPath, implicit, context);
+  }
 
   const items = parseMenuTreeResponse(await client.eval(buildMenuTreeScript()));
   const documentedLabel = paths.map(p => p.segments.join(' > ')).join(' | ');
@@ -675,17 +967,92 @@ export async function resolveAndNavigateMenuPath(
     // ADR-024: caminho inexistente na árvore real NÃO é curado para outro elemento (muito menos para um campo
     // de texto): o passo carrega a evidência lida da árvore e a rotina vira `[ATT]`.
     const missing = buildMenuPathMissingEvidence(paths, items);
+
+    // ADR-037 Camada 3: passos 1 a 3, semântica fechada sobre os caminhos do catálogo. Destino inequívoco que existe
+    // vivo é percorrido como cura (`closed_semantic`, sujeita à coerência pós-pouso); sem destino, o bloqueio `[ATT]`
+    // sai na hora com a justificativa e os candidatos (sem explorar menus).
+    if (context) {
+      const documented = paths.reduce((a, b) => (b.segments.length > a.segments.length ? b : a), paths[0]);
+      let plan = planExplicitClosedSemantic({ step, items, context, documentedChain: documented.segments });
+      if (plan.kind === 'no_equivalent') {
+        const viaAgy = await askAgyClosedSemantic(context, step, items, documented.segments);
+        if (viaAgy?.kind === 'navigate') plan = viaAgy;
+      }
+      if (plan.kind === 'navigate') {
+        console.log(`   ⚡ [Rota de Menu] Camada 3: "${documented.segments.join(' > ')}" -> "${plan.item.chain.join(' > ')}" (${plan.basis}).`);
+        return navigateMenuMatch(client, step, rawScreenshotPath, matchFromNavigationPlan(plan, documented), paths, items);
+      }
+      if (plan.kind === 'no_equivalent') missing.closedSemantic = describeClosedForEvidence(plan.closed);
+    }
     console.log(`   [Rota de Menu] Nenhum item da árvore de navegação corresponde a: ${documentedLabel}`);
     console.log(`   [Rota de Menu] Evidência: ${describeMenuPathMissing(missing)}`);
     return { found: false, healed: false, geometry: null, matchedTargetName: documentedLabel, menuPathMissing: missing };
   }
+  return navigateMenuMatch(client, step, rawScreenshotPath, match, paths, items);
+}
 
-  const chain = match.item.chain;
+/**
+ * ADR-037 Camada 2 (+ Camada 3 na tela inicial): navega até a tela citada sem `>`. `null` = nada a fazer aqui (o
+ * passo segue o fluxo normal do SmartLocator): árvore ausente, homônimo, rótulo sem destino, tela já aberta.
+ */
+async function resolveImplicitScreenNavigation(
+  client: AgentBrowserClient,
+  step: RoutineStep,
+  rawScreenshotPath: string,
+  implicit: ImplicitScreenNavigation,
+  context: MenuNavigationContext
+): Promise<SmartLocatorResult | null> {
+  const items = parseMenuTreeResponse(await client.eval(buildMenuTreeScript()));
+  if (items.length === 0) return null;
+  const currentHash = (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
+  let plan = planImplicitScreenNavigation({ step, implicit, items, context, atHome: isHomeHash(currentHash) });
+  if (plan.kind === 'skip' && plan.closed?.status === SEM_EQUIVALENTE_NA_ARVORE && isHomeHash(currentHash)) {
+    plan = (await askAgyClosedSemantic(context, step, items)) ?? plan;
+  }
+  if (plan.kind !== 'navigate') {
+    console.log(`   [Rota de Menu] "${implicit.label}" (tela citada sem caminho) não navegada: ${plan.kind === 'skip' ? plan.reason : 'sem equivalente'}.`);
+    return null;
+  }
+  // A tela já está aberta (o passo anterior navegou até ela): nada a navegar, o passo segue o fluxo normal
+  const leafSel = plan.item.selectors[plan.item.selectors.length - 1];
+  const leafHref =
+    (await client
+      .evalJson<string>(`(() => { const a = document.querySelector(${JSON.stringify(leafSel)}); return JSON.stringify(a ? (a.getAttribute('href') || '') : ''); })()`)
+      .catch(() => '')) || '';
+  if (isAlreadyOnScreen(currentHash, leafHref)) {
+    console.log(`   [Rota de Menu] A tela "${plan.item.chain.join(' > ')}" (${currentHash}) já está aberta; "${implicit.label}" não é renavegado.`);
+    return null;
+  }
+  console.log(`   ⚡ [Rota de Menu] Camada ${plan.basis === 'single_segment_screen' ? '2' : '3'}: "${implicit.label}" -> "${plan.item.chain.join(' > ')}" (${plan.basis}).`);
+  const synthetic = syntheticPathFromImplicit(implicit);
+  const result = await navigateMenuMatch(client, step, rawScreenshotPath, matchFromNavigationPlan(plan, synthetic), [synthetic], items);
+  // Cascata que não abriu numa cura implícita: o passo volta ao fluxo normal (não vira falha técnica de rota citada)
+  if (!result.found && result.menuPathOpenFailed) {
+    console.warn(`   ⚠ [Rota de Menu] ${result.menuPathOpenFailed}; o passo segue o fluxo normal do SmartLocator.`);
+    await client.mouseMove(2, 2).catch(() => undefined);
+    return null;
+  }
+  return result;
+}
+
+/** Percorre na árvore viva o item escolhido (cascata com ponteiro real, ADR-017) e monta o resultado/divergência. */
+async function navigateMenuMatch(
+  client: AgentBrowserClient,
+  step: RoutineStep,
+  rawScreenshotPath: string,
+  match: MenuPathMatch,
+  paths: DocumentedMenuPath[],
+  items: MenuTreeItem[]
+): Promise<SmartLocatorResult> {
+  // Travessia e medição usam a cadeia VIVA (`match.item.selectors`); todo texto (manual, divergência, relatório, rótulos)
+  // usa a cadeia neutra: a raiz real do menu do usuário (`Olá, <nome>`) vira `Olá, [usuário]` (nunca o nome real).
+  const chain = neutralUserMenuChain(match.item.chain);
+  const reasonText = neutralizeUserMenuText(match.reason, items);
   const realPath = chain.join(' > ');
   const documentedPath = match.documented.segments.join(' > ');
 
   if (match.blocked) {
-    console.warn(`   ⛔ [RBAC] O item "${realPath}" existe, mas está bloqueado para o perfil logado: ${match.reason}`);
+    console.warn(`   ⛔ [RBAC] O item "${realPath}" existe, mas está bloqueado para o perfil logado: ${reasonText}`);
     await client.screenshot(rawScreenshotPath);
     return {
       found: false,
@@ -694,7 +1061,7 @@ export async function resolveAndNavigateMenuPath(
       matchedTargetName: realPath,
       permissionBlocked: {
         target: realPath,
-        detail: match.reason,
+        detail: reasonText,
         domEvidence: 'item da árvore de navegação com a classe disabled/ngx-orion-hide'
       }
     };
@@ -819,12 +1186,14 @@ export async function resolveAndNavigateMenuPath(
     confidence: match.exact ? 1 : match.confidence,
     reason: strippedAlternative && match.exact
       ? `Alternativa de menu inexistente (${removedAlternatives.join(', ')}) removida após comprovar "${realPath}" na árvore real`
-      : match.reason,
+      : reasonText,
     detectedAt: new Date().toISOString(),
     // Evidência (ADR-017): cada segmento do caminho real foi lido da árvore de navegação e medido na print
     evidence: { source: 'menu-tree', matchedSelector: leafSelector, elementText: realPath, box: leafBox },
     textChange
   };
+  const basis: MenuCureBasis | undefined = match.cureBasis ?? match.canonicalBasis;
+  if (basis) divergence.menuBasis = basis;
 
   return {
     found: true,
@@ -834,6 +1203,9 @@ export async function resolveAndNavigateMenuPath(
     divergence,
     validatedText,
     menuTail: tail ? { segments: tail, realChain: chain, documentedPath, basis: match.canonicalBasis ?? 'tail_as_screen_section' } : undefined,
-    priorHint: match.viaPriorAudit ? { documented: documentedPath, actual: realPath, layer: 'menu_path_resolution' } : undefined
+    priorHint: match.viaPriorAudit ? { documented: documentedPath, actual: realPath, layer: 'menu_path_resolution' } : undefined,
+    // ADR-037 Camada 4: curas por equivalência explícita, tela de segmento único e semântica fechada só são aceitas
+    // depois da coerência pós-pouso (alvos dos passos seguintes presentes na tela alcançada)
+    menuCure: basis && COHERENCE_CHECKED_BASES.has(basis) ? { basis, documented: documentedPath, realChain: chain, evidence: reasonText } : undefined
   };
 }

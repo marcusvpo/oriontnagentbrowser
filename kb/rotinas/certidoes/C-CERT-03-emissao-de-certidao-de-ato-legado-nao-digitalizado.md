@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 Serventias centenárias possuem grande acervo anterior à informatização. O Orion TN dispõe de rotina para emissão avulsa de certidões sobre atos legados, com cobrança no caixa e aposição de selo digital do tribunal.
 
 #### Passo a passo:
-1. No **Orion TN**, acesse o menu **Certidões > Novo Pedido de Certidão**.
+1. No Orion TN, acesse o menu **Notas** > **Nova certidão e serviço**.
 2. Marque a opção **Certidão de Ato Antigo / Não Digitalizado**.
 3. Informe os dados manuais da busca: **Número do Livro**, **Folhas Inicial/Final** e **Data da Lavratura Original**.
 4. Informe os nomes das partes principais para constarem no recibo e no índice de buscas.

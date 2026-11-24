@@ -35,7 +35,7 @@ versao_sistema: Orion TN 6.0
 O Provimento nº 18 do CNJ estabelece que todo inventário comunicado à CESDI deve possuir identificação explícita do falecido, herdeiros e advogado assistente, além de dados de filiação completa.
 
 #### Passo a passo:
-1. No **Orion TN**, acesse **Configurações > Cadastros Auxiliares > Tipos de Participação**.
+1. No **Orion TN**, acesse **Configurações > Cadastros auxiliares > Participação**.
 2. Verifique se as participações estão mapeadas no quadro **Comunicações - Configurações**:
 3. Falecido/Autor da Herança ➔ Qualidade CESDI: **De Cujus / Falecido**.
 4. Herdeiro/Cônjuge Meiro ➔ Qualidade CESDI: **Herdeiro**.

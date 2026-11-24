@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 O traslado notarial deve ter apresentação sóbria e compacta. Pequenos ajustes de entrelinhas (1.15) e recuos de parágrafo permitem absorver linhas órfãs nas páginas precedentes sem violar normas visuais.
 
 #### Passo a passo:
-1. Abra o protocolo do ato através de **Notas > Protocolo** e selecione a aba **Traslado**.
+1. Abra o protocolo do ato através de **Notas > Consultas > Protocolos** e selecione a aba **Traslado**.
 2. Clique no botão **Editar Traslado / Diagramação**.
 3. Pressione `Ctrl + A` para selecionar todo o texto do documento.
 4. Na barra de formatação, altere o campo **Espaçamento Entrelinhas** para `1.15` (ou `Simples`).

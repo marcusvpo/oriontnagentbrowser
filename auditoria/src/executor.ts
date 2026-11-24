@@ -34,7 +34,10 @@ import { autoSeedMockRecord, routineNeedsExistingRows } from './auto-seed.js';
 import { ACTIVE_MODAL_SELECTOR, closeActiveModals } from './modal-scope.js';
 import { detectImplicitTargets } from './implicit-targets.js';
 import { classifyBlock, describeStatus } from './review-classifier.js';
-import { captureAttScreenDiagnosis, contextPrintName, type AttScreenDiagnosis } from './att-screen-advisor.js';
+import { buildScreenInventoryScript, captureAttScreenDiagnosis, contextPrintName, parseScreenInventory, type AttScreenDiagnosis } from './att-screen-advisor.js';
+import { collectNextStepTargets, describeIncoherentLanding, evaluateLandingCoherence, type LandingCoherenceResult } from './menu-landing-coherence.js';
+import { findRouteEntryByChain, findRouteEntryByHash } from './route-crawler.js';
+import { routeSynonymsFor } from './route-synonyms.js';
 import { describeTags, reviewPrefix, reviewTagsFor, stripReviewPrefix, type ReviewTag } from './review-taxonomy.js';
 import { stampStepScopes, stripProductNameTargets } from './step-scope.js';
 import { deriveStepGuard, isGlobalSearchName, isStrictNavigationStep } from './navigation-guard.js';
@@ -69,6 +72,7 @@ import type {
   SmartLocatorResult,
   DOMResolvedGeometry,
   ExecutedStepAction,
+  ParsedRoutine,
   PrivilegeGateResult,
   RevealExplorationLog,
   RevealTriggerInfo,
@@ -467,6 +471,11 @@ export async function executeRoutineAudit(
   /** Comandos de gravação que a Trava Segura de Mutação deixou de acionar */
   const skippedCommits: Array<{ stepNumber: number; label: string }> = [];
   let block: RoutineBlockInfo | undefined;
+
+  /** ADR-037: passos bloqueados pela camada de navegação (coerência pós-pouso): classificados como rota (`[ATT]`) */
+  const menuNavBlockedSteps = new Set<number>();
+  /** ADR-037: notas de coerência pós-pouso aceita, por passo (vão para a observação do passo) */
+  const coherenceNotes = new Map<number, string>();
 
   // ADR-021: estado vazio da tela, registros mock criados e alvos implícitos, por passo
   const autoSeedEnabled = options.autoSeed !== false;
@@ -952,7 +961,19 @@ export async function executeRoutineAudit(
         priorHints: hintsForStep(prior, step.stepNumber),
         priorMenuChains: chainsForStep(prior, step.stepNumber),
         visualMode: options.visualMode ?? 'live',
-        workerSessionId
+        workerSessionId,
+        // ADR-037: contexto da rotina para as Camadas 2 (tela citada sem `>`) e 3 (semântica fechada) da navegação.
+        // Lista de opções e alvo implícito nunca navegam por elas.
+        menuContext:
+          isOptionsOnly || implicit
+            ? undefined
+            : {
+                modulo: parsed.modulo,
+                routineTitle: parsed.titulo,
+                stepTexts: parsed.steps.slice(0, 3).map(s => s.rawText),
+                nextStepsText: parsed.steps.filter(s => s.stepNumber > step.stepNumber).slice(0, 3).map(s => s.rawText),
+                allowAgy: (options.visualMode ?? 'live') === 'live'
+              }
       };
       if (prior.block?.stepNumber === step.stepNumber) {
         console.log(`   [Reauditoria] ↺ Checkpoint: este é o passo em que a rotina parou no ambiente anterior${prior.block.tipo ? ` (${prior.block.tipo})` : ''}; verificando se agora é superado.`);
@@ -1232,8 +1253,13 @@ export async function executeRoutineAudit(
         // de cadastro citado no mesmo passo nunca era conferido. Depois do clique da folha ele vira alvo pendente: a
         // medição pós-ação (item 4) o demarca em `passo-NN-b` e o aciona. Só botões de cadastro (`Adicionar`/`Novo`...):
         // os demais negritos do passo mantêm o comportamento anterior.
-        if (hasMenuPath && executedAction.kind === 'click' && locResult.found) {
+        // ADR-037: a tela citada sem `>` (Camada 2/3) também é navegação; o negrito da tela conta como segmento.
+        const navigatedByMenu = hasMenuPath || locResult.divergence?.resolutionLayer === 'menu_path_resolution';
+        if (navigatedByMenu && executedAction.kind === 'click' && locResult.found) {
           const pathSegments = new Set(extractMenuPaths(step).flatMap(p => p.segments.map(s => normalizeText(s))));
+          if (locResult.divergence?.resolutionLayer === 'menu_path_resolution') {
+            pathSegments.add(normalizeText(locResult.divergence.documentedTarget));
+          }
           const addButtonRe = new RegExp(ADD_BUTTON_SOURCE);
           for (const t of step.targets) {
             if (t.includes('>') || pathSegments.has(normalizeText(t)) || !addButtonRe.test(normalizeText(t))) continue;
@@ -1304,6 +1330,60 @@ export async function executeRoutineAudit(
         // ADR-020: tela resultante da ação (ex.: formulário aberto por Adicionar): snapshot + balões "i"
         await collectScreenContext(step.stepNumber, true);
 
+        // ADR-037 Camada 4: coerência pós-pouso. Uma cura de navegação (equivalência explícita, tela citada sem `>` ou
+        // semântica fechada) só prova que a cadeia existe e foi percorrida; a tela alcançada precisa conter algum alvo
+        // dos passos seguintes. Incoerente: a cura é descartada, a tela restaurada e o passo bloqueia `[ATT]`.
+        if (locResult.menuCure && executedAction.kind === 'click' && !isOptionsOnly) {
+          const cure = locResult.menuCure;
+          const coherence = await checkLandingCoherence(client, parsed, step, cure).catch(() => null);
+          if (coherence && !coherence.result.coherent) {
+            console.warn(`   ⚠ [Coerência Pós-Pouso] ${coherence.evidence}`);
+            await resetToHome(client).catch(() => undefined);
+            menuNavBlockedSteps.add(step.stepNumber);
+            const incoherentDiv: SmartLocatorDivergence = {
+              stepNumber: step.stepNumber,
+              documentedTarget: cure.documented,
+              actualElementText: '',
+              resolutionLayer: 'target_not_found',
+              confidence: 0,
+              reason: coherence.evidence,
+              detectedAt: new Date().toISOString(),
+              menuBasis: cure.basis
+            };
+            divergences.push(incoherentDiv);
+            block = await missingBlock(
+              [cure.documented],
+              false,
+              undefined,
+              'A rota curada foi descartada pela coerência pós-pouso (ADR-037): a tela não é adivinhada por exploração.',
+              coherence.evidence
+            );
+            stepResults.push({
+              stepNumber: step.stepNumber,
+              originalText: step.rawText,
+              validatedText: step.rawText,
+              isModified: false,
+              screenshotRawPath: rawStepPath,
+              screenshotAnnotatedPath: finalPrintPath,
+              screenshotWebpPath: res.webpPath,
+              boundingBox: res.layout.targetBox,
+              domGeometry,
+              layoutResult: res.layout,
+              executedAction,
+              callouts: stepCallouts.length > 1 ? stepCallouts : undefined,
+              printFiles,
+              targetDivergences: [incoherentDiv],
+              status: 'blocked',
+              errorMessage: `Cura de navegação descartada pela coerência pós-pouso: ${coherence.evidence}`
+            });
+            break;
+          }
+          if (coherence) {
+            console.log(`   [Coerência Pós-Pouso] ${coherence.result.verdict}: ${coherence.evidence}`);
+            if (coherence.result.verdict === 'coherent') coherenceNotes.set(step.stepNumber, coherence.evidence);
+          }
+        }
+
         // 5. Alvo ainda ausente (ADR-018): primeiro a marca de bloqueio por perfil no DOM, depois a
         //    Exploração Investigativa dos gatilhos reveladores seguros. o bloqueio é o último recurso.
         let permissionBlocked: SmartLocatorResult['permissionBlocked'];
@@ -1359,6 +1439,7 @@ export async function executeRoutineAudit(
             subportalNote,
             prefilterNote,
             tailNote,
+            coherenceNotes.has(step.stepNumber) ? `**Coerência pós-pouso (ADR-037):** ${coherenceNotes.get(step.stepNumber)}.` : undefined,
             statefulResolved?.note,
             statefulPostNote,
             executedAction.openedTab ? `A ação abriu a guia **${executedAction.openedTab.title || 'sem título'}**; os passos seguintes foram auditados nela.` : undefined
@@ -1645,7 +1726,10 @@ export async function executeRoutineAudit(
         roteiro: ['Reexecutar a auditoria desta rotina.']
       },
       blockedStep,
-      blockedStepHasMenuPath: manualBlockedStep ? extractMenuPaths(manualBlockedStep).length > 0 : false,
+      // ADR-037: cura de navegação descartada pela coerência pós-pouso também é rota (nunca dependência de dado)
+      blockedStepHasMenuPath: manualBlockedStep
+        ? extractMenuPaths(manualBlockedStep).length > 0 || menuNavBlockedSteps.has(manualBlockedStep.stepNumber)
+        : false,
       emptyState: emptyForBlock,
       seed: { attempted: seedAttempted, reason: seedFailureReason, disabled: !autoSeedEnabled }
     });
@@ -1665,7 +1749,7 @@ export async function executeRoutineAudit(
           stepNumber: blockedStep,
           stepText: manualBlockedStep.rawText,
           targets: manualBlockedStep.targets.slice(0, mainCount),
-          menuPath: extractMenuPaths(manualBlockedStep).length > 0,
+          menuPath: extractMenuPaths(manualBlockedStep).length > 0 || menuNavBlockedSteps.has(manualBlockedStep.stepNumber),
           existingPrint: blockedResult?.printFiles?.[0],
           ensureContextPrint: async () => {
             const rawCtx = path.join(cacheDir, `${fileName}-passo-${padBlocked}-contexto-raw.png`);
@@ -1850,6 +1934,67 @@ export async function executeRoutineAudit(
     durationSeconds,
     changelogPath: revisedDocPath
   };
+}
+
+/** Rótulo legível da base de cura de navegação (ADR-029/037) para a evidência do bloqueio. */
+const MENU_CURE_LABEL: Record<string, string> = {
+  explicit_equivalence: 'equivalência canônica explícita (Camada 1)',
+  single_segment_screen: 'tela citada sem caminho (Camada 2)',
+  closed_semantic: 'semântica fechada sobre o catálogo (Camada 3)',
+  closed_semantic_agy: 'semântica fechada via agy (Camada 3)'
+};
+
+/**
+ * ADR-037 Camada 4 — leitura ao vivo (somente leitura, nenhum clique) da tela alcançada por uma cura de navegação:
+ * inventário estrutural (`att-screen-advisor.ts`), textos de rótulos/cabeçalhos da zona de conteúdo (navegação
+ * excluída) e a entrada do grafo de rotas do hash alcançado. A decisão é a função pura `evaluateLandingCoherence`.
+ */
+async function checkLandingCoherence(
+  client: AgentBrowserClient,
+  parsed: ParsedRoutine,
+  step: RoutineStep,
+  cure: NonNullable<SmartLocatorResult['menuCure']>
+): Promise<{ result: LandingCoherenceResult; hash: string; evidence: string }> {
+  const targets = collectNextStepTargets(parsed.steps, step.stepNumber, {
+    excludeLabels: [...cure.realChain, cure.documented, ...step.targets]
+  });
+  const hash = (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => '')) || '';
+  if (targets.length === 0) {
+    const result = evaluateLandingCoherence([], null, null);
+    return { result, hash, evidence: result.reason };
+  }
+  const inventory = parseScreenInventory(await client.evalJson<unknown>(buildScreenInventoryScript()).catch(() => null));
+  // Rótulos curtos da zona de conteúdo que o inventário não cobre (cabeçalhos de grade, legendas, títulos)
+  const contentLabels =
+    (await client
+      .evalJson<string[]>(`
+        (() => {
+          const NAV = 'nav, .navbar, aside, .sidebar, .nav-stacked, [role="navigation"], header';
+          const vis = e => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return r.width > 1 && r.height > 1 && s.display !== 'none' && s.visibility !== 'hidden'; };
+          const out = new Set();
+          for (const e of document.querySelectorAll('th, label, legend, h1, h2, h3, h4, h5, button, a, .panel-title, .card-title, [role="tab"], [role="columnheader"]')) {
+            if (e.closest(NAV) || !vis(e)) continue;
+            const t = (e.innerText || e.textContent || '').replace(/\\s+/g, ' ').trim();
+            if (t && t.length <= 80) out.add(t);
+            if (out.size >= 300) break;
+          }
+          return JSON.stringify(Array.from(out));
+        })()
+      `)
+      .catch(() => null)) || [];
+  const mergedInventory = inventory
+    ? { ...inventory, sections: [...inventory.sections, ...contentLabels] }
+    : contentLabels.length > 0
+      ? { route: hash, title: '', inModal: false, sections: contentLabels, tabs: [], fields: [], buttons: [] }
+      : null;
+  const entry = findRouteEntryByHash(hash) ?? findRouteEntryByChain(cure.realChain);
+  const result = evaluateLandingCoherence(targets, mergedInventory, entry, {
+    routeSynonyms: t => routeSynonymsFor(hash, t).map(s => s.real)
+  });
+  const evidence = result.coherent
+    ? result.reason
+    : describeIncoherentLanding({ basisLabel: MENU_CURE_LABEL[cure.basis] ?? cure.basis, documented: cure.documented, realChain: cure.realChain, hash, result });
+  return { result, hash, evidence };
 }
 
 /**

@@ -35,7 +35,7 @@ versao_sistema: Orion TN 6.0
 A Declaração sobre Operações Imobiliárias (DOI) exige consistência matemática absoluta entre os alienantes e adquirentes do negócio jurídico. Se as porcentagens transmitidas não fecharem a integralidade do quinhão, a remessa é recusada.
 
 #### Passo a passo:
-1. No **Orion TN**, abra o protocolo da escritura através de **Notas > Protocolo**.
+1. No **Orion TN**, abra o protocolo da escritura através de **Notas > Consultas > Protocolos**.
 2. Acesse a aba **Imóveis** e clique em **Editar** no bem correspondente.
 3. Confira os campos obrigatórios: **Tipo de Imóvel** (Urbano/Rural), **Matrícula**, **Código IBGE** e **Logradouro**.
 4. Acesse a sub-aba **Partes do Imóvel / Transmissão**.

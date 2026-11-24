@@ -4,15 +4,15 @@ titulo: 'Liberação de Acesso e Impressão de Consulta de Serviços Praticados 
 modulo: acesso
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-18'
+  data_execucao: '2026-11-24'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-1'
+  worker_id: 'worker-4'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 2
+  prints_geradas: 1
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
@@ -20,7 +20,7 @@ auditoria_ui:
     acionada: true
     divergencias_detectadas:
       - passo: 1
-        alvo_documentado: 'Grupos e Perfis de Acesso'
+        alvo_documentado: 'Configurações > Grupos e Perfis de Acesso'
         elemento_real: '(não localizado na tela)'
         camada: target_not_found
         confianca: 0
@@ -58,9 +58,25 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-24'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita "Grupos e Perfis de Acesso", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. O passo cita um caminho de menu: a '
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-18T01:35:01.114Z'
+    capturado_em: '2026-11-24T17:13:09.320Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -91,7 +107,7 @@ auditoria_ui:
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita "Grupos e Perfis de Acesso", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. O passo cita um caminho de menu: a rota não é adivinhada por exploração (ADR-016). O recurso não existe nesta tela na versão atual do Orion TN: defasagem editorial do manual. Itens de nome relacionado existem em outro ponto da navegação: Administração > Controle de Estoque > Cadastros > Grupos de distribuição; Configurações > Perfis e permissões de acesso (apenas pista, não validados como equivalentes). Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. A tela alcançada por equivalência canônica explícita (Camada 1) ("Configurações > Grupos e Perfis de Acesso" -> "Configurações > Perfis e permissões de acesso" (#/perfil)) não contém "Auxiliares de Cartório", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Perfis e permissões", "Mostrar perfis de outras especialidades", "Perfil", "Tempo de sessão (minutos)", "Adicionar", "Voltar", "Saiba as novidades dessa versão!", "Excluir", "Duplicar perfil", "Este perfil não pode ser excluído porque é o perfil principal da aplicação", "OrionTN - Calendário". Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
 > Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
@@ -105,7 +121,7 @@ auditoria_ui:
 O relatório de Serviços Praticados é uma ferramenta essencial de prestação de contas no encerramento do turno de balcão, permitindo conferir a quantidade de autenticações, reconhecimentos de firma e certidões expedidas. Quando operadores com perfil auxiliar assumem o caixa do balcão, o perfil de acesso precisa ter essa prerrogativa liberada individualmente ou pelo grupo funcional.
 
 #### Roteiro Técnico para Execução Manual:
-1. Abrir a tela do passo 1 no ambiente de homologação e confirmar onde o recurso ficou na versão atual do Orion TN.
+1. Abrir a barra de menus do Orion TN no ambiente de homologação e localizar onde a tela do passo 1 fica na versão atual.
 2. Reescrever o passo no manual com o caminho real e reexecutar a auditoria.
 
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
@@ -113,10 +129,9 @@ O relatório de Serviços Praticados é uma ferramenta essencial de prestação 
 #### Passo a passo (texto original preservado):
 1. No Orion TN, acesse o menu **Configurações** > **Grupos e Perfis de Acesso** (ou **Usuários** para ajuste individual).
    [aqui vai a print "passo-01.png"]
-   [aqui vai a print "passo-01-b.png"]
-   > [!NOTE] **Demarcações na print:** (1) **Configurações** · (2) **Usuários**
-   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Grupos e Perfis de Acesso"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Alvo(s) citados no manual sem evidência na tela auditada: "Grupos e Perfis de Acesso"
+   > [!NOTE] **Demarcações na print:** (1) **Configurações** · (2) **Perfis e permissões de acesso**
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Configurações > Grupos e Perfis de Acesso"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Cura de navegação descartada pela coerência pós-pouso: A tela alcançada por equivalência canônica explícita (Camada 1) ("Configurações > Grupos e Perfis de Acesso" -> "Configurações > Perfis e permissões de acesso" (#/perfil)) não contém "Auxiliares de Cartório", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Perfis e permissões", "Mostrar perfis de outras especialidades", "Perfil", "Tempo de sessão (minutos)", "Adicionar", "Voltar", "Saiba as novidades dessa versão!", "Excluir", "Duplicar perfil", "Este perfil não pode ser excluído porque é o perfil principal da aplicação", "OrionTN - Calendário".
 2. Localize o grupo **Auxiliares de Cartório** e clique em **Alterar**.
 3. Na árvore de permissões, expanda **Balcão de Firmas** > pasta **Consultas e Relatórios**.
 4. Localize e marque a opção **[x] Consulta de Serviços Praticados** e o subitem **[x] Permitir Impressão de Extrato Operacional**.

@@ -36,7 +36,7 @@ Quando dois atos ocupam a mesma página física (ex.: ato breve na frente e outr
 #### Passo a passo:
 1. Acesse a tela de fechamento em **Notas > Fechamento de Quinzena / Comunicações**.
 2. Identifique na mensagem de alerta o número exato do Livro e da Folha em conflito.
-3. Abra o protocolo correspondente em **Notas > Protocolo**, aba **Dados do Ato**.
+3. Abra o protocolo correspondente em **Notas > Consultas > Protocolos**, aba **Dados do Ato**.
 4. No campo **Complemento de Folha**, informe a distinção formal (ex.: `V` para Verso, ou `A` / `B` para subdivisões autorizadas).
 5. Salve o protocolo.
 6. No ato correlato, assegure que o campo de complemento esteja devidamente preenchido com a especificação recíproca (ex.: `F` para Frente).

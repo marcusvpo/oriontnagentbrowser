@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 Com o objetivo de prevenir fraudes e adulterações inadvertidas, perfis padrão do grupo de escreventes podem estar configurados com travas que impedem a edição de protocolos após a geração inicial do número de apontamento. Quando a rotina de trabalho exige que múltiplos operadores colaborem no mesmo protocolo, os parâmetros de edição pré-finalização devem ser habilitados no perfil do grupo.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações** > submenu **Grupos e Perfis de Acesso**.
+1. Acesse o menu **Configurações** > submenu **Perfis e permissões de acesso**.
 2. Selecione o grupo operacional correspondente (ex: **Escreventes de Notas**) e clique em **Alterar**.
 3. Na árvore de módulos e rotinas, expanda o nó **Notas** > **Protocolo** > **Operações Básicas**.
 4. Marque as caixas de seleção obrigatórias:

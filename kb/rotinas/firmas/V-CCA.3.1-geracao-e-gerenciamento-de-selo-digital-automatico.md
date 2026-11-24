@@ -61,8 +61,8 @@ versao_sistema: Orion TN 6.0
 O Orion TN permite a aplicação de Selo Digital do Tribunal de Justiça (TJ) no cadastro de cartões de assinatura, com suporte à geração totalmente automática no salvamento da ficha ou acionamento sob demanda (manual). O sistema disponibiliza ferramentas para consulta do QR Code oficial, controle de comunicação com o webservice do TJ, reutilização e cancelamento de selos.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura** e abra a ficha desejada pelo ícone da **Caneta** (**Alteração**) ou realize um novo cadastro.
-2. Identifique o fluxo de geração de **Selo Digital** configurado na sua serventia:
+1. Acesse **Firmas > Cadastros > Cartão de assinatura** e abra a ficha desejada pelo ícone da **Caneta** (**Alteração**) ou realize um novo cadastro.
+2. Identifique o fluxo de geração de **Selo digital** configurado na sua serventia:
    * **Fluxo A - Geração Automática**:
      * Caso o sistema esteja parametrizado para geração automática de selos em cartões de assinatura, ao preencher e clicar em **Concluir** no cadastro, o sistema consumirá e gerará o selo digital imediatamente junto ao webservice do TJ.
      * Na tela do cartão, serão exibidos o número do selo, o código de autenticidade e o **QR Code** de validação.

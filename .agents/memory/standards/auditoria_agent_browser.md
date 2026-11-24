@@ -697,3 +697,33 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 
 ### 23.6. Testes
 * `auditoria/src/__tests__/adr035-semantic-calibration.test.ts` (36 casos, mini-DOM compartilhado em `__tests__/mock-dom.ts`) e `scripts/antigravity-worker/test_sdk_worker.py` (13 casos).
+
+---
+
+## 24. Catálogo Canônico de Menus 06.05.02, Navegação Implícita por Tela, Resolutor Semântico Fechado e Coerência Pós-Pouso (ADR-037)
+
+> **Regra-mãe:** o catálogo é a lista **fechada** de destinos candidatos, nunca evidência. Toda cadeia só vale depois de existir na árvore de navegação **lida ao vivo** e ser percorrida com ponteiro real (ADR-017). O texto do manual só muda pela Trava de Evidência (divergência `menu_path_resolution`, `validado_com_ajustes`).
+
+### 24.1. Catálogo versionado (`build-menu-catalog.ts`, `menu-catalog.ts`)
+* Fonte: `auditoria/mapeamento-menus/arvore-menus-orion-tn.md` (seção 4 = caminhos; seção 5 = homônimos e famílias) conferida contra `auditoria/mapeamento-menus/manifest.json` (`directChildren` de cada submenu).
+* Saída: `auditoria/data/orion-menu-tree-canonical.json` (versionado): `version`, `capturedAt`, `userMenuRoot: "Olá, [usuário]"`, `pathCount: 115`, `paths[]` (`chain`, `depth`, `isLeaf`, `parentModule`, `printProof`, `aliases`, `userMenu?`), `nodes[]` (134), `homonyms[]` (4: `Consultas`, `Cadastros`, `Comunicações`, `Mensalistas`), `nearHomonymFamilies[]` (14) e `crossCheck` (`mismatches`, `excluded`, `checkedSubmenus`).
+* `npm --prefix auditoria run menu:catalog` falha com caminhos ≠ 115, cadeia duplicada, profundidade ≠ segmentos ou homônimos ≠ tabela 5.1. Exclui o link fantasma `"0"` e o painel `"9+"`. `-- --sync-cache` regrava `cache/orion-menu-tree-real.json` (`MenuTreeSnapshot`) com backup em `cache/orion-menu-tree-real.prev.json`.
+* API pura: `loadMenuCatalog`, `catalogAsCanonicalItems`, `findExactPath`, `findByLeaf`, `isHomonym`, `leafExists`, `rootsForModulo` (`MODULE_ROOTS`, só desempate), `SCREEN_ALIASES` (11 apelidos com prova), `resolveSingleSegmentScreen`, `resolveClosedSemantic`, `closedSemanticAnchor`/`chainUnderAnchor`, `buildClosedSemanticPrompt`/`parseClosedSemanticAnswer`.
+* `mine-att-clusters.ts --tree auto|live|canonical` (padrão `auto`: árvore ao vivo, salvo ausente ou mais antiga que o catálogo).
+
+### 24.2. Menu do usuário (`menu-canonical.ts`, `menu-path.ts`)
+* Raiz neutra **`Olá, [usuário]`** (`USER_MENU_ROOT`) em todo texto gerado; o nome real exibido pela aplicação nunca é gravado. `isUserMenuRootLabel` casa o marcador ou `Olá, <nome>` (vírgula logo após "Olá"), nunca a saudação `Olá <nome>, seja bem-vindo!`. Travessia pela cadeia viva; texto pela neutra (`neutralUserMenuChain`, `neutralizeUserMenuText`).
+* Itens: **Alterar senha**, **Fale conosco**, **Autenticação em dois fatores**, **Cadastrar biometria**, **Sair**.
+
+### 24.3. Navegação em 4 camadas (decisão em memória antes do clique)
+* **Camada 1 (`EXPLICIT_MENU_EQUIVALENCES`):** curingas `*`/`palavra*` (palavra inteira), `keepRestAsPath` (re-resolve o resto do manual sob a cadeia real: filho direto, senão descendente único; o que sobrar só vira aba se `tailFromRest` e a folha não tiver filhos), `userMenu` (destino sob `Olá, [usuário]`, gerado por `userMenuEquivalences` para os prefixos `Configurações > Usuários`, `Configurações` e `Usuários`). `canonStem`: `-ens` → `-em`. A cadeia devolvida é a do item real único lido agora. Lista completa e rotinas motivadoras: ADR-037 §2.3.
+* **Camada 2 (`menu-implicit-nav.ts` + `resolveSingleSegmentScreen` + `planImplicitScreenNavigation`):** passo ≤ 3 sem `>` com gatilho (*Acesse/Abra/Vá/Entre/Navegue*, *No menu/Na tela/No módulo/Na opção*) → `exact_leaf` (0,92), `screen_alias` (0,90), `leaf_key` (0,88). Homônimo: caminho final único com os demais como ancestrais → módulo da rotina → contexto (título + próximos passos); persistindo, `ambiguous` (não navega). Só tela final única viva; só ação `click`/`navigate` (passo de preenchimento, lista de opções e alvo implícito não navegam); tela já aberta não renavega; cascata que não abriu devolve o passo ao fluxo normal. Base `single_segment_screen`.
+* **Camada 3 (`resolveClosedSemantic`, `planExplicitClosedSemantic`, `planFromAgyAnswer`):** pontuação por radicais inteiros `0,60 cobertura da folha + 0,20 Dice folha×título + 0,10 ancestrais + 0,10 módulo`; aceita com **≥ 0,70** e **margem ≥ 0,12**, senão `SEM_EQUIVALENTE_NA_ARVORE` (justificativa + candidatos). Caminho explícito: âncora = maior prefixo documentado existente no catálogo. Tela sem `>`: só na tela inicial. `agy` opcional só em `--visual-mode live` (`invokeAgyText`, `AsyncSemaphore(1)`, `null` em falha; `ORION_MENU_AGY=false` desliga): resposta = cadeia literal da lista, sob a âncora e viva (base `closed_semantic_agy`, 0,75). Caminho explícito sem equivalente: `[ATT]` imediato com `closedSemantic` na evidência.
+* **Camada 4 (`menu-landing-coherence.ts`, `checkLandingCoherence` no `executor.ts`):** para `explicit_equivalence`, `single_segment_screen`, `closed_semantic`, `closed_semantic_agy` (`COHERENCE_CHECKED_BASES`, via `SmartLocatorResult.menuCure`). Lê só em leitura o inventário estrutural, os rótulos curtos da zona de conteúdo e o grafo de rotas do hash; confere os alvos dos 1–2 passos seguintes (`collectNextStepTargets`) por texto idêntico, chave de folha, sinônimo de rota ou frase inteira. `coherent` → nota no passo; `no_targets`/`inconclusive` → não bloqueia; `incoherent` → `resetToHome`, passo em `menuNavBlockedSteps` (`[ATT]` de rota), evidência `describeIncoherentLanding`, texto 100% original.
+
+### 24.4. Auditor offline (`audit-menu-coherence.ts`) e reauditoria (`reaudit-menu-queue.ts`)
+* `npm --prefix auditoria run menu:audit-coherence [-- --json-only | --routines A,B]`: somente leitura sobre `auditoria/rotinas/**` e `kb/**`. Classes `exact`, `exact_with_spelling_drift`, `canonical_equivalence`, `single_segment`, `closed_semantic`, `ambiguous`, `no_equivalent`. Filas **A** (destravável por caminho canônico, `confidence: alta|revisar`), **B** (bloqueio pós-navegação), **C** (sem equivalente ou `tela_pressuposta`); `[DDD]`/`[CCC]` só relatados; hardware nunca na Fila A. Saídas: `cache/menu-reaudit-queue.json` (+ `menu-reaudit-queue-partial.json` com `--routines`) e `reports/auditoria-caminhos-menus.md` (IPs mascarados).
+* `npm --prefix auditoria run reaudit:menu-queue [-- --all | --list-only]`: Fila A de confiança alta (ou toda com `--all`) → `tsx src/cli.ts --routines <ids> --concurrency 4 --dry-run-mutations --headless` (cwd `auditoria/`).
+
+### 24.5. Testes
+* `auditoria/src/__tests__/adr037-canonical-menu-catalog.test.ts` (15), `adr037-menu-coherence-audit.test.ts` (23) e `adr037-menu-integration.test.ts` (32).

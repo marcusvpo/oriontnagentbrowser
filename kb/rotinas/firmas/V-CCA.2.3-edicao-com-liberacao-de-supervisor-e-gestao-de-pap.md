@@ -64,7 +64,7 @@ versao_sistema: Orion TN 6.0
 Quando um cartão de assinatura já possui atos notariais ou reconhecimentos de firma vinculados em seu histórico, os campos sensíveis de identificação (como Nome e Documentos) são bloqueados pelo sistema para segurança jurídica, exigindo liberação por senha de supervisor. Além disso, esta rotina abrange todo o ciclo de vida do papel/formulário de segurança no cartão: consumo, controle de status (Reservado/Consumido), estorno para o estoque e inutilização definitiva.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura**, filtre o registro e clique no ícone da **Caneta** (**Alteração**).
+1. Acesse **Firmas > Cadastros > Cartão de assinatura**, filtre o registro e clique no ícone da **Caneta** (**Alteração**).
 2. Para **Editar Campos Sensíveis Bloqueados (Nome / Documentos)**:
    * Caso o cadastro já possua atos praticados, campos como Nome e CPF estarão desabilitados para edição direta.
    * Localize e clique no botão **Editar** posicionado ao lado do campo restrito.

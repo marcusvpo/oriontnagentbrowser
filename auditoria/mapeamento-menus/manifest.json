@@ -1,0 +1,507 @@
+{
+  "capturedAt": "2026-11-24T15:39:11.531Z",
+  "environment": "Produtos (homologacao interna Siplan)",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "zoom": 0.8,
+  "totalTargets": 20,
+  "totalCaptured": 20,
+  "totalFailed": 0,
+  "rootDirectLinks": [
+    {
+      "chain": [
+        "Históricos"
+      ],
+      "disabled": false
+    },
+    {
+      "chain": [
+        "0"
+      ],
+      "disabled": false
+    }
+  ],
+  "captures": [
+    {
+      "file": "01-dashboard.png",
+      "chain": [
+        "Dashboard"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 436,
+        "y": 41,
+        "r": 576,
+        "b": 134
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Atos Protocolares",
+        "Envio para Registro",
+        "Comunicações",
+        "Agenda de protocolos"
+      ]
+    },
+    {
+      "file": "02-firmas.png",
+      "chain": [
+        "Firmas"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 470,
+        "y": 41,
+        "r": 634,
+        "b": 134
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Abertura de pedido",
+        "Reconhecimento de firmas",
+        "Consultas",
+        "Cadastros"
+      ]
+    },
+    {
+      "file": "03-firmas__consultas.png",
+      "chain": [
+        "Firmas",
+        "Consultas"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 632,
+        "y": 83,
+        "r": 794,
+        "b": 134
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Reconhecimentos de firmas",
+        "Serviços praticados"
+      ]
+    },
+    {
+      "file": "04-firmas__cadastros.png",
+      "chain": [
+        "Firmas",
+        "Cadastros"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 632,
+        "y": 104,
+        "r": 964,
+        "b": 197
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Cartão de assinatura",
+        "Sinal público",
+        "Tipo de documento - Termo de comparecimento",
+        "Digitalização em lote"
+      ]
+    },
+    {
+      "file": "05-notas.png",
+      "chain": [
+        "Notas"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 502,
+        "y": 41,
+        "r": 687,
+        "b": 196
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Protocolos em aberto",
+        "Novo protocolo",
+        "Orçamento completo",
+        "Orçamento rápido",
+        "Nova certidão e serviço",
+        "Certidões e serviços em aberto",
+        "Consultas"
+      ]
+    },
+    {
+      "file": "06-notas__consultas.png",
+      "chain": [
+        "Notas",
+        "Consultas"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 685,
+        "y": 166,
+        "r": 1014,
+        "b": 301
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Índice de escrituras e procurações",
+        "Orçamentos",
+        "Protocolos",
+        "Movimentação financeira por protocolo",
+        "Certidões e serviços",
+        "Editor"
+      ]
+    },
+    {
+      "file": "07-relatorios.png",
+      "chain": [
+        "Relatórios"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 519,
+        "y": 41,
+        "r": 762,
+        "b": 300
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Fechamento de caixa",
+        "PEX - TJ/SP",
+        "PEX Selos - TJ/SP",
+        "Recolhimento diário",
+        "Atos Incompletos",
+        "Demonstrativo financeiro dos selos digitais",
+        "Recolhimento resumido",
+        "Índice por livro",
+        "Transferência de imóveis",
+        "Auditoria Selos TJ - Orion",
+        "Livro Protocolo",
+        "Relatório ISS"
+      ]
+    },
+    {
+      "file": "08-administracao.png",
+      "chain": [
+        "Administração"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 663,
+        "y": 41,
+        "r": 857,
+        "b": 321
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Comissões",
+        "Comunicações",
+        "Envio de escrituras para Registro",
+        "Controle de Estoque",
+        "Cadastro de Impedimentos",
+        "Importações de arquivos",
+        "Controle de Livros",
+        "Mensalistas",
+        "Intermediadores",
+        "Cadastro de Pessoas Jurídicas",
+        "Serviços internos realizados",
+        "Certidões solicitadas",
+        "Calendário"
+      ]
+    },
+    {
+      "file": "09-administracao__comissoes.png",
+      "chain": [
+        "Administração",
+        "Comissões"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 473,
+        "y": 41,
+        "r": 665,
+        "b": 155
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Consulta",
+        "Consulta indicação de mensalistas",
+        "Planos de comissão",
+        "Plano diferenciado Mensalistas",
+        "Planos indicação de mensalista"
+      ]
+    },
+    {
+      "file": "10-administracao__comunicacoes.png",
+      "chain": [
+        "Administração",
+        "Comunicações"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 473,
+        "y": 62,
+        "r": 665,
+        "b": 217
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "COAF",
+        "Outras comunicações",
+        "Auditoria de Selos",
+        "Selo digital",
+        "RPS",
+        "Recolhimento",
+        "Auditoria de RPS"
+      ]
+    },
+    {
+      "file": "11-administracao__controle-de-estoque.png",
+      "chain": [
+        "Administração",
+        "Controle de Estoque"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 473,
+        "y": 104,
+        "r": 665,
+        "b": 217
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Aquisição",
+        "Distribuição",
+        "Consumo manual",
+        "Consultas",
+        "Cadastros"
+      ]
+    },
+    {
+      "file": "12-administracao__controle-de-estoque__cadastros.png",
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros"
+      ],
+      "depth": 3,
+      "status": "captured",
+      "ulBounds": {
+        "x": 285,
+        "y": 187,
+        "r": 475,
+        "b": 280
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Categoria",
+        "Grupos de distribuição",
+        "Produto",
+        "Unidade de medida"
+      ]
+    },
+    {
+      "file": "13-administracao__mensalistas.png",
+      "chain": [
+        "Administração",
+        "Mensalistas"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 473,
+        "y": 187,
+        "r": 665,
+        "b": 280
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Faturamento",
+        "Filiais",
+        "Lançamentos manuais",
+        "Mensalistas"
+      ]
+    },
+    {
+      "file": "14-configuracoes.png",
+      "chain": [
+        "Configurações"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 849,
+        "y": 41,
+        "r": 1026,
+        "b": 196
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Dados do cartório",
+        "Modelos de impressão",
+        "Tabela de custas",
+        "Cadastros auxiliares",
+        "Perfis e permissões de acesso",
+        "Usuários",
+        "Parametrizações"
+      ]
+    },
+    {
+      "file": "15-configuracoes__modelos-de-impressao.png",
+      "chain": [
+        "Configurações",
+        "Modelos de impressão"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 676,
+        "y": 62,
+        "r": 851,
+        "b": 155
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Enquadramento COAF",
+        "Listagens diversas",
+        "Etiquetas diversas",
+        "Configuração de impressão"
+      ]
+    },
+    {
+      "file": "16-configuracoes__tabela-de-custas.png",
+      "chain": [
+        "Configurações",
+        "Tabela de custas"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 676,
+        "y": 83,
+        "r": 851,
+        "b": 217
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Cálculos",
+        "Itens",
+        "Grupo de item",
+        "Parâmetros",
+        "Taxas",
+        "Vigências"
+      ]
+    },
+    {
+      "file": "17-configuracoes__cadastros-auxiliares.png",
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares"
+      ],
+      "depth": 2,
+      "status": "captured",
+      "ulBounds": {
+        "x": 658,
+        "y": 104,
+        "r": 851,
+        "b": 550
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Alíquotas",
+        "Banco",
+        "Cargo",
+        "Documento apresentado",
+        "Espécie",
+        "Feriados",
+        "Formas de pagamento",
+        "Natureza",
+        "Órgão expedidor",
+        "Outros serviços",
+        "Participação",
+        "Perfil de partes",
+        "Pessoa física",
+        "Serviços Internos",
+        "Situação do protocolo",
+        "Tipo de movimentação financeira",
+        "Tipo de documento",
+        "Tipo de e-mail",
+        "Tipo de endereço",
+        "Tipo de telefone",
+        "Tipo de representante"
+      ]
+    },
+    {
+      "file": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física"
+      ],
+      "depth": 3,
+      "status": "captured",
+      "ulBounds": {
+        "x": 470,
+        "y": 353,
+        "r": 660,
+        "b": 488
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Área de Atuação",
+        "Estado civil",
+        "Nacionalidade",
+        "Naturalidade",
+        "Profissão",
+        "Regime de bens"
+      ]
+    },
+    {
+      "file": "19-9.png",
+      "chain": [
+        "9+"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 868,
+        "y": 41,
+        "r": 1172,
+        "b": 430
+      },
+      "clippedBottom": false,
+      "directChildren": []
+    },
+    {
+      "file": "20-ola-usuario.png",
+      "chain": [
+        "Olá, [usuário]"
+      ],
+      "depth": 1,
+      "status": "captured",
+      "ulBounds": {
+        "x": 1245,
+        "y": 41,
+        "r": 1421,
+        "b": 155
+      },
+      "clippedBottom": false,
+      "directChildren": [
+        "Alterar senha",
+        "Fale conosco",
+        "Autenticação em dois fatores",
+        "Cadastrar biometria",
+        "Sair"
+      ]
+    }
+  ]
+}

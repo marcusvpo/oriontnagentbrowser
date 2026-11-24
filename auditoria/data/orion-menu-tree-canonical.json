@@ -1,0 +1,3179 @@
+{
+  "version": "06.05.02",
+  "capturedAt": "2026-11-24T15:39:11.531Z",
+  "environment": "Produtos (homologacao interna Siplan)",
+  "source": {
+    "markdown": "auditoria/mapeamento-menus/arvore-menus-orion-tn.md",
+    "manifest": "auditoria/mapeamento-menus/manifest.json"
+  },
+  "userMenuRoot": "Olá, [usuário]",
+  "pathCount": 115,
+  "paths": [
+    {
+      "chain": [
+        "Dashboard",
+        "Atos Protocolares"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Dashboard",
+      "printProof": "01-dashboard.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Envio para Registro"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Dashboard",
+      "printProof": "01-dashboard.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Comunicações"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Dashboard",
+      "printProof": "01-dashboard.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Agenda de protocolos"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Dashboard",
+      "printProof": "01-dashboard.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Abertura de pedido"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "02-firmas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Reconhecimento de firmas"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "02-firmas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Consultas",
+        "Reconhecimentos de firmas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "03-firmas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Consultas",
+        "Serviços praticados"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "03-firmas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Cartão de assinatura"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "04-firmas__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Sinal público"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "04-firmas__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Tipo de documento - Termo de comparecimento"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "04-firmas__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Digitalização em lote"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Firmas",
+      "printProof": "04-firmas__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Protocolos em aberto"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "05-notas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Novo protocolo"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "05-notas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Orçamento completo"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "05-notas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Orçamento rápido"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "05-notas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Nova certidão e serviço"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "05-notas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Certidões e serviços em aberto"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "05-notas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Índice de escrituras e procurações"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "06-notas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Orçamentos"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "06-notas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Protocolos"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "06-notas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Movimentação financeira por protocolo"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "06-notas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Certidões e serviços"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "06-notas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Editor"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Notas",
+      "printProof": "06-notas__consultas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Fechamento de caixa"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "PEX - TJ/SP"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "PEX Selos - TJ/SP"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Recolhimento diário"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Atos Incompletos"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Demonstrativo financeiro dos selos digitais"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Recolhimento resumido"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Índice por livro"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Transferência de imóveis"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Auditoria Selos TJ - Orion"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Livro Protocolo"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Relatório ISS"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Relatórios",
+      "printProof": "07-relatorios.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Consulta"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "09-administracao__comissoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Consulta indicação de mensalistas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "09-administracao__comissoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Planos de comissão"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "09-administracao__comissoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Plano diferenciado Mensalistas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "09-administracao__comissoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Planos indicação de mensalista"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "09-administracao__comissoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "COAF"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Outras comunicações"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Auditoria de Selos"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Selo digital"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "RPS"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Recolhimento"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Auditoria de RPS"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "10-administracao__comunicacoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Envio de escrituras para Registro"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Aquisição"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "11-administracao__controle-de-estoque.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Distribuição"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "11-administracao__controle-de-estoque.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Consumo manual"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "11-administracao__controle-de-estoque.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Consultas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "11-administracao__controle-de-estoque.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Categoria"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "12-administracao__controle-de-estoque__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Grupos de distribuição"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "12-administracao__controle-de-estoque__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Produto"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "12-administracao__controle-de-estoque__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Unidade de medida"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "12-administracao__controle-de-estoque__cadastros.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Cadastro de Impedimentos"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Importações de arquivos"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Livros"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Faturamento"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "13-administracao__mensalistas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Filiais"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "13-administracao__mensalistas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Lançamentos manuais"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "13-administracao__mensalistas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Mensalistas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "13-administracao__mensalistas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Intermediadores"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Cadastro de Pessoas Jurídicas"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Serviços internos realizados"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Certidões solicitadas"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Administração",
+        "Calendário"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Administração",
+      "printProof": "08-administracao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Históricos"
+      ],
+      "depth": 1,
+      "isLeaf": true,
+      "parentModule": "Históricos",
+      "printProof": "00-home-barra-menus.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Dados do cartório"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "14-configuracoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Enquadramento COAF"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "15-configuracoes__modelos-de-impressao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Listagens diversas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "15-configuracoes__modelos-de-impressao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Etiquetas diversas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "15-configuracoes__modelos-de-impressao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Configuração de impressão"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "15-configuracoes__modelos-de-impressao.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Cálculos"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "16-configuracoes__tabela-de-custas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Itens"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "16-configuracoes__tabela-de-custas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Grupo de item"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "16-configuracoes__tabela-de-custas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Parâmetros"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "16-configuracoes__tabela-de-custas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Taxas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "16-configuracoes__tabela-de-custas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Vigências"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "16-configuracoes__tabela-de-custas.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Alíquotas"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Banco"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Cargo"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Documento apresentado"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Espécie"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Feriados"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Formas de pagamento"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Natureza"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Órgão expedidor"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Outros serviços"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Participação"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Perfil de partes"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Área de Atuação"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Estado civil"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Nacionalidade"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Naturalidade"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Profissão"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Regime de bens"
+      ],
+      "depth": 4,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "18-configuracoes__cadastros-auxiliares__pessoa-fisica.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Serviços Internos"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Situação do protocolo"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de movimentação financeira"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de documento"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de e-mail"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de endereço"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de telefone"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de representante"
+      ],
+      "depth": 3,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "17-configuracoes__cadastros-auxiliares.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Perfis e permissões de acesso"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "14-configuracoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Usuários"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "14-configuracoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Parametrizações"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Configurações",
+      "printProof": "14-configuracoes.png",
+      "aliases": []
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Alterar senha"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "printProof": "20-ola-usuario.png",
+      "aliases": [],
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Fale conosco"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "printProof": "20-ola-usuario.png",
+      "aliases": [],
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Autenticação em dois fatores"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "printProof": "20-ola-usuario.png",
+      "aliases": [],
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Cadastrar biometria"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "printProof": "20-ola-usuario.png",
+      "aliases": [],
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Sair"
+      ],
+      "depth": 2,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "printProof": "20-ola-usuario.png",
+      "aliases": [],
+      "userMenu": true
+    }
+  ],
+  "nodes": [
+    {
+      "chain": [
+        "Dashboard"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Dashboard"
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Atos Protocolares"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Dashboard"
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Envio para Registro"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Dashboard"
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Comunicações"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Dashboard"
+    },
+    {
+      "chain": [
+        "Dashboard",
+        "Agenda de protocolos"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Dashboard"
+    },
+    {
+      "chain": [
+        "Firmas"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Abertura de pedido"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Reconhecimento de firmas"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Consultas"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Consultas",
+        "Reconhecimentos de firmas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Consultas",
+        "Serviços praticados"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Cartão de assinatura"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Sinal público"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Tipo de documento - Termo de comparecimento"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Firmas",
+        "Cadastros",
+        "Digitalização em lote"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Firmas"
+    },
+    {
+      "chain": [
+        "Notas"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Protocolos em aberto"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Novo protocolo"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Orçamento completo"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Orçamento rápido"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Nova certidão e serviço"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Certidões e serviços em aberto"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Índice de escrituras e procurações"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Orçamentos"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Protocolos"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Movimentação financeira por protocolo"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Certidões e serviços"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Notas",
+        "Consultas",
+        "Editor"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Notas"
+    },
+    {
+      "chain": [
+        "Relatórios"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Fechamento de caixa"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "PEX - TJ/SP"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "PEX Selos - TJ/SP"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Recolhimento diário"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Atos Incompletos"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Demonstrativo financeiro dos selos digitais"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Recolhimento resumido"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Índice por livro"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Transferência de imóveis"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Auditoria Selos TJ - Orion"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Livro Protocolo"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Relatórios",
+        "Relatório ISS"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Relatórios"
+    },
+    {
+      "chain": [
+        "Administração"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Consulta"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Consulta indicação de mensalistas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Planos de comissão"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Plano diferenciado Mensalistas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comissões",
+        "Planos indicação de mensalista"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "COAF"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Outras comunicações"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Auditoria de Selos"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Selo digital"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "RPS"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Recolhimento"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Comunicações",
+        "Auditoria de RPS"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Envio de escrituras para Registro"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Aquisição"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Distribuição"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Consumo manual"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Consultas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros"
+      ],
+      "depth": 3,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Categoria"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Grupos de distribuição"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Produto"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Estoque",
+        "Cadastros",
+        "Unidade de medida"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Cadastro de Impedimentos"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Importações de arquivos"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Controle de Livros"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Faturamento"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Filiais"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Lançamentos manuais"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Mensalistas",
+        "Mensalistas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Intermediadores"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Cadastro de Pessoas Jurídicas"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Serviços internos realizados"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Certidões solicitadas"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Administração",
+        "Calendário"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Administração"
+    },
+    {
+      "chain": [
+        "Históricos"
+      ],
+      "depth": 1,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Históricos"
+    },
+    {
+      "chain": [
+        "Configurações"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Dados do cartório"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Enquadramento COAF"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Listagens diversas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Etiquetas diversas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Modelos de impressão",
+        "Configuração de impressão"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Cálculos"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Itens"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Grupo de item"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Parâmetros"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Taxas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Tabela de custas",
+        "Vigências"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares"
+      ],
+      "depth": 2,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Alíquotas"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Banco"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Cargo"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Documento apresentado"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Espécie"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Feriados"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Formas de pagamento"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Natureza"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Órgão expedidor"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Outros serviços"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Participação"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Perfil de partes"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física"
+      ],
+      "depth": 3,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Área de Atuação"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Estado civil"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Nacionalidade"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Naturalidade"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Profissão"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Pessoa física",
+        "Regime de bens"
+      ],
+      "depth": 4,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Serviços Internos"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Situação do protocolo"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de movimentação financeira"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de documento"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de e-mail"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de endereço"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de telefone"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Cadastros auxiliares",
+        "Tipo de representante"
+      ],
+      "depth": 3,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Perfis e permissões de acesso"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Usuários"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Configurações",
+        "Parametrizações"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Configurações"
+    },
+    {
+      "chain": [
+        "Olá, [usuário]"
+      ],
+      "depth": 1,
+      "hasChildren": true,
+      "isLeaf": false,
+      "parentModule": "Olá, [usuário]",
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Alterar senha"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Fale conosco"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Autenticação em dois fatores"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Cadastrar biometria"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "userMenu": true
+    },
+    {
+      "chain": [
+        "Olá, [usuário]",
+        "Sair"
+      ],
+      "depth": 2,
+      "hasChildren": false,
+      "isLeaf": true,
+      "parentModule": "Olá, [usuário]",
+      "userMenu": true
+    }
+  ],
+  "homonyms": [
+    {
+      "label": "Consultas",
+      "occurrences": [
+        {
+          "chain": [
+            "Firmas",
+            "Consultas"
+          ],
+          "role": "submenu"
+        },
+        {
+          "chain": [
+            "Notas",
+            "Consultas"
+          ],
+          "role": "submenu"
+        },
+        {
+          "chain": [
+            "Administração",
+            "Controle de Estoque",
+            "Consultas"
+          ],
+          "role": "leaf"
+        }
+      ]
+    },
+    {
+      "label": "Cadastros",
+      "occurrences": [
+        {
+          "chain": [
+            "Firmas",
+            "Cadastros"
+          ],
+          "role": "submenu"
+        },
+        {
+          "chain": [
+            "Administração",
+            "Controle de Estoque",
+            "Cadastros"
+          ],
+          "role": "submenu"
+        }
+      ]
+    },
+    {
+      "label": "Comunicações",
+      "occurrences": [
+        {
+          "chain": [
+            "Dashboard",
+            "Comunicações"
+          ],
+          "role": "leaf"
+        },
+        {
+          "chain": [
+            "Administração",
+            "Comunicações"
+          ],
+          "role": "submenu"
+        }
+      ]
+    },
+    {
+      "label": "Mensalistas",
+      "occurrences": [
+        {
+          "chain": [
+            "Administração",
+            "Mensalistas"
+          ],
+          "role": "submenu"
+        },
+        {
+          "chain": [
+            "Administração",
+            "Mensalistas",
+            "Mensalistas"
+          ],
+          "role": "leaf"
+        }
+      ]
+    }
+  ],
+  "nearHomonymFamilies": [
+    {
+      "id": 1,
+      "title": "Singular vs. Plural em Firmas",
+      "chains": [
+        [
+          "Firmas",
+          "Reconhecimento de firmas"
+        ],
+        [
+          "Firmas",
+          "Consultas",
+          "Reconhecimentos de firmas"
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Consulta (singular) vs. Consultas (plural)",
+      "chains": [
+        [
+          "Administração",
+          "Comissões",
+          "Consulta"
+        ],
+        [
+          "Firmas",
+          "Consultas"
+        ],
+        [
+          "Notas",
+          "Consultas"
+        ],
+        [
+          "Administração",
+          "Controle de Estoque",
+          "Consultas"
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Família Protocolos (7 caminhos em 4 menus pai)",
+      "chains": [
+        [
+          "Dashboard",
+          "Agenda de protocolos"
+        ],
+        [
+          "Notas",
+          "Protocolos em aberto"
+        ],
+        [
+          "Notas",
+          "Novo protocolo"
+        ],
+        [
+          "Notas",
+          "Consultas",
+          "Protocolos"
+        ],
+        [
+          "Notas",
+          "Consultas",
+          "Movimentação financeira por protocolo"
+        ],
+        [
+          "Relatórios",
+          "Livro Protocolo"
+        ],
+        [
+          "Configurações",
+          "Cadastros auxiliares",
+          "Situação do protocolo"
+        ]
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Envio para Registro (2 caminhos)",
+      "chains": [
+        [
+          "Dashboard",
+          "Envio para Registro"
+        ],
+        [
+          "Administração",
+          "Envio de escrituras para Registro"
+        ]
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Serviços Internos (variação de caixa `i`/`I`)",
+      "chains": [
+        [
+          "Administração",
+          "Serviços internos realizados"
+        ],
+        [
+          "Configurações",
+          "Cadastros auxiliares",
+          "Serviços Internos"
+        ]
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Família Certidões e serviços (4 caminhos)",
+      "chains": [
+        [
+          "Notas",
+          "Nova certidão e serviço"
+        ],
+        [
+          "Notas",
+          "Certidões e serviços em aberto"
+        ],
+        [
+          "Notas",
+          "Consultas",
+          "Certidões e serviços"
+        ],
+        [
+          "Administração",
+          "Certidões solicitadas"
+        ]
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Família Orçamentos (3 caminhos)",
+      "chains": [
+        [
+          "Notas",
+          "Orçamento completo"
+        ],
+        [
+          "Notas",
+          "Orçamento rápido"
+        ],
+        [
+          "Notas",
+          "Consultas",
+          "Orçamentos"
+        ]
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Documentos / Tipo de documento (3 caminhos)",
+      "chains": [
+        [
+          "Firmas",
+          "Cadastros",
+          "Tipo de documento - Termo de comparecimento"
+        ],
+        [
+          "Configurações",
+          "Cadastros auxiliares",
+          "Documento apresentado"
+        ],
+        [
+          "Configurações",
+          "Cadastros auxiliares",
+          "Tipo de documento"
+        ]
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Família Recolhimento (3 caminhos)",
+      "chains": [
+        [
+          "Administração",
+          "Comunicações",
+          "Recolhimento"
+        ],
+        [
+          "Relatórios",
+          "Recolhimento diário"
+        ],
+        [
+          "Relatórios",
+          "Recolhimento resumido"
+        ]
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Família Selos (5 caminhos)",
+      "chains": [
+        [
+          "Administração",
+          "Comunicações",
+          "Auditoria de Selos"
+        ],
+        [
+          "Administração",
+          "Comunicações",
+          "Selo digital"
+        ],
+        [
+          "Relatórios",
+          "PEX Selos - TJ/SP"
+        ],
+        [
+          "Relatórios",
+          "Demonstrativo financeiro dos selos digitais"
+        ],
+        [
+          "Relatórios",
+          "Auditoria Selos TJ - Orion"
+        ]
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Família COAF (2 caminhos)",
+      "chains": [
+        [
+          "Administração",
+          "Comunicações",
+          "COAF"
+        ],
+        [
+          "Configurações",
+          "Modelos de impressão",
+          "Enquadramento COAF"
+        ]
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Variações de singular/plural e caixa em Comissões (Administração > Comissões)",
+      "chains": [
+        [
+          "Administração",
+          "Comissões",
+          "Consulta indicação de mensalistas"
+        ],
+        [
+          "Administração",
+          "Comissões",
+          "Planos de comissão"
+        ],
+        [
+          "Administração",
+          "Comissões",
+          "Plano diferenciado Mensalistas"
+        ],
+        [
+          "Administração",
+          "Comissões",
+          "Planos indicação de mensalista"
+        ]
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Calendário em dois locais",
+      "chains": [
+        [
+          "Administração",
+          "Calendário"
+        ]
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Credenciais e segurança do usuário",
+      "chains": [
+        [
+          "Olá, [usuário]",
+          "Alterar senha"
+        ],
+        [
+          "Olá, [usuário]",
+          "Autenticação em dois fatores"
+        ],
+        [
+          "Olá, [usuário]",
+          "Cadastrar biometria"
+        ],
+        [
+          "Configurações",
+          "Usuários"
+        ],
+        [
+          "Configurações",
+          "Perfis e permissões de acesso"
+        ]
+      ]
+    }
+  ],
+  "crossCheck": {
+    "mismatches": [],
+    "excluded": [
+      "captura 19-9.png (9+)",
+      "link de raiz \"0\""
+    ],
+    "checkedSubmenus": 19
+  }
+}

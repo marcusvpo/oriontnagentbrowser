@@ -482,6 +482,45 @@ export async function invokeAgyJson<T = Record<string, unknown>>(
 }
 
 /**
+ * Inferência de TEXTO livre no `agy` (resposta de uma linha, ex.: Camada 3 da ADR-037, que valida a resposta por
+ * `parseClosedSemanticAnswer`). Mesmas convenções de `invokeAgyJson`: `agyInferenceSemaphore`, timeout e `null` em
+ * qualquer falha (nunca bloqueia o passo).
+ */
+export async function invokeAgyText(req: AgyInvocationRequest, customTransport?: AgyTransportFn): Promise<string | null> {
+  return agyInferenceSemaphore.runExclusive(async () => {
+    try {
+      const transport = customTransport ?? testTransportOverride;
+      if (transport) {
+        const raw = await transport(req);
+        if (raw == null) return null;
+        if (typeof raw === 'string') return raw;
+        if (typeof (raw as Response)?.text === 'function') {
+          const resp = raw as Response;
+          return resp.ok ? await resp.text() : null;
+        }
+        if (typeof raw === 'object' && 'ok' in raw && 'stdout' in raw) {
+          const execRes = raw as AgyRawExecutionResult;
+          if (!execRes.ok) return null;
+          const s = extractAgyStreamResult(execRes.stdout);
+          return s ? (s.ok ? s.response : null) : execRes.stdout || null;
+        }
+        return null;
+      }
+      const result = await spawnAgyProcess(req);
+      if (!result.ok) {
+        console.warn(`   ⚠ [agy-client] Degradação graciosa (${result.errorReason || 'falha na execução'}): seguindo sem bloqueio fatal.`);
+        return null;
+      }
+      const s = extractAgyStreamResult(result.stdout);
+      if (s) return s.ok ? s.response : null;
+      return result.stdout || null;
+    } catch {
+      return null;
+    }
+  });
+}
+
+/**
  * Grava o buffer PNG gerado pelo Sharp em `auditoria/cache/som-worker-${workerId}-${Date.now()}.png`,
  * executa a função de inferência visual com o caminho do arquivo e remove o arquivo temporário
  * obrigatoriamente no bloco `finally` (ADR-031).

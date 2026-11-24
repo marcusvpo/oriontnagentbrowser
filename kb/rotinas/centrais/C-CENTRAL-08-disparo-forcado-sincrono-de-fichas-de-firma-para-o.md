@@ -35,7 +35,7 @@ Por padrão de economia de rede, o Orion TN acumula os cartões de autógrafo ab
 
 #### Passo a passo:
 1. No **Orion TN**, certifique-se de que a ficha de firma do cliente está salva com imagem da assinatura e biometria.
-2. Acesse o menu **Administração > Comunicações > Outras Comunicações > E-Notariado**.
+2. Acesse o menu **Administração > Comunicações > Outras comunicações**.
 3. Na aba **Cartões de Autógrafo / Fichas de Firma**, informe o CPF ou número da ficha do cliente.
 4. Selecione o registro na grade e clique no botão **Gerar / Enviar Imediatamente**.
 5. O sistema executará o upload síncrono do payload com as assinaturas para os servidores do Colégio Notarial.

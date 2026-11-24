@@ -34,9 +34,9 @@ versao_sistema: Orion TN 6.0
 A alteração de cartões de autógrafo é controlada por diretivas de segurança para impedir adulterações em firmas registradas. O operador deve estar vinculado ao grupo específico do balcão.
 
 #### Passo a passo:
-1. Com perfil de administrador, acesse no **Orion TN** o menu **Configurações > Segurança > Usuários**.
-2. Selecione o operador e clique em **Editar**.
-3. Na aba **Grupos de Trabalho**, certifique-se de marcar a opção **Grupo Firmas**.
+1. Com perfil de administrador, acesse no **Orion TN** o menu **Configurações > Usuários**.
+2. Selecione o operador e clique em **Alterar**.
+3. Na tela **Alteração de usuário**, marque a opção **Escrevente de Firmas**.
 4. Na aba **Permissões Específicas**, expanda o módulo **Balcão de Firmas** e habilite:
 5. **[x] Alterar Dados da Ficha de Firma**
 6. **[x] Inserir Observações / Alertas no Cartão de Assinatura**

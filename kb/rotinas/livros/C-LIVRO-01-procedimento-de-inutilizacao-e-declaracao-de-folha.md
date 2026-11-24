@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 A continuidade cronológica dos livros notariais é princípio basilar. Havendo salto ou avaria física de folha, o Orion TN permite registrar a inutilização com certidão circunstanciada, preservando a trilha contábil e fiscal.
 
 #### Passo a passo:
-1. Acesse o menu **Livros > Gestão e Controle de Folhas** (ou **Notas > Livros**).
+1. Acesse o menu **Administração > Controle de Livros**.
 2. Selecione o Livro Notarial ativo no qual ocorreu o salto.
 3. Na grade de controle de páginas, localize as folhas que ficaram em branco (ex.: Folha 089 V e Folha 090 F).
 4. Selecione as páginas correspondentes e clique no botão **Ações > Inutilizar Folha / Declarar Sem Efeito**.

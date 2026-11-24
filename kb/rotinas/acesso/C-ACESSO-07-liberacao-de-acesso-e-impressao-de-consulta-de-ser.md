@@ -34,13 +34,13 @@ versao_sistema: Orion TN 6.0
 O relatório de Serviços Praticados é uma ferramenta essencial de prestação de contas no encerramento do turno de balcão, permitindo conferir a quantidade de autenticações, reconhecimentos de firma e certidões expedidas. Quando operadores com perfil auxiliar assumem o caixa do balcão, o perfil de acesso precisa ter essa prerrogativa liberada individualmente ou pelo grupo funcional.
 
 #### Passo a passo:
-1. No Orion TN, acesse o menu **Configurações** > **Grupos e Perfis de Acesso** (ou **Usuários** para ajuste individual).
+1. No Orion TN, acesse o menu **Configurações** > **Perfis e permissões de acesso** (ou **Usuários** para ajuste individual).
 2. Localize o grupo **Auxiliares de Cartório** e clique em **Alterar**.
 3. Na árvore de permissões, expanda **Balcão de Firmas** > pasta **Consultas e Relatórios**.
 4. Localize e marque a opção **[x] Consulta de Serviços Praticados** e o subitem **[x] Permitir Impressão de Extrato Operacional**.
 5. Se a serventia restringe a visualização financeira, desmarque a opção **Exibir Valores de Emolumentos e Caixa Líquido** para apresentar apenas o quantitativo físico de atos.
 6. Clique no botão **Salvar**.
-7. Oriente o colaborador a fechar o módulo e reabri-lo; o menu **Balcão de Firmas** > **Relatórios** > **Serviços Praticados** estará imediatamente disponível.
+7. Oriente o colaborador a fechar o módulo e reabri-lo; o menu **Firmas** > **Consultas** > **Serviços praticados** estará imediatamente disponível.
 
 * **Dica:** Para maior controle de gestão, utilize a restrição de visualização por operador, garantindo que cada atendente visualize apenas os atos que ele próprio selou e praticou.
 ---

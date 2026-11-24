@@ -35,8 +35,8 @@ Em livros encadernados de termos de comparecimento (DUT/CRV e autenticidade), n�
 
 #### Passo a passo:
 1. No caso de **Erro de Grafia no Termo Já Impresso**:
-2. Acesse **Firmas > Fichas de Firmas**, localize o cliente e corrija os dados cadastrais.
-3. Acesse **Firmas > Livros > Livro de Termos de Comparecimento** e selecione o termo emitido.
+2. Acesse **Firmas > Cadastros > Cartão de assinatura**, localize o cliente e corrija os dados cadastrais.
+3. Acesse **Administração > Controle de Livros** (para o livro de termos de comparecimento) e selecione o termo emitido.
 4. Clique no botão **Imprimir Etiqueta de Ressalva** com a opção **Reutilização da Folha do Termo** ativada.
 5. Cole a etiqueta retificadora sobre a folha física do livro.
 6. No caso de **Salto de Numeração**:

@@ -60,10 +60,10 @@ versao_sistema: Orion TN 6.0
 O cadastro de cartão de assinatura (ficha de autógrafo/firma) registra a qualificação completa, dados documentais e parâmetros civis da pessoa física para subsidiar os atos de reconhecimento de firma e lavratura de escrituras/procurações. O Orion TN disponibiliza buscas inteligentes para reaproveitamento ágil de cadastros pré-existentes na base de dados notarial e validações em tempo real de consistência cadastral.
 
 #### Passo a passo:
-1. Acesse o menu principal **Firmas > Cadastros > Cartão de Assinatura**.
+1. Acesse o menu principal **Firmas > Cadastros > Cartão de assinatura**.
 2. Na tela de gerenciamento de cartões de assinatura, clique no botão **Adicionar**.
 3. O sistema abrirá o formulário de cadastro dinâmico com os campos disponíveis para preenchimento.
-4. Identifique os campos com asterisco (**\***), que indicam preenchimento obrigatório pelo sistema (por padrão: **Nome** e **CPF**, além de eventuais campos customizados pela serventia).
+4. Identifique os campos com asterisco (**\***), que indicam preenchimento obrigatório pelo sistema (por padrão: **Nome** e **CPF ou CIN**, além de eventuais campos customizados pela serventia).
 5. Para reaproveitar dados já cadastrados e agilizar o atendimento:
    * No campo **Nome**, digite o nome completo ou parcial e clique no ícone da **Lupa** ao lado do campo; ou
    * No campo **CPF**, digite o número do documento e clique no ícone da **Lupa** ao lado do campo para uma busca exata.

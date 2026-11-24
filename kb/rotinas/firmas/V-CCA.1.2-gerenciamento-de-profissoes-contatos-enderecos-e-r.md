@@ -60,18 +60,18 @@ versao_sistema: Orion TN 6.0
 O cartão de assinatura permite estruturar de forma minuciosa as formas de contato (pessoal, residencial, comercial), múltiplos endereços e os vínculos societários/representativos com pessoas jurídicas, além de exigir a seleção padronizada de profissões na tabela do sistema para garantir integridade nas certidões e relatórios.
 
 #### Passo a passo:
-1. Na tela de cadastro do **Cartão de Assinatura**, localize o campo **Profissão**:
+1. Acesse **Firmas > Cadastros > Cartão de assinatura**, clique em **Adicionar** e localize o campo **Profissão**:
    * **Atenção:** O campo profissão utiliza pesquisa obrigatória por tabela. Se você apenas digitar um texto livre e não selecionar um item da lista suspensa da lupa, o sistema **NÃO** gravará a profissão na ficha.
    * Digite o nome da profissão e clique na **Lupa** para buscar.
    * Se a profissão for localizada, clique sobre ela para selecioná-la.
    * Se a profissão **NÃO** existir no banco de dados: selecione o texto digitado, copie com **Ctrl+C**, clique no botão de adição (**+**) ao lado do campo, cole/digite o nome da nova profissão, clique em **Concluir** para registrar a profissão no sistema e, em seguida, selecione-a na lista de busca.
-2. Na seção de **Contatos (E-mails e Telefones)**:
+2. Na seção **Contato**:
    * **E-mails**: Clique no botão de adição (**+**) para incluir novos endereços de e-mail (ex.: E-mail Pessoal, E-mail Comercial). Para remover um registro incorreto, selecione e clique no botão de subtração (**-**).
    * **Telefones**: Clique no botão de adição (**+**) para inserir telefones (Celular, Comercial, Residencial). Marque a caixa de seleção **Principal** no telefone prioritário para que ele tenha preferência nas telas de consulta e identificação do sistema.
-3. Na seção de **Endereços**:
+3. Na seção **Endereço**:
    * Clique no botão de adição (**+**) para inserir os dados do logradouro (tipo de endereço, CEP, rua, número, complemento, bairro, município e UF).
    * Defina qual é o endereço **Principal** marcando a opção correspondente.
-4. Na seção de **Representação de Pessoa Jurídica (Empresas)**:
+4. Na seção **Pessoa Jurídica - Representante**:
    * Se a pessoa cadastrada assinar ou representar empresas (como administradora, sócia ou procuradora), clique no botão de adição (**+**).
    * Preencha o **Nome / Razão Social** da empresa e o **CNPJ** (campo de preenchimento obrigatório para efetivar o vínculo).
    * Caso haja mais de uma empresa vinculada à pessoa, marque a opção de empresa **Padrão** se desejar que essa PJ seja prioritária.

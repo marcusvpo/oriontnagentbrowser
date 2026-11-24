@@ -97,7 +97,9 @@ export const ROUTE_LABEL_SYNONYMS: RouteLabelSynonym[] = [
   // Documento apresentado (ADR-035, Raio-X de M-36.0): o filtro de texto chama-se "Pesquisar por documento apresentado"
   { route: '#/documentoApresentado', documented: 'Pesquisar por descrição', real: ['Pesquisar por documento apresentado'], kind: 'field', evidence: 'único campo de texto do filtro da listagem (os demais são "Inativos" e a quantidade por página); lido ao vivo no Raio-X' },
   // Cadastro de natureza: a busca por descrição é o campo de texto "Natureza" do filtro
-  { route: '#/natureza', documented: 'Pesquisar por descrição', real: ['Natureza'], kind: 'field', evidence: 'único campo de texto do filtro; os demais são seleções e marcação' }
+  { route: '#/natureza', documented: 'Pesquisar por descrição', real: ['Natureza'], kind: 'field', evidence: 'único campo de texto do filtro; os demais são seleções e marcação' },
+  // Cadastro de livro (M-22.0): o campo select chama-se "Tipo livro"
+  { route: '#/livro/cadastrar', documented: 'Tipo de Livro', real: ['Tipo livro'], kind: 'field', evidence: 'campo select "Tipo livro" em #/livro/cadastrar (Raio-X de M-22.0; único campo de tipologia de livro)' }
 ];
 
 const normalize = (text: string): string =>

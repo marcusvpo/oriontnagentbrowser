@@ -4,11 +4,11 @@ titulo: 'Geração de Termos de Abertura e Encerramento de Livros Notariais'
 modulo: livros
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-18'
+  data_execucao: '2026-11-24'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: read_only
-  worker_id: 'worker-1'
+  worker_id: 'worker-3'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
@@ -16,6 +16,15 @@ auditoria_ui:
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
+  auto_cura:
+    acionada: true
+    divergencias_detectadas:
+      - passo: 1
+        alvo_documentado: 'Livros > Gestão de Livros Notariais'
+        elemento_real: '(não localizado na tela)'
+        camada: target_not_found
+        confianca: 0
+        texto_alterado: false
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -51,9 +60,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-24'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Livros > Gestão de Livros Notariais" não existe na árvore de navegação real do Orion TN. O menu raiz "Livros" não existe na barra de navegação (menus lidos: "Dashboard", "Firmas", "Notas", "Relatórios", "Administ'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-18T02:28:58.070Z'
+    capturado_em: '2026-11-24T17:11:46.794Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -73,7 +99,7 @@ auditoria_ui:
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Livros > Gestão de Livros Notariais" não existe na árvore de navegação real do Orion TN. O menu raiz "Livros" não existe na barra de navegação (menus lidos: "Dashboard", "Firmas", "Notas", "Relatórios", "Administração", "Históricos", "Configurações", "9+", "0", "Olá, Marcus", "Olá Marcus , seja bem-vindo!"). Nenhum item de nome igual ou parecido existe em outro ponto da árvore (140 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. A tela alcançada por equivalência canônica explícita (Camada 1) ("Livros > Gestão de Livros Notariais" -> "Administração > Controle de Livros" (#/livro)) não contém "Escrituras", "Procurações", "Testamentos", "Novo Livro (Abertura)", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Controle de livros", "Número", "Período de abertura", "Período de encerramento", "Status", "Tipo livro", "Inativos", "Filtrar", "Limpar", "Tipo", "Sigla", "Nº Livro", "Página atual", "Lado atual". Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
 > Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
@@ -94,7 +120,9 @@ Todo livro notarial exige termos de abertura (no frontispício) e de encerrament
 #### Passo a passo (texto original preservado):
 1. Acesse o menu **Livros > Gestão de Livros Notariais**.
    [aqui vai a print "passo-01.png"]
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Caminho de menu não encontrado na árvore de navegação real: Livros > Gestão de Livros Notariais
+   > [!NOTE] **Demarcações na print:** (1) **Administração** · (2) **Controle de Livros**
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Livros > Gestão de Livros Notariais"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Cura de navegação descartada pela coerência pós-pouso: A tela alcançada por equivalência canônica explícita (Camada 1) ("Livros > Gestão de Livros Notariais" -> "Administração > Controle de Livros" (#/livro)) não contém "Escrituras", "Procurações", "Testamentos", "Novo Livro (Abertura)", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Controle de livros", "Número", "Período de abertura", "Período de encerramento", "Status", "Tipo livro", "Inativos", "Filtrar", "Limpar", "Tipo", "Sigla", "Nº Livro", "Página atual", "Lado atual".
 2. Selecione o tipo de livro (ex.: **Escrituras**, **Procurações** ou **Testamentos**).
 3. Para **Novo Livro (Abertura)**:
 4. Clique em **Cadastrar Novo Livro**, informe o número, total de folhas e selecione **Emitir Termo de Abertura**.

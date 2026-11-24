@@ -33,7 +33,7 @@ versao_sistema: Orion TN 6.0
 Quando o operador aciona a rotina de encerramento de livro sem atentar para o saldo de folhas vagas, o sistema bloqueia novos atos. O administrador pode cancelar a operação e reabrir o livro.
 
 #### Passo a passo:
-1. Com login de administrador ou substituto, acesse **Configurações > Livros Notariais > Cadastro e Encerramento**.
+1. Com login de administrador ou substituto, acesse **Administração > Controle de Livros**.
 2. Localize o livro que consta com status `ENCERRADO`.
 3. Selecione o livro e clique no botão **Ações > Reabrir Livro Notarial / Cancelar Encerramento**.
 4. Informe a justificativa formal (ex.: *"Cancelamento de encerramento precoce para consumo dos termos restantes"*).

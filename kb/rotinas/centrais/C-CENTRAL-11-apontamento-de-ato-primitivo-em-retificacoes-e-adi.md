@@ -35,7 +35,7 @@ versao_sistema: Orion TN 6.0
 O Registro Central de Testamentos e Outros (RCTO) exige que escrituras que modifiquem negócios pretéritos tragam em seus metadados a remissão exata ao livro, folha e data do ato primitivo retificado.
 
 #### Passo a passo:
-1. Abra o protocolo da escritura de rerratificação no menu **Notas > Protocolo**.
+1. Abra o protocolo da escritura de rerratificação no menu **Notas > Consultas > Protocolos**.
 2. Navegue até a aba **Dados do Ato / Retificação**.
 3. Marque a opção **Este Ato Retifica / Adita Negócio Jurídico Anterior**.
 4. Preencha obrigatoriamente os campos:

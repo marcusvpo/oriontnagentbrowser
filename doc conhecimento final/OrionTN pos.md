@@ -517,7 +517,7 @@ video:
 Esta consulta permite localizar pedidos de balcão de firmas que foram emitidos pelos atendentes mas permanecem pendentes de liquidação financeira no Caixa, impedindo o fechamento contábil no Livro Caixa Web.
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Consultas > Reconhecimento de Firmas**.
+1. Acesse o menu **Firmas > Consultas > Reconhecimentos de firmas**.
 2. No campo de filtro **Período**, defina a data inicial e final do atendimento.
 3. No campo **Status**, selecione os filtros **"Aguardando Pagamento"** e **"Iniciado"**.
 4. Clique no botão **Filtrar** para listar todas as comandas pendentes de liquidação.
@@ -863,7 +863,7 @@ video:
 A abertura do Pedido de Firmas é a primeira etapa do atendimento de balcão, criando a ordem de serviço que receberá a vinculação dos signatários e os atos a serem executados.
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Reconhecimento de Firmas** ou **Firmas > Balcão de Firmas**.
+1. Acesse o menu **Firmas > Reconhecimento de firmas**.
 2. Na parte superior da tela de atendimento, clique no botão de **"+" (Adicionar Novo Pedido)**.
 3. Uma mensagem de confirmação será exibida na tela; clique em **Confirmar** para inicializar a comanda.
 4. O sistema gerará o número sequencial do pedido e liberará os campos de pesquisa de ficha por **Nome** ou **CPF**.
@@ -913,10 +913,10 @@ video:
 Permite enviar os dados e imagens das fichas de cartão de assinatura para a base nacional do e-Notariado (CCN), operando via transmissão em lote manual ou agendamento automático em segundo plano.
 
 #### Passo a passo:
-1. **Para Envio Manual:** Acesse **Administração > Comunicações > Outras Comunicações**.
+1. **Para Envio Manual:** Acesse **Administração > Comunicações > Outras comunicações**.
 2. Clique no botão **Gerar**, selecione o tipo **"E-notariado"** e defina o período das fichas cadastradas.
 3. Selecione as fichas listadas, clique em **Processar** e em seguida em **Finalizar** para concluir a transmissão.
-4. **Para Configurar o Envio Automático:** Acesse **Configurações > Parametrizações > Comunicações**.
+4. **Para Configurar o Envio Automático:** Acesse **Configurações > Parametrizações** e selecione a aba **Comunicações**.
 5. Selecione a opção **Automático**, defina a periodicidade (diária ou semanal), insira o **Token do Cartório** (obtido na plataforma do e-Notariado), marque o status como **"Ativo"** e clique em **Concluir**.
 
 * **Importante:** Mantenha o token de integração do e-Notariado sempre atualizado para evitar rejeições no processamento em lote.
@@ -1316,8 +1316,8 @@ video:
 Esta rotina permite auditar a fila de selos gerados na serventia e forçar a transmissão manual em lote daqueles que permaneceram com status pendente de sincronização com o webservice do Tribunal de Justiça.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Comunicações > Selo Digital** (ou utilize o atalho de **Selo Digital** na barra superior).
-2. No campo **Data do Ato**, informe o período desejado da pesquisa.
+1. Acesse o menu **Administração > Comunicações > Selo digital** (ou utilize o atalho de **Selo Digital** na barra superior).
+2. No campo **Data do ato**, informe o período desejado da pesquisa.
 3. No campo **Status**, selecione os filtros **"Não comunicado"** e **"Comunicação pendente"**.
 4. Clique no botão **Filtrar** para listar todos os selos que aguardam transmissão.
 5. Confira a listagem na tela e clique no botão **Comunicar** para sincronizar o lote com a Corregedoria Geral da Justiça.
@@ -1470,7 +1470,7 @@ video:
 A rotina de distribuição transfere a custódia de produtos, selos físicos e papéis de segurança do almoxarifado central do cartório diretamente para colaboradores individuais, grupos ou estações de trabalho específicas.
 
 #### Passo a passo:
-1. No módulo **Orion Estoque**, acesse o menu **Administração > Distribuição**.
+1. No **Orion TN**, acesse o menu **Administração > Controle de Estoque > Distribuição**.
 2. Na aba **Distribuição**, selecione a **Categoria** e o **Produto** desejado para que o sistema relacione os lotes disponíveis.
 3. Escolha a série e sequência que deseja distribuir clicando na seta de transferência para a direita ou use o botão **"+"** para inclusão manual.
 4. No campo **Portador**, defina o destinatário do lote, selecionando entre **Usuários Individuais**, **Grupos de Usuários** ou **Máquinas (estações)**.
@@ -1569,9 +1569,9 @@ video:
 O relatório de índice por livro compila a relação cronológica ou alfabética de todos os atos lavrados em livros específicos da serventia, servindo de elemento obrigatório para encadernação e consultas históricas.
 
 #### Passo a passo:
-1. Acesse o menu principal do sistema em **Relatórios > Índice por Livro**.
-2. Na tela de parâmetros, informe o **Período** de referência e defina os campos **Livro Inicial** e **Livro Final**.
-3. No campo de ordenação, selecione o critério desejado: **Nome** (ordem alfabética das partes), **Natureza** ou **Livro e Folha** (ordem sequencial).
+1. Acesse o menu principal do sistema em **Relatórios > Índice por livro**.
+2. Na tela de parâmetros, informe o **Período** de referência e preencha os números inicial e final no campo **Livro**.
+3. No campo de ordenação, selecione o critério desejado: **Nome** (ordem alfabética das partes), **Natureza** ou **Livro e folha** (ordem sequencial).
 4. Clique no botão **Imprimir**.
 5. Uma nova guia será aberta no navegador com o relatório formatado para conferência e impressão definitiva.
 
@@ -1722,7 +1722,7 @@ A rotina de controle de livros permite resgatar posições ou folhas notariais m
 
 #### Passo a passo:
 1. Acesse o menu **Administração > Controle de Livros**.
-2. No campo **Número do Livro**, informe o livro desejado e clique no ícone do **Livro Pequeno** para carregar suas informações detalhadas.
+2. No campo **Número**, informe o livro desejado e clique no ícone do **Livro Pequeno** para carregar suas informações detalhadas.
 3. Na janela de controle exibida, clique sobre a aba **Inutilizados**.
 4. Localize e selecione a posição numérica ou folha que deseja resgatar.
 5. Clique nas **Setas de Movimentação** para transferir a posição selecionada de volta para o status ativo de uso.
@@ -2089,8 +2089,8 @@ O relatório do Livro de Protocolo reúne a sequência formal de todos os atos n
 1. Acesse o menu principal do sistema em **Relatórios > Livro Protocolo**.
 2. Na tela de parâmetros, informe o **Período** de apuração no qual deseja visualizar os protocolos recepcionados.
 3. Defina a modalidade de impressão:
-   * **Para Rascunho / Conferência:** Marque a caixa de seleção **"Rascunho"** para emitir listagem de trabalho sem numeração definitiva de livro físico.
-   * **Para Impressão Definitiva:** Desmarque a opção de rascunho e preencha os campos **Livro** e **Folha Inicial** correspondentes à encadernação oficial.
+   * Para Rascunho / Conferência: marque a caixa de seleção **Rascunho (não exibe livro e página)** para emitir listagem de trabalho sem numeração definitiva de livro físico.
+   * Para Impressão Definitiva: desmarque a opção **Rascunho (não exibe livro e página)** e preencha os campos **Livro atual** e **Página atual** correspondentes à encadernação oficial.
 4. Clique no botão **Imprimir**.
 5. O sistema gerará o documento formatado em uma nova guia do navegador, pronto para conferência interna ou arquivamento permanente.
 
@@ -2346,25 +2346,25 @@ Esta rotina orienta sobre o fluxo completo de gerenciamento do Sinal Público, d
 
 #### Passo a passo:
 ##### Parte 1: Cadastrar um Novo Sinal Público
-1. Acesse o menu **Firmas > Cadastros > Sinal Público**.
+1. Acesse o menu **Firmas > Cadastros > Sinal público**.
 2. Na tela de consulta, clique no botão **Adicionar**.
 3. Preencha as informações do cartório de origem. Os campos marcados com asterisco (**\***) são de preenchimento obrigatório:
    * Defina se o sinal público é **recebido** ou **enviado**.
    * Informe a **data de recebimento/envio**.
    * Ao inserir o **CEP**, o sistema preencherá automaticamente os campos de endereço (Logradouro, Cidade, UF, etc.).
-4. Na aba **Pessoas**, preencha o nome e o cargo do escrevente. Para adicionar mais de um, clique no botão **+**.
-5. Na aba **Arquivos Anexos**, você pode:
+4. Na seção **Pessoas**, preencha o **Nome** e o **Cargo** do escrevente. Para adicionar mais de um, clique no botão **+**.
+5. Na seção **Arquivos anexos**, você pode:
    * Clicar em **Selecionar** para anexar documentos já existentes (PDF, JPG, etc.).
    * Clicar em **Capturar** para tirar uma foto do escrevente com a webcam.
    * Clicar em **Digitalizar** para escanear um documento na hora.
 6. Após preencher todas as informações, clique em **Concluir**.
 
 ##### Parte 2: Consultar e Gerenciar Sinais Públicos
-1. Acesse o menu **Firmas > Cadastros > Sinal Público**.
+1. Acesse o menu **Firmas > Cadastros > Sinal público**.
 2. Utilize os campos de filtro na parte superior da tela para buscar o registro desejado. As opções de busca incluem:
-   * **Pesquisar por cartório**;
-   * **Pesquisar por nº sinal público**;
-   * **Pesquisar por data de digitação**;
+   * **Cartório**;
+   * **Nº Sinal**;
+   * **Data digitação**;
    * **Inativos**.
 3. Clique em **Filtrar** para aplicar a busca.
 4. O sistema listará os resultados abaixo. Na linha de cada registro, você encontrará ícones de atalho para:
@@ -2427,8 +2427,8 @@ video:
 Esta rotina detalha o procedimento para dar entrada (Aquisição) de produtos no módulo Orion Stock, o primeiro passo para o controle de insumos.
 
 #### Passo a passo:
-1. Acesse o módulo **Orion Stock**.
-2. Navegue até o menu **Administração > Aquisição**.
+1. No **Orion TN**, acesse o menu **Administração > Controle de Estoque**.
+2. Acesse **Aquisição** (caminho completo **Administração > Controle de Estoque > Aquisição**) e clique no botão **Adicionar**.
 3. Preencha os campos da aquisição. Apenas os campos com asterisco (**\***) são obrigatórios. A **Data de aquisição** pode ser alterada.
 4. Selecione a **Categoria** do produto (ex.: "Selos" ou "Papel de Segurança").
 5. Selecione o **Produto** específico (ex.: "Reconhecimento por autenticidade").
@@ -2494,7 +2494,7 @@ video:
 O Orion Stock oferece ferramentas de consulta para rastrear cada item do estoque, seja de forma geral ou detalhada.
 
 #### Passo a passo:
-1. No módulo **Orion Stock**, acesse o menu **Administração > Consultas > Estoque**.
+1. No **Orion TN**, acesse o menu **Administração > Controle de Estoque > Consultas**.
 2. Utilize os filtros disponíveis, como **Categoria**, **Produto**, **Data**, entre outros, para refinar a pesquisa.
 3. Selecione o **Tipo de Consulta**:
    * **Resumida:** Mostra os intervalos de numeração e seus status de forma consolidada (ex.: "Selo 1 a 15, consumido"; "Selo 51 a 100, em estoque").
@@ -2824,7 +2824,7 @@ video:
 Procedimento para selecionar a natureza das custas notariais, estabelecer a modalidade de cobrança (integral, diligência, frações) e determinar a base de cálculo do ato com base na apuração automática do maior valor entre a avaliação venal e o valor declarado do negócio jurídico.
 
 #### Passo a passo:
-1. No campo **Natureza** (ou **Item**), selecione o ato notarial desejado utilizando uma das seguintes formas:
+1. Acesse o menu **Notas > Orçamento completo** e, no campo **Natureza** (ou **Item**), selecione o ato notarial desejado utilizando uma das seguintes formas:
    * **Digitação com autocompletar**: digite o nome do ato (ex.: "Escritura com valor declarado") e selecione o item correspondente sugerido na barra de rolagem suspensa; ou
    * **Listagem completa por Tab**: deixe o campo do item em branco e pressione a tecla **Tab** no teclado. O sistema abrirá uma janela com a relação completa de naturezas disponíveis; localize o item desejado e dê um **duplo clique** sobre ele.
 2. No campo **Quantidade**, informe a quantidade de cálculos ou atos a serem computados na composição do orçamento.
@@ -2894,7 +2894,7 @@ video:
 Procedimento para apurar o imposto de transmissão (ITBI) e utilizar a ferramenta da Tabela do Registro de Imóveis (acessada pelo ícone de cifrão) no **ORION TN** para incluir detalhadamente custas acessórias registrais, tais como prenotações, certidões e averbações, considerando o ISS da respectiva comarca.
 
 #### Passo a passo:
-1. Na seção de **ITBI**, confira o cálculo apresentado:
+1. Acesse o menu **Notas > Orçamento completo** e, na seção de **ITBI**, confira o cálculo apresentado:
    * O sistema sugere a cidade e a alíquota padrão configuradas no cartório.
    * Para alterar, digite o nome de outra cidade cadastrada (para carregar a alíquota vinculada) ou digite diretamente o percentual no campo **Alíquota** para que o sistema refaça o cálculo do ITBI instantaneamente.
 2. Na seção de **Registro de Imóveis**, observe o valor sugerido automaticamente com base na base de cálculo do ato.
@@ -2962,7 +2962,7 @@ video:
 Procedimento para gerenciar e recalcular os valores do Registro de Imóveis (via tabela auxiliar ou liberação para digitação manual externa) e adicionar múltiplas linhas de atos notariais (como compra e venda cumulada com reserva de usufruto) dentro do mesmo Orçamento Completo no **ORION TN**.
 
 #### Passo a passo:
-1. Para alterar o valor do **Registro de Imóveis** calculado pela tabela auxiliar:
+1. Acesse o menu **Notas > Orçamento completo**. Para alterar o valor do **Registro de Imóveis** calculado pela tabela auxiliar:
    * Observe que o campo na tela principal permanece bloqueado para edição direta.
    * Clique novamente no ícone de **Cifrão ($)** ao lado do campo para reabrir a janela da **Tabela do Registro de Imóveis**.
    * Realize as modificações necessárias: altere valores, quantidades ou remova atos desnecessários.
@@ -3032,7 +3032,7 @@ video:
 Procedimento para lançar serviços e despesas extranotariais no Orçamento Completo do **ORION TN** e cadastrar novos serviços no sistema, parametrizando se o item terá valor livre digitável ou valor fixo congelado pela tabela de custas.
 
 #### Passo a passo:
-1. Na seção inferior de **Outros Valores / Valores Extranotariais**, clique no campo **Serviço**.
+1. Acesse o menu **Notas > Orçamento completo** e, na seção inferior de **Outros Valores / Valores Extranotariais**, clique no campo **Serviço**.
 2. Digite a descrição do serviço desejado (ex.: "Diligência") e selecione-o na lista suspensa obrigatória.
 3. Para serviços com valor livre (sem valor fixo), digite o montante a ser cobrado no campo **Valor**.
 4. Para adicionar novas linhas de despesas, clique no botão **+** (Mais).
@@ -7752,7 +7752,7 @@ video:
 Procedimento indispensável que antecede a confecção e impressão definitiva do livro de notas. A geração do recibo formaliza a data de lavratura do ato, calcula automaticamente a folha inicial do livro com base no último ato lavrado, gera o **Selo Digital**, transmite as informações ao **Tribunal de Justiça (TJ)** e executa as rotinas financeiras de verbas e comissões.
 
 #### Passo a passo:
-1. No dia agendado para o comparecimento das partes e assinatura do ato, acesse o protocolo em **Notas > Protocolo** e clique em **Editar**.
+1. No dia agendado para o comparecimento das partes e assinatura do ato, acesse o protocolo em **Notas > Consultas > Protocolos** e clique em **Editar**.
 2. No campo **Livro**, selecione ou informe o número do livro de notas que será utilizado.
 3. Pressione a tecla **Tab** no campo do livro. O sistema calculará e preencherá automaticamente:
    * **Folha Inicial:** Calculada com base no último ato lavrado somando uma unidade (+1 folha).
@@ -8816,10 +8816,10 @@ video:
 O cadastro de cartão de assinatura (ficha de autógrafo/firma) registra a qualificação completa, dados documentais e parâmetros civis da pessoa física para subsidiar os atos de reconhecimento de firma e lavratura de escrituras/procurações. O Orion TN disponibiliza buscas inteligentes para reaproveitamento ágil de cadastros pré-existentes na base de dados notarial e validações em tempo real de consistência cadastral.
 
 #### Passo a passo:
-1. Acesse o menu principal **Firmas > Cadastros > Cartão de Assinatura**.
+1. Acesse o menu principal **Firmas > Cadastros > Cartão de assinatura**.
 2. Na tela de gerenciamento de cartões de assinatura, clique no botão **Adicionar**.
 3. O sistema abrirá o formulário de cadastro dinâmico com os campos disponíveis para preenchimento.
-4. Identifique os campos com asterisco (**\***), que indicam preenchimento obrigatório pelo sistema (por padrão: **Nome** e **CPF**, além de eventuais campos customizados pela serventia).
+4. Identifique os campos com asterisco (**\***), que indicam preenchimento obrigatório pelo sistema (por padrão: **Nome** e **CPF ou CIN**, além de eventuais campos customizados pela serventia).
 5. Para reaproveitar dados já cadastrados e agilizar o atendimento:
    * No campo **Nome**, digite o nome completo ou parcial e clique no ícone da **Lupa** ao lado do campo; ou
    * No campo **CPF**, digite o número do documento e clique no ícone da **Lupa** ao lado do campo para uma busca exata.
@@ -8902,18 +8902,18 @@ video:
 O cartão de assinatura permite estruturar de forma minuciosa as formas de contato (pessoal, residencial, comercial), múltiplos endereços e os vínculos societários/representativos com pessoas jurídicas, além de exigir a seleção padronizada de profissões na tabela do sistema para garantir integridade nas certidões e relatórios.
 
 #### Passo a passo:
-1. Na tela de cadastro do **Cartão de Assinatura**, localize o campo **Profissão**:
+1. Acesse **Firmas > Cadastros > Cartão de assinatura**, clique em **Adicionar** e localize o campo **Profissão**:
    * **Atenção:** O campo profissão utiliza pesquisa obrigatória por tabela. Se você apenas digitar um texto livre e não selecionar um item da lista suspensa da lupa, o sistema **NÃO** gravará a profissão na ficha.
    * Digite o nome da profissão e clique na **Lupa** para buscar.
    * Se a profissão for localizada, clique sobre ela para selecioná-la.
    * Se a profissão **NÃO** existir no banco de dados: selecione o texto digitado, copie com **Ctrl+C**, clique no botão de adição (**+**) ao lado do campo, cole/digite o nome da nova profissão, clique em **Concluir** para registrar a profissão no sistema e, em seguida, selecione-a na lista de busca.
-2. Na seção de **Contatos (E-mails e Telefones)**:
+2. Na seção **Contato**:
    * **E-mails**: Clique no botão de adição (**+**) para incluir novos endereços de e-mail (ex.: E-mail Pessoal, E-mail Comercial). Para remover um registro incorreto, selecione e clique no botão de subtração (**-**).
    * **Telefones**: Clique no botão de adição (**+**) para inserir telefones (Celular, Comercial, Residencial). Marque a caixa de seleção **Principal** no telefone prioritário para que ele tenha preferência nas telas de consulta e identificação do sistema.
-3. Na seção de **Endereços**:
+3. Na seção **Endereço**:
    * Clique no botão de adição (**+**) para inserir os dados do logradouro (tipo de endereço, CEP, rua, número, complemento, bairro, município e UF).
    * Defina qual é o endereço **Principal** marcando a opção correspondente.
-4. Na seção de **Representação de Pessoa Jurídica (Empresas)**:
+4. Na seção **Pessoa Jurídica - Representante**:
    * Se a pessoa cadastrada assinar ou representar empresas (como administradora, sócia ou procuradora), clique no botão de adição (**+**).
    * Preencha o **Nome / Razão Social** da empresa e o **CNPJ** (campo de preenchimento obrigatório para efetivar o vínculo).
    * Caso haja mais de uma empresa vinculada à pessoa, marque a opção de empresa **Padrão** se desejar que essa PJ seja prioritária.
@@ -9151,7 +9151,7 @@ video:
 Cada registro listado na tabela de cartões de assinatura possui atalhos de consulta instantânea e recursos de auditoria. Esta rotina aborda a leitura dos indicadores visuais (presença de imagem e foto), o uso da galeria unificada de anexos em tela cheia, o rastreamento do log de andamentos e a ativação de bloqueios cautelares com alertas operacionais para o balcão de firmas.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura** e realize o filtro do registro desejado.
+1. Acesse **Firmas > Cadastros > Cartão de assinatura** e realize o filtro do registro desejado.
 2. Observe os **Indicadores Visuais Rápidos** na linha do registro:
    * **Ícone de Imagem do Cartão**: Se estiver na cor **Verde**, sinaliza que o cartão físico de assinatura está digitalizado e anexado à ficha; se estiver cinza/apagado, indica ausência de imagem anexada.
    * **Indicador de Foto**: Mostra visualmente se a foto facial da pessoa foi capturada via webcam.
@@ -9238,7 +9238,7 @@ video:
 Quando um cartão de assinatura já possui atos notariais ou reconhecimentos de firma vinculados em seu histórico, os campos sensíveis de identificação (como Nome e Documentos) são bloqueados pelo sistema para segurança jurídica, exigindo liberação por senha de supervisor. Além disso, esta rotina abrange todo o ciclo de vida do papel/formulário de segurança no cartão: consumo, controle de status (Reservado/Consumido), estorno para o estoque e inutilização definitiva.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura**, filtre o registro e clique no ícone da **Caneta** (**Alteração**).
+1. Acesse **Firmas > Cadastros > Cartão de assinatura**, filtre o registro e clique no ícone da **Caneta** (**Alteração**).
 2. Para **Editar Campos Sensíveis Bloqueados (Nome / Documentos)**:
    * Caso o cadastro já possua atos praticados, campos como Nome e CPF estarão desabilitados para edição direta.
    * Localize e clique no botão **Editar** posicionado ao lado do campo restrito.
@@ -9325,8 +9325,8 @@ video:
 O Orion TN permite a aplicação de Selo Digital do Tribunal de Justiça (TJ) no cadastro de cartões de assinatura, com suporte à geração totalmente automática no salvamento da ficha ou acionamento sob demanda (manual). O sistema disponibiliza ferramentas para consulta do QR Code oficial, controle de comunicação com o webservice do TJ, reutilização e cancelamento de selos.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura** e abra a ficha desejada pelo ícone da **Caneta** (**Alteração**) ou realize um novo cadastro.
-2. Identifique o fluxo de geração de **Selo Digital** configurado na sua serventia:
+1. Acesse **Firmas > Cadastros > Cartão de assinatura** e abra a ficha desejada pelo ícone da **Caneta** (**Alteração**) ou realize um novo cadastro.
+2. Identifique o fluxo de geração de **Selo digital** configurado na sua serventia:
    * **Fluxo A - Geração Automática**:
      * Caso o sistema esteja parametrizado para geração automática de selos em cartões de assinatura, ao preencher e clicar em **Concluir** no cadastro, o sistema consumirá e gerará o selo digital imediatamente junto ao webservice do TJ.
      * Na tela do cartão, serão exibidos o número do selo, o código de autenticidade e o **QR Code** de validação.
@@ -9402,7 +9402,7 @@ video:
 Após a gravação inicial dos dados cadastrais, consumo do formulário/papel de segurança e aplicação do selo digital, o Orion TN habilita a emissão física do cartão de assinatura. A rotina permite selecionar o modelo gráfico padrão da serventia e direcionar a impressão para a impressora correta de papel de segurança ou formulário contínuo.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura**.
+1. Acesse **Firmas > Cadastros > Cartão de assinatura**.
 2. Filtre e abra o cartão de assinatura gravado clicando no ícone da **Caneta** (**Alteração**).
    * **Atenção:** O botão de impressão do cartão pelo menu principal só é liberado na tela de edição após o cartão ter sido gravado previamente no banco de dados.
 3. Verifique se os dados cadastrais, o número do papel de segurança e o selo digital (se aplicável) estão devidamente preenchidos.
@@ -10064,10 +10064,10 @@ video:
 Etapa inicial da abertura de ficha de firma no balcão de atendimento, destinada à inserção ágil e qualificação de dados pessoais, documentação civil, contatos e endereço do titular.
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Cadastro > Cartão de assinatura** e clique em **Adicionar** (ou utilize o atalho de novo cartão diretamente na tela do balcão de atendimento).
-2. Na aba **Dados pessoais**, insira o **Nome completo** do cliente, **CPF**, documento de identificação (**RG/CNH**, órgão emissor e UF).
-3. Preencha **Data de nascimento**, **Nacionalidade**, **Estado civil**, **Profissão** e nome dos genitores (filiação).
-4. Na seção **Contato e Endereço**, digite o **CEP** para preenchimento automático do logradouro e complemente com número, bairro, telefone celular e e-mail.
+1. Acesse o menu **Firmas > Cadastros > Cartão de assinatura** e clique em **Adicionar** (ou utilize o atalho de novo cartão diretamente na tela do balcão de atendimento).
+2. Na seção **Dados pessoais**, insira o **Nome** do cliente, **CPF ou CIN**, documento de identificação (**RG** e **CNH**, órgão emissor e UF).
+3. Preencha **Nascimento**, **Nacionalidade**, **Estado civil**, **Profissão** e nome dos genitores (filiação).
+4. Nas seções **Contato** e **Endereço**, digite o **CEP** para preenchimento automático do logradouro e complemente com número, bairro, telefone celular e e-mail.
 5. Clique em **Avançar** para seguir para as etapas de captura biométrica, fotográfica e consumo de selos.
 
 * **Importante:** A validação do CPF é automática; se o CPF já constar na base do Orion TN, o sistema notificará o escrevente para evitar abertura de ficha em duplicidade.
@@ -10205,7 +10205,7 @@ video:
 Permite associar o cartão de assinatura de uma pessoa física a uma ou mais Pessoas Jurídicas previamente cadastradas no sistema, registrando seus poderes de representação (sócio, procurador, administrador) e definindo a empresa principal.
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Cadastro > Cartão de assinatura**, filtre pelo nome ou CPF da pessoa física e clique em **Editar**.
+1. Acesse o menu **Firmas > Cadastros > Cartão de assinatura**, filtre pelo nome ou CPF da pessoa física e clique em **Editar**.
 2. No formulário do cartão, clique na aba **Representante PJ**.
 3. No campo **Pessoa Jurídica**, digite a Razão Social ou CNPJ da empresa cadastrada (o campo conta com recurso de busca inteligente).
 4. Selecione o cargo ou condição de representação (ex: Administrador, Procurador, Sócio-Gerente).
@@ -10278,7 +10278,7 @@ video:
 Controla a baixa de insumos físicos (Papel de Segurança - NFS) e a geração do respectivo Selo Digital no momento da abertura ou renovação do cartão de assinatura, assegurando rastreabilidade contábil e de estoque.
 
 #### Passo a passo:
-1. Durante a abertura ou edição do cartão em **Firmas > Cadastro > Cartão de assinatura**, acesse a aba **Consumo de Papel / Selo**.
+1. Durante a abertura ou edição do cartão em **Firmas > Cadastros > Cartão de assinatura**, acesse a aba **Consumo de Papel / Selo**.
 2. No campo **NFS (Papel de Segurança)**, selecione a série e informe o número do formulário físico utilizado na impressão da ficha de firma.
 3. Se o sistema estiver parametrizado para controle automático de estoque, o número sequencial do lote do escrevente será sugerido automaticamente.
 4. Caso ocorra rasura física durante a coleta da assinatura:
@@ -10339,7 +10339,7 @@ video:
 Permite auditar e gerenciar atos já praticados no pedido de balcão de firmas, possibilitando pré-visualizar etiquetas e termos, devolver selos não utilizados ao estoque ou inutilizar selos avariados.
 
 #### Passo a passo:
-1. Na tela do **Balcão de Firmas**, localize o serviço na grade **Últimos serviços realizados** ou abra a tela de detalhes do pedido.
+1. Acesse o menu **Firmas > Reconhecimento de firmas** e localize o serviço na grade **Últimos serviços realizados** ou abra a tela de detalhes do pedido.
 2. Na linha do serviço registrado, selecione a ação correspondente:
    * **Visualizar etiqueta**: abre a pré-visualização do espelho impresso com layout e QR Code.
    * **Visualizar termo**: abre o PDF do Termo de Comparecimento vinculado ao ato.
@@ -10390,8 +10390,8 @@ video:
 Rotina voltada à triagem e recepção do cartório para registrar a demanda inicial do usuário, emitir a senha de atendimento e adiantar o lançamento de partes e atos antes da chamada no guichê.
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Atendimento > Abertura de pedido com senha**.
-2. Clique no botão **Novo** para gerar a senha sequencial de fila conforme a prioridade (Normal ou Preferencial).
+1. Acesse o menu **Firmas > Abertura de pedido**.
+2. Clique no botão **Nova senha** para gerar a senha sequencial de fila conforme a prioridade (Normal ou Preferencial).
 3. Na seção de partes, informe o nome e documento dos interessados que solicitaram os serviços.
 4. Na seção de serviços, selecione os atos solicitados (ex: Reconhecimento por Semelhança, Autenticação de Cópia) e indique as quantidades estimadas.
 5. Clique no botão **Concluir o pedido** para enviar a solicitação para a fila do painel e imprimir o comprovante de senha do cidadão.
@@ -10500,7 +10500,7 @@ video:
 Instrui como localizar e selecionar a ficha de firma ou o sinal público do signatário durante o atendimento de balcão, exibindo imagens de fotos, espelhos de assinatura e vínculos de representação para confronto visual.
 
 #### Passo a passo:
-1. Com o pedido aberto na tela **Balcão de firmas**, clique no campo **Partes / Cartão de assinatura**.
+1. Com o pedido aberto na tela **Reconhecimento de firmas** (menu **Firmas > Reconhecimento de firmas**), clique no campo **Partes / Cartão de assinatura**.
 2. Digite o nome da pessoa, número do CPF ou número da ficha e aguarde a exibição da listagem de autocompletar.
 3. Em caso de homônimos, confira na lista o número do CPF, filiação e data de nascimento antes de clicar no registro.
 4. Para sinais públicos de outras serventias, marque a opção **Sinal Público** para filtrar a tabela de tabeliães e prepostos credenciados.
@@ -10555,7 +10555,7 @@ video:
 Detalha o procedimento de inclusão dos atos notariais no pedido (reconhecimento por semelhança com/sem valor econômico, autenticações), cálculo automático de emolumentos e disparo da impressão de etiquetas térmicas.
 
 #### Passo a passo:
-1. Com a parte selecionada na tela **Balcão de firmas**, acesse o painel **Lançamento de Serviços**.
+1. Com a parte selecionada na tela **Firmas > Reconhecimento de firmas**, acesse o painel **Serviços realizados**.
 2. Selecione o serviço pretendido:
    * **Reconhecimento de firma por semelhança** (com ou sem valor econômico).
    * **Reconhecimento por autenticidade** (exige Termo de Comparecimento).
@@ -10794,12 +10794,12 @@ video:
 Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo de papel de segurança (NFS), método de envio do selo digital, regra de arredondamento de centavos em emolumentos e numeração de guias.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Parâmetros gerais**.
+1. Acesse o menu **Configurações > Parametrizações**.
 2. Na aba **Geral**, configure o comportamento de insumos: marque se o sistema deve exigir o consumo de **Papel de Segurança (NFS)** na emissão de atos.
 3. Na seção **Selo Digital**, defina o modo de geração preferencial (**Online** para envio em tempo real ou **Offline** para envio agrupado).
 4. No campo **Arredondamento de custas**, selecione o critério homologado para frações de centavos (Arredondamento ABNT, Truncamento ou Superior).
 5. Na seção **Guias**, ative o controle de numeração automática e regras de controle fiscal se aplicável.
-6. Clique no botão **Salvar** para aplicar as diretrizes globais do cartório.
+6. Clique no botão **Concluir** para aplicar as diretrizes globais do cartório.
 
 * **Importante:** Alterações nos parâmetros gerais exigem atenção da administração do cartório, pois impactam o cálculo financeiro e o fluxo de todos os escreventes.
 ---
@@ -10843,12 +10843,12 @@ video:
 Parametriza a integração com scanners de mesa (drivers TWAIN/WIA) e define os diretórios de rede e armazenamento compartilhado para arquivamento digital dos documentos apresentados no cartório.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Captura e digitalização**.
+1. Acesse o menu **Configurações > Parametrizações** e selecione a aba **Captura e digitalização**.
 2. Na seção **Dispositivo de Captura**, selecione na lista o driver do scanner instalado na estação (TWAIN ou WIA).
 3. Defina a resolução padrão de digitalização (ex: 200 ou 300 DPI) e o modo de cor (**Preto e Branco**, **Escala de Cinza** ou **Colorido**).
 4. Na seção **Diretórios de Rede**, defina o caminho UNC (ex: `\\servidor\documentos\cartorio\`) onde os arquivos PDF/JPEG serão arquivados por tipo de documento.
 5. Clique no botão **Testar Conexão** para assegurar permissão de gravação no diretório de rede.
-6. Clique no botão **Salvar** para confirmar as configurações.
+6. Clique no botão **Concluir** para confirmar as configurações.
 
 * **Importante:** Os diretórios configurados devem ter permissão de leitura e gravação total concedida no Windows Server para todos os usuários do domínio.
 ---
@@ -10948,12 +10948,12 @@ video:
 Controla os contadores numéricos sequenciais do sistema para protocolos de notas, recibos de pagamento, cartões de assinatura, certidões e pedidos de balcão, permitindo conferência e correções de numeração.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Sequências automáticas**.
+1. Acesse o menu **Configurações > Parametrizações** e selecione a aba **Sequência**.
 2. Na listagem de contadores do sistema, identifique o registro desejado (ex: 'Protocolo de Notas', 'Recibo de Caixa', 'Cartão de Assinatura', 'Pedido de Balcão').
 3. Verifique o valor exibido na coluna **Último número gerado** e **Próximo número**.
 4. Caso seja necessário ajustar a numeração por determinação judicial, correição ou virada de exercício, clique no botão **Editar** do registro.
 5. Atualize o campo **Próximo número** com o valor correto e selecione se a sequência deve reiniciar anualmente.
-6. Clique no botão **Salvar** para gravar o novo valor do contador.
+6. Clique no botão **Concluir** para gravar o novo valor do contador.
 
 * **Importante:** A alteração manual de sequências deve ser realizada com cautela estrita para não gerar furos de numeração ou duplicidade de registros oficiais no livro.
 ---
@@ -11003,7 +11003,7 @@ video:
 Centraliza os parâmetros de conexão técnica, endpoints, chaves de API, usuários e certificados necessários para integrar o Orion TN às plataformas governamentais e notariais externas (TJSP, e-Notariado, COAF e Livro Caixa Web).
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Comunicações externas**.
+1. Acesse o menu **Configurações > Parametrizações** e selecione a aba **Comunicações**.
 2. Na aba **Selo Digital TJSP**, preencha a URL do WebService, o usuário, senha e código da serventia fornecidos pelo tribunal.
 3. Na aba **e-Notariado**, insira a chave de integração (API Token) e configure o modo de ambiente (**Produção** ou **Homologação**).
 4. Na aba **COAF / SISCOAF**, defina o código de habilitação da serventia e o prazo de alerta de atos suspeitos para comunicação.
@@ -11101,12 +11101,12 @@ video:
 Permite atribuir combinações de teclas rápidas (ex: combinações com CTRL, ALT e teclas funcionais) às operações mais repetitivas do cartório, conferindo agilidade ao atendimento de balcão.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Atalhos do teclado**.
+1. Acesse o menu **Configurações > Parametrizações** e selecione a aba **Painel de atalhos**.
 2. Na listagem de ações do sistema, localize a função desejada (ex: 'Novo Pedido de Firmas', 'Lançar e Imprimir', 'Localizar Parte', 'Finalizar Pedido').
 3. Clique sobre o campo de comando correspondente à ação.
 4. Pressione a combinação de teclas pretendida no teclado físico (ex: **CTRL + ALT + N** ou tecla de função **F2**).
 5. O sistema validará se a combinação não colide com outra função já parametrizada.
-6. Clique no botão **Salvar** para registrar os atalhos.
+6. Clique no botão **Concluir** para registrar os atalhos.
 
 * **Importante:** Evite atribuir combinações nativas do Windows (como CTRL + C, CTRL + V ou ALT + F4) para não gerar conflito com o sistema operacional.
 ---
@@ -11154,12 +11154,12 @@ video:
 Configura o comportamento operacional dos módulos de Atendimento de Firmas e Termos de Comparecimento, regulando captura biométrica compulsória, senhas de fila e regras de escrituração em livros.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Pedido de firmas e Termo de comparecimento**.
+1. Acesse o menu **Configurações > Parametrizações** e selecione a aba **Pedido de firmas**.
 2. Na seção **Pedido de Firmas**, selecione se o cartório utiliza módulo de senhas de atendimento e defina o formato da numeração de pedidos.
 3. Na seção **Termo de Comparecimento**, configure as exigências biométricas: marque a opção para **Exigir captura de biometria** e defina o **Tipo de captura** (**Apenas um dedo** ou **Todos os dedos**).
 4. Defina as regras de vinculação a **Livros Notariais**, selecionando se a escolha do livro deve ser automática por escrevente ou manual pelo operador.
 5. Marque se o sistema deve gerar automaticamente o espelho de impressão ao concluir o termo.
-6. Clique no botão **Salvar** para registrar os parâmetros.
+6. Clique no botão **Concluir** para registrar os parâmetros.
 
 * **Importante:** A exigência de biometria no termo atende aos padrões de segurança jurídica contra fraudes em transferências veiculares e procurações.
 ---
@@ -11251,7 +11251,7 @@ video:
 Configura as credenciais do servidor SMTP da serventia e parametriza os gatilhos para disparo automático de correspondências eletrônicas (faturas, extratos de mensalistas, notificações de selos e andamento de protocolos).
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > E-mail**.
+1. Acesse o menu **Configurações > Parametrizações** e selecione a aba **E-mail**.
 2. Na seção **Configuração do Servidor (SMTP)**, informe o endereço do servidor (ex: `smtp.seuprovedor.com.br`), a **Porta** (ex: 587 ou 465) e marque o protocolo de segurança (**TLS/SSL**).
 3. Preencha o **Usuário** (e-mail institucional), a **Senha** de aplicação e o **Nome do Remetente** a ser exibido aos clientes.
 4. Na seção **Notificações Automáticas**, marque os eventos desejados:
@@ -11259,7 +11259,7 @@ Configura as credenciais do servidor SMTP da serventia e parametriza os gatilhos
    * Notificação de protocolo disponível para retirada.
    * Alerta diário de processamento da Central de Selos.
 5. Clique no botão **Enviar E-mail de Teste** para certificar-se da comunicação com o servidor de correio.
-6. Clique no botão **Salvar** para gravar as configurações.
+6. Clique no botão **Concluir** para gravar as configurações.
 
 * **Importante:** Provedores de e-mail modernos (como Google Workspace, Microsoft 365) exigem a geração de uma 'Senha de Aplicativo' específica para uso em sistemas terceiros.
 ---
@@ -11404,11 +11404,11 @@ video:
 Configura as políticas de atendimento do módulo de Pedidos de Certidão, estabelecendo o prazo padrão de expedição conforme a lei de registros públicos e vinculando o consumo obrigatório de papel de segurança.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Pedido de certidão**.
-2. No campo **Prazo de entrega padrão (dias)**, informe a quantidade de dias úteis fixada para expedição de certidões comuns (ex: 5 dias úteis, ou prazo menor conforme a rotina do cartório).
+1. Acesse o menu **Configurações** > **Parametrizações** e selecione a aba **Certidão**.
+2. No campo **Previsão de entrega**, informe a quantidade de dias úteis fixada para expedição de certidões comuns (ex: 5 dias úteis, ou prazo menor conforme a rotina do cartório).
 3. Na seção **Estoque e Insumos**, marque a opção **Controlar estoque de papel de segurança** para impedir que a certidão seja concluída sem o apontamento do número da folha utilizada.
 4. Configure se o sistema deve exigir a assinatura ou identificação do recebedor no momento da entrega do documento no balcão.
-5. Clique no botão **Salvar** para registrar os parâmetros do setor de certidões.
+5. Clique no botão **Concluir** para registrar os parâmetros do setor de certidões.
 
 * **Observação:** O prazo cadastrado é utilizado para alimentar a data de previsão de entrega no comprovante entregue ao usuário no balcão.
 ---
@@ -11762,12 +11762,12 @@ video:
 Permite cadastrar um novo volume ou livro notarial na serventia, definindo sua tipologia, numeração de livro, intervalo sequencial de folhas, permissões de acesso por escrevente e texto de abertura.
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Livros** e clique no botão **Adicionar**.
-2. No campo **Tipo de Livro**, selecione a categoria desejada (ex: **Termo de Comparecimento**, **Livro de Notas**, **Livro de Procurações**).
-3. Informe o **Número do Livro** (ex: `46`).
+1. Acesse o menu **Administração > Controle de Livros** e clique no botão **Adicionar**.
+2. No campo **Tipo livro**, selecione a categoria desejada (ex: **Termo de Comparecimento**, **Livro de Notas**, **Livro de Procurações**).
+3. Informe o **Número do livro** (ex: `46`).
 4. Preencha a numeração sequencial: indique a **Folha Inicial** (ex: `1`), a **Folha Final** (ex: `200`) e a **Folha Atual** inicial.
 5. No campo **Proprietário / Permissão**, defina quem poderá escriturar no livro: marque **Todos** para uso compartilhado da equipe ou selecione um **Escrevente** específico.
-6. Na seção **Termo de Abertura**, digite ou selecione o modelo do texto padrão de abertura e clique no botão **Salvar**.
+6. Na seção **Termo de Abertura**, digite ou selecione o modelo do texto padrão de abertura e clique no botão **Concluir**.
 
 * **Importante:** Verifique com precisão a folha inicial e final conferindo fisicamente as folhas rubricadas do livro encadernado.
 ---
@@ -11885,7 +11885,7 @@ video:
 Orienta o cadastro e parametrização técnica de um novo modelo de Termo de Comparecimento, estruturando campos de dados dinâmicos, texto notarial e acionando a integração fiscal com a SEFAZ-SP (CRV).
 
 #### Passo a passo:
-1. Acesse o menu **Firmas > Termo de comparecimento > Tipos de documentos** e clique em **Adicionar**.
+1. Acesse o menu **Firmas > Cadastros > Tipo de documento - Termo de comparecimento** e clique em **Adicionar**.
 2. Preencha a **Descrição** do modelo (ex: 'Termo de Comparecimento - CRV SEFAZ SP').
 3. Caso o modelo seja voltado à transferência veicular com envio obrigatório à Fazenda Estadual, marque obrigatoriamente a opção **CRV - SEFAZ SP**.
 4. Na aba **Campos Personalizados**, adicione os campos necessários: Placa, RENAVAM, Chassi, Ano/Modelo, Valor da Venda e Município de Emplacamento.
@@ -11991,7 +11991,7 @@ video:
 Detalha o cadastro técnico de um novo perfil geométrico de etiqueta, orientando a inserção de largura, altura, gap entre etiquetas, margens e orientação espacial para impressoras térmicas industriais e de mesa.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Configurações de impressão** e clique em **Adicionar**.
+1. Acesse o menu **Configurações > Modelos de impressão > Configuração de impressão** e clique em **Adicionar**.
 2. No campo **Descrição**, insira um nome identificador claro (ex: 'Bobina Térmica 105x50mm - Zebra TLP').
 3. No campo **Largura**, digite a medida transversal da etiqueta em milímetros (ex: `105`).
 4. No campo **Altura**, digite o comprimento vertical da etiqueta em milímetros (ex: `50`).
@@ -13254,7 +13254,7 @@ video:
 Ambiente de consulta, visualização e manutenção de todos os modelos de etiqueta de balcão (reconhecimento por semelhança, autenticidade, sinal público, autenticações), permitindo calibrar layouts e inativar modelos obsoletos.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Modelos de etiqueta** (ou **Firmas > Parâmetros > Modelos de etiqueta**).
+1. Acesse o menu **Configurações > Modelos de impressão > Etiquetas diversas**.
 2. Na tela de gerenciamento, visualize todos os modelos cadastrados com seus títulos, códigos e serviços vinculados.
 3. Para localizar um modelo específico, utilize o campo **Pesquisar por modelo** e clique em **Filtrar**.
 4. Na linha do registro, selecione a ação pretendida:
@@ -14218,7 +14218,7 @@ video:
 Primeira etapa na emissão de certidão notarial, responsável por registrar os dados de qualificação e contato do requerente, selecionar a modalidade da certidão e fixar o prazo legal de retirada.
 
 #### Passo a passo:
-1. Na tela **Notas > Pedido de certidão**, clique no botão **Novo**.
+1. Acesse o menu **Notas** > **Nova certidão e serviço** (ou **Notas** > **Consultas** > **Certidões e serviços** e clique em **Adicionar**).
 2. No card **Dados do pedido de certidão**, selecione o **Tipo de Certidão**:
    * **Inteiro Teor**: reprodução integral da escritura ou procuração com todas as suas cláusulas.
    * **Breve Relato / Resumo**: certidão circunstanciada dos pontos essenciais do ato.
@@ -14649,7 +14649,7 @@ video:
 Permite registrar uma nova modalidade de negócio jurídico no acervo notarial do Orion TN, associando-a à sua espécie mãe, parametrizando obrigações de reporte à CENSEC e vinculando a tabela de custas.
 
 #### Passo a passo:
-1. Acesse o menu **Notas > Cadastros auxiliares > Naturezas** e clique no botão **Adicionar**.
+1. Acesse o menu **Configurações > Cadastros auxiliares > Natureza** e clique no botão **Adicionar**.
 2. No campo **Espécie**, selecione o gênero correspondente (ex: **Escritura**, **Procuração**, **Ata Notarial**).
 3. No campo **Descrição**, digite a denominação jurídica formal da nova natureza (ex: 'Escritura Pública de Emancipação', 'Doação em Adiantamento de Legítima').
 4. No campo **Sigla**, insira um código mnemônico abreviado (ex: `EMAN`, `DOAC`).
@@ -14756,7 +14756,7 @@ video:
 Permite cadastrar um novo cabeçalho ou categoria de agrupamento na tabela de emolumentos da serventia, categorizando atos afins sob a mesma especialidade notarial.
 
 #### Passo a passo:
-1. Acesse o menu **Notas > Cadastros auxiliares > Grupo de itens** e clique no botão **Adicionar**.
+1. Acesse o menu **Configurações > Tabela de custas > Grupo de item** e clique no botão **Adicionar**.
 2. No campo **Descrição**, digite a denominação clara do agrupador (ex: 'Atas Notariais Eletrônicas', 'Escrituras de Regularização Fundiária - REURB').
 3. No campo **Especialidade**, selecione a área de aplicação: **Notas** ou **Firmas**.
 4. Se disponível, defina o código numérico de ordenação para exibição sequencial nos menus de custas.
@@ -15065,7 +15065,7 @@ video:
 Permite consultar, filtrar, editar e auditar a listagem geral de modelos de etiquetas adesivas térmicas (reconhecimentos, autenticações e apostilamentos), garantindo conformidade visual e técnica.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Modelos de etiqueta** (ou **Firmas > Parâmetros > Modelos de etiqueta**).
+1. Acesse o menu **Configurações > Modelos de impressão > Etiquetas diversas**.
 2. Na listagem de modelos, visualize os títulos, serviços aos quais estão vinculados e situação de cada registro.
 3. No campo **Pesquisar por modelo**, digite o nome do ato ou modelo e clique no botão **Filtrar**.
 4. Na linha do modelo localizado, execute a ação desejada:
@@ -15117,7 +15117,7 @@ video:
 Primeira etapa na confecção de um modelo de etiqueta térmica, responsável por estabelecer o título, descrição, vínculo com o ato notarial da tabela de custas e definição de padrão de uso.
 
 #### Passo a passo:
-1. Acesse o menu **Administração > Parâmetros > Modelos de etiqueta** e clique no botão **Adicionar**.
+1. Acesse o menu **Configurações > Modelos de impressão > Etiquetas diversas** e clique no botão **Adicionar**.
 2. No campo **Título**, digite um nome identificador claro (ex: 'Etiqueta Semelhança Sem Valor 2024 - 1 Coluna').
 3. No campo **Descrição**, insira o detalhamento do propósito do modelo e impressoras compatíveis.
 4. No campo **Serviço**, selecione na lista o ato notarial ao qual o modelo pertencerá (ex: **Reconhecimento de firma por semelhança sem valor econômico**).
@@ -15170,7 +15170,7 @@ video:
 Configura os parâmetros técnicos de baixo nível do layout da etiqueta, programando a linguagem da impressora térmica (ZPL/EPL), coordenadas de alinhamento e inserção de variáveis dinâmicas para selo, QR Code e dados da parte.
 
 #### Passo a passo:
-1. No cadastro do modelo de etiqueta (ou em **Editar**), acesse a aba **Parâmetros Técnicos / Layout**.
+1. Acesse o menu **Configurações > Modelos de impressão > Etiquetas diversas** e abra o cadastro do modelo de etiqueta.
 2. Selecione a **Linguagem da Impressora** compatível com o seu hardware (**ZPL** para Zebra moderna, **EPL** para Zebra clássica/Argox ou modo gráfico).
 3. Na seção **Variáveis**, consulte os campos de dados dinâmicos disponíveis no sistema (ex: `[NOME_PARTE]`, `[NUMERO_SELO]`, `[DATA_ATO]`, `[ESCREVENTE]`, `[QRCODE_URL]`, `[HASH]`).
 4. Insira os comandos de formatação e posicione as variáveis nas coordenadas desejadas do script de impressão.
@@ -16648,11 +16648,11 @@ video:
 A categorização de produtos estrutura o inventário da serventia em grupos homogêneos, tais como Papéis de Segurança, Selos de Fiscalização, Cartões de Autógrafo e Materiais de Escritório, facilitando a emissão de relatórios e auditorias de insumos.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações > Cadastros Auxiliares > Categoria de Produto**.
+1. Acesse o menu **Administração > Controle de Estoque > Cadastros > Categoria**.
 2. Clique no botão **Adicionar**.
-3. Digite o **Nome da Categoria** (ex: Papel de Segurança para Traslados ou Selos de Fiscalização).
-4. Informe uma **Sigla** ou código de referência e uma breve descrição do grupo.
-5. Clique em **Salvar** para disponibilizar a categoria nos cadastros de produtos.
+3. Digite a **Descrição** da categoria (ex.: Papel de Segurança para Traslados ou Selos de Fiscalização).
+4. Selecione o **Responsável**, marque conforme a necessidade as opções **Utiliza sequência inicial e sequência final**, **Enviar alerta de estoque mínimo**, **Informar quantidade de atos** e **Utiliza série**, e informe **E-mail (s) para envio de alerta**, se aplicável.
+5. Clique em **Concluir** para disponibilizar a categoria nos cadastros de produtos.
 
 * **Observação:** As categorias cadastradas servem como filtros primários em todos os relatórios analíticos de inventário e consumo.
 ---
@@ -16805,14 +16805,14 @@ video:
 O cadastro de produtos formaliza todos os itens geridos no cartório, incluindo insumos de segurança (papel moeda, selos digitais/físicos, etiquetas) e itens administrativos. Permite configurar o estoque mínimo de segurança e se o item exige controle de série/folha.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações > Cadastros Auxiliares > Produto**.
+1. Acesse o menu **Administração > Controle de Estoque > Cadastros > Produto**.
 2. Clique no botão **Adicionar**.
-3. Preencha o **Nome do Produto** (ex: Papel de Segurança A4 - Escrituras) e a **Categoria**.
-4. Selecione a **Unidade de Medida** (Folha, Unidade, Milhar) e informe o **Estoque Mínimo**.
+3. Preencha a **Descrição** (ex.: Papel de Segurança A4 - Escrituras) e selecione a **Categoria**.
+4. Selecione a **Unidade** (Folha, Unidade, Milhar) e informe o **Estoque mínimo**.
 5. Configure as opções de rastreabilidade:
    * Marque **Controlar por Sequência Numérica/Série** para insumos oficiais.
    * Defina o **Critério Padrão de Distribuição** (igualitária ou manual).
-6. Clique em **Salvar** para registrar o produto no catálogo da serventia.
+6. Clique em **Concluir** para registrar o produto no catálogo da serventia.
 
 * **Importante:** Insumos marcados com controle sequencial exigem a digitação ou leitura por código de barras dos números inicial e final em cada distribuição.
 ---
@@ -17269,7 +17269,7 @@ video:
 O Dashboard de Envio para Registro gerencia as escrituras públicas que foram despachadas aos Cartórios de Registro de Imóveis para prenotação e registro. Permite acompanhar status de remessa, recebimento de exigências (notas devolutivas) e conclusão do ato.
 
 #### Passo a passo:
-1. Acesse o menu **Notas > Dashboard de Envio para Registro**.
+1. Acesse o menu **Dashboard > Envio para Registro**.
 2. Analise os blocos operacionais: **Aguardando Envio**, **Prenotados no RI**, **Com Exigência** e **Registrados**.
 3. Filtre por **Cartório de Imóveis de Destino**, **Número do Protocolo** ou **Período**.
 4. Ao clicar em um card em exigência, visualize o teor da nota devolutiva e o prazo limite para reapresentação.
@@ -17335,12 +17335,12 @@ video:
 O Cartão de Assinatura é o registro fundamental de identificação e autógrafo do usuário no tabelionato. A rotina reúne dados de qualificação, captura fotográfica ao vivo, impressão digital, digitalização de documentos e consumo automático de insumos.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura** e clique no botão **Adicionar**.
-2. Para agilizar o preenchimento, clique em **Preencher com IA** e digitalize ou importe a CNH/RG do cliente.
-3. Revise os dados extraídos pelo OCR (**Nome**, **CPF**, **RG**, **Filiação**, **Endereço** e **Profissão**).
+1. Acesse **Firmas > Cadastros > Cartão de assinatura** e clique no botão **Adicionar**.
+2. Para agilizar o preenchimento, clique em **Preencher cartão usando I.A.** e digitalize ou importe a CNH/RG do cliente.
+3. Revise os dados extraídos pelo OCR (**Nome**, **CPF ou CIN**, **RG**, **Pai**, **Mãe**, **Endereço** e **Profissão**).
 4. Clique no ícone de **Webcam** para capturar a fotografia da face e em **Capturar Biometria** para ler o leitor digital.
 5. Imprima o cartão de autógrafo físico clicando em **Impressão** para recolher as assinaturas físicas do apresentante.
-6. Clique em **Salvar** para registrar o cartão; se ativado, o sistema consumirá automaticamente o selo e papel de segurança.
+6. Clique em **Concluir** para registrar o cartão; se ativado, o sistema consumirá automaticamente o selo e papel de segurança.
 
 * **Importante:** Em caso de documentos rasurados ou indícios de falsificação, utilize o botão **Bloquear Cartão** para impedir reconhecimentos imediatos.
 ---
@@ -17921,7 +17921,7 @@ video:
 Esta rotina inicia a lavratura de certidões oficiais de atos lavrados no cartório (escrituras, testamentos, procurações e atas notariais). Permite selecionar o formato da certidão (Inteiro Teor, Breve Relatório ou Reprográfica), consultar o ato original e gerar o recibo.
 
 #### Passo a passo:
-1. Acesse o menu **Notas > Certidões > Novo Pedido de Certidão**.
+1. Acesse o menu **Notas** > **Nova certidão e serviço**.
 2. Preencha a **Identificação do Solicitante** (Nome, CPF e telefone de contato).
 3. Selecione o **Tipo de Certidão**: **Inteiro Teor**, **Breve Relatório** ou **Reprográfica**.
 4. Localize o ato original informando o **Tipo de Livro**, **Número do Livro**, **Folha** e **Ato**.
@@ -17968,7 +17968,7 @@ video:
 A emissão de certidões reprográficas exige a anexação das cópias fotostáticas fiéis das páginas do livro onde o ato foi lavrado. A rotina localiza o repositório de folhas previamente digitalizadas, ordena as páginas do ato e compõe o documento com o cabeçalho e encerramento oficial.
 
 #### Passo a passo:
-1. Abra o pedido de certidão desejado em **Notas > Certidões > Consulta de Certidões**.
+1. Abra o pedido de certidão desejado em **Notas** > **Consultas** > **Certidões e serviços**.
 2. Clique na aba **Reprografia / Imagens do Livro**.
 3. O sistema listará as imagens disponíveis para o Livro e intervalo de folhas do ato.
 4. Caso falte alguma página, clique em **Adicionar Imagem** para digitalizar diretamente pelo scanner.
@@ -18936,7 +18936,7 @@ video:
 Quando um ato notarial já teve folhas de livro consumidas mas as partes desistem da assinatura ou ocorre vício insanável, a lei exige a lavratura formal do Termo de Cancelamento com selo de fiscalização próprio emitido pelo Tribunal de Justiça.
 
 #### Passo a passo:
-1. Acesse o protocolo notarial que teve o ato cancelado em **Notas > Protocolo**.
+1. Acesse o protocolo notarial que teve o ato cancelado em **Notas > Consultas > Protocolos**.
 2. Na barra de ações do livro, selecione a opção **Cancelar Ato / Lavrar Cancelamento**.
 3. No formulário de cancelamento, selecione o **Motivo Legal** (ex: Não comparecimento das partes no prazo legal ou Distrato antes das assinaturas).
 4. Clique no botão **Gerar Selo de Cancelamento**.
@@ -20210,8 +20210,8 @@ video:
 O cadastro de livros notariais formaliza a abertura de novos volumes de escrituras, procurações, testamentos ou atas no sistema. Registra o número do volume, a quantidade total de folhas autorizadas pela Corregedoria, a folha inicial e gera o solene Termo de Abertura.
 
 #### Passo a passo:
-1. Acesse o menu **Notas > Cadastros > Livro para Consumo**.
-2. Clique no botão **Adicionar Novo Livro**.
+1. Acesse o menu **Administração > Controle de Livros**.
+2. Clique no botão **Adicionar**.
 3. Selecione a **Espécie de Livro** (Escrituras, Procurações, Testamentos ou Atas Notariais).
 4. Informe o **Número do Livro** (em algarismos arábicos ou romanos), a **Folha Inicial** (geralmente 001) e a **Capacidade Total de Folhas** (ex: 200 folhas).
 5. Preencha os dados do **Termo de Abertura** com a data oficial e o nome do tabelião/substituto.
@@ -20974,12 +20974,12 @@ video:
 A parametrização de consumo automático assegura que todo ato notarial ou certidão finalize seu ciclo com a perfeita baixa das folhas de segurança e dos selos utilizados, eliminando o esquecimento operacional e garantindo fidelidade contínua do estoque da serventia.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações > Parametrizações > Consumo de Insumos**.
+1. Acesse o menu **Configurações > Parametrizações**.
 2. Marque a opção **Ativar Consumo Automático de Papel de Segurança**.
 3. Marque a opção **Ativar Consumo Automático de Selos Digitais / Físicos**.
 4. Defina o gatilho da baixa: marque **Ao Converter em Livro Definitivo** (para escrituras) e **Ao Concluir Pedido** (para certidões e balcão).
 5. Configure a regra de contingência: se o sistema deve **Bloquear Impressão caso o Estoque do Usuário esteja Zerado**.
-6. Clique em **Salvar Alterações** para aplicar a regra em toda a rede do cartório.
+6. Clique em **Concluir** para aplicar a regra em toda a rede do cartório.
 
 * **Importante:** Para que a rotina funcione sem travar os atendimentos, certifique-se de que os escreventes tenham sempre lotes de insumos previamente distribuídos.
 ---
@@ -21337,7 +21337,7 @@ video:
 Caso um lançamento financeiro (pagamento à vista ou depósito prévio) tenha sido lançado erroneamente em um pedido de certidão, esta rotina permite sua exclusão direta na tela de edição do ato. O procedimento estorna a entrada do caixa e restaura a cobrança do saldo.
 
 #### Passo a passo:
-1. No menu principal do Orion TN, acesse **Notas > Consultas > Consulta de Certidões e Serviços**.
+1. No menu principal do Orion TN, acesse **Notas** > **Consultas** > **Certidões e serviços**.
 2. Utilize os filtros de busca para localizar a certidão específica e clique no botão **Editar** (ícone de lápis).
 3. Dentro da certidão, clique no ícone de **Cifrão ($)** na barra superior para acessar a movimentação de caixa.
 4. Role a tela até o quadro de **Lançamentos Financeiros Vinculados**.
@@ -22102,7 +22102,7 @@ video:
 O Provimento Geral da Justiça autoriza a selagem em modo de contingência offline em casos de instabilidade técnica comprovada, permitindo que a serventia reserve a numeração localmente para envio posterior.
 
 #### Passo a passo:
-1. Com login de administrador ou substituto, acesse no **Orion TN** o menu **Configurações > Parâmetros Gerais > Selo Digital** (ou aba **Integração TJ**).
+1. Com login de administrador ou substituto, acesse no **Orion TN** o menu **Configurações > Parametrizações**.
 2. Localize a opção **Modo de Envio do Selo Digital**.
 3. Altere o parâmetro de **Online** para **Modo de Selagem Offline (Contingência)**.
 4. Clique no botão **Salvar**.
@@ -22365,12 +22365,12 @@ video:
 No Orion Estoque, os lotes de selos são entregues em pacotes sequenciais numerados. Se o administrador distribuir o lote 2 antes do lote 1, os escreventes consomem selos fora de ordem cronológica.
 
 #### Passo a passo:
-1. Acesse o módulo **Orion Estoque** com perfil de administrador.
-2. Navegue até **Distribuição > Histórico de Distribuição**.
+1. No **Orion TN**, acesse o menu **Administração > Controle de Estoque > Distribuição** com perfil de administrador.
+2. Acesse a aba **Consulta**.
 3. Localize a distribuição equivocada entregue ao operador.
 4. Verifique se nenhum selo daquele lote já foi consumido em atos lavrados.
 5. Clique no botão **Estornar Distribuição** e confirme o cancelamento.
-6. Acesse a tela de **Nova Distribuição**, selecione a sequência numérica rigorosamente correta e atribua novamente ao operador.
+6. Acesse a aba **Distribuição**, selecione a sequência numérica rigorosamente correta e atribua novamente ao operador.
 7. Solicite ao escrevente que atualize a tela de lavratura para carregar o novo numerador.
 
 * **Fiscalização:** A quebra indevida da sequência de distribuição é apontada em relatórios de correição; sempre confira o número inicial antes de confirmar o lote.
@@ -22409,7 +22409,7 @@ video:
 Por equívoco de configuração cadastral, a flag de obrigatoriedade de conferência fiscal de ITCMD pode ser vinculada globalmente ao protocolo, impedindo o avanço de negócios onerosos em que incide apenas ITBI.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações > Cadastros Auxiliares > Naturezas de Atos**.
+1. Acesse o menu **Configurações > Cadastros auxiliares > Natureza**.
 2. Localize a natureza jurídica do ato que está bloqueado (ex.: **Compra e Venda Pura** ou **Procuração**).
 3. Clique em **Editar** e acesse a aba **Obrigações e Parâmetros Fiscais**.
 4. Desmarque o checkbox **Exigir Comprovante de ITCMD na Conclusão do Protocolo**.
@@ -22847,8 +22847,8 @@ Em livros encadernados de termos de comparecimento (DUT/CRV e autenticidade), n�
 
 #### Passo a passo:
 1. No caso de **Erro de Grafia no Termo Já Impresso**:
-2. Acesse **Firmas > Fichas de Firmas**, localize o cliente e corrija os dados cadastrais.
-3. Acesse **Firmas > Livros > Livro de Termos de Comparecimento** e selecione o termo emitido.
+2. Acesse **Firmas > Cadastros > Cartão de assinatura**, localize o cliente e corrija os dados cadastrais.
+3. Acesse **Administração > Controle de Livros** (para o livro de termos de comparecimento) e selecione o termo emitido.
 4. Clique no botão **Imprimir Etiqueta de Ressalva** com a opção **Reutilização da Folha do Termo** ativada.
 5. Cole a etiqueta retificadora sobre a folha física do livro.
 6. No caso de **Salto de Numeração**:
@@ -22892,9 +22892,9 @@ video:
 A alteração de cartões de autógrafo é controlada por diretivas de segurança para impedir adulterações em firmas registradas. O operador deve estar vinculado ao grupo específico do balcão.
 
 #### Passo a passo:
-1. Com perfil de administrador, acesse no **Orion TN** o menu **Configurações > Segurança > Usuários**.
-2. Selecione o operador e clique em **Editar**.
-3. Na aba **Grupos de Trabalho**, certifique-se de marcar a opção **Grupo Firmas**.
+1. Com perfil de administrador, acesse no **Orion TN** o menu **Configurações > Usuários**.
+2. Selecione o operador e clique em **Alterar**.
+3. Na tela **Alteração de usuário**, marque a opção **Escrevente de Firmas**.
 4. Na aba **Permissões Específicas**, expanda o módulo **Balcão de Firmas** e habilite:
 5. **[x] Alterar Dados da Ficha de Firma**
 6. **[x] Inserir Observações / Alertas no Cartão de Assinatura**
@@ -22936,7 +22936,7 @@ video:
 A legislação veda a exclusão física de fichas numeradas. A duplicidade deve ser tratada elegendo-se a ficha primitiva como principal e inativando a ficha secundária com nota de remissão recíproca.
 
 #### Passo a passo:
-1. Acesse o menu **Balcão de Firmas > Fichas / Cartões de Assinatura**.
+1. Acesse o menu **Firmas > Cadastros > Cartão de assinatura**.
 2. Localize ambas as fichas buscando pelo CPF da parte.
 3. Identifique a ficha mais antiga (ou que possui o maior acervo de imagens e atos) para ser a **Ficha Principal**.
 4. Abra a ficha secundária (duplicada) e clique em **Editar**.
@@ -23204,9 +23204,9 @@ As comunicações de operações suspeitas e inocorrências só podem ser transm
 1. O Tabelião Titular deve acessar o portal oficial do **SISCOAF** utilizando seu certificado digital e-CPF.
 2. Navegue até **Pessoas Obrigadas > Habilitações de Usuários / Gerenciar Prepostos**.
 3. Cadastre o CPF do colaborador responsável pelas comunicações, concedendo perfil ativo de remetente da serventia.
-4. No **Orion TN**, acesse **Configurações > Parâmetros Gerais > Comunicação COAF**.
-5. No campo **CPF do Responsável pelo Envio**, informe com exatidão o CPF que foi habilitado no portal.
-6. Clique em **Gravar**.
+4. No **Orion TN**, acesse **Configurações > Parametrizações**, selecione **Comunicações** e clique em **Clique aqui para acessar a tela de configuração no Orion Coaf**.
+5. No campo **CPF/CNPJ**, informe com exatidão o CPF que foi habilitado no portal.
+6. Clique em **Cadastrar**.
 7. Retorne à tela de envio do COAF e faça a transmissão do lote pendente.
 
 * **Responsabilidade Legal:** Mantenha o cadastro de prepostos atualizado no SISCOAF e desative imediatamente o vínculo de funcionários desligados.
@@ -23248,7 +23248,7 @@ video:
 O Provimento nº 18 do CNJ estabelece que todo inventário comunicado à CESDI deve possuir identificação explícita do falecido, herdeiros e advogado assistente, além de dados de filiação completa.
 
 #### Passo a passo:
-1. No **Orion TN**, acesse **Configurações > Cadastros Auxiliares > Tipos de Participação**.
+1. No **Orion TN**, acesse **Configurações > Cadastros auxiliares > Participação**.
 2. Verifique se as participações estão mapeadas no quadro **Comunicações - Configurações**:
 3. Falecido/Autor da Herança ➔ Qualidade CESDI: **De Cujus / Falecido**.
 4. Herdeiro/Cônjuge Meiro ➔ Qualidade CESDI: **Herdeiro**.
@@ -23297,7 +23297,7 @@ Por segurança, os tokens de API fornecidos pelo Colégio Notarial do Brasil (CN
 1. Acesse o portal oficial do **SIGNO / CENSEC** (`signo.censec.org.br`) com o certificado digital do Tabelião.
 2. Navegue até **Configurações da Serventia > Integração / API / Tokens**.
 3. Clique no botão **Gerar Novo Token de Integração / API Key** e copie a chave extensa gerada.
-4. No **Orion TN**, acesse com perfil de administrador: **Configurações > Parâmetros Gerais > Integração SIGNO / CENSEC**.
+4. No **Orion TN**, acesse com perfil de administrador: **Configurações > Parametrizações**, na aba **Comunicações**.
 5. Cole a nova chave no campo **Token de Acesso (API Key)**.
 6. Clique no botão **Validar Conexão com SIGNO** e confirme a mensagem de sucesso.
 7. Clique em **Salvar**.
@@ -23339,7 +23339,7 @@ video:
 Na Central de Testamentos e Procurações (CTP), outorgantes pessoas jurídicas não podem outorgar poderes diretamente sem a indicação da pessoa física que as representa (sócio, administrador ou procurador).
 
 #### Passo a passo:
-1. Abra o protocolo da procuração no menu **Notas > Protocolo**.
+1. Abra o protocolo da procuração no menu **Notas > Consultas > Protocolos**.
 2. Acesse a aba **Partes** e localize a Pessoa Jurídica outorgante.
 3. Selecione a empresa e clique na sub-aba **Representantes Legais**.
 4. Caso o sócio já esteja listado mas o sistema não valide: exclua o vínculo e adicione novamente.
@@ -23385,7 +23385,7 @@ video:
 A Declaração sobre Operações Imobiliárias (DOI) exige consistência matemática absoluta entre os alienantes e adquirentes do negócio jurídico. Se as porcentagens transmitidas não fecharem a integralidade do quinhão, a remessa é recusada.
 
 #### Passo a passo:
-1. No **Orion TN**, abra o protocolo da escritura através de **Notas > Protocolo**.
+1. No **Orion TN**, abra o protocolo da escritura através de **Notas > Consultas > Protocolos**.
 2. Acesse a aba **Imóveis** e clique em **Editar** no bem correspondente.
 3. Confira os campos obrigatórios: **Tipo de Imóvel** (Urbano/Rural), **Matrícula**, **Código IBGE** e **Logradouro**.
 4. Acesse a sub-aba **Partes do Imóvel / Transmissão**.
@@ -23475,7 +23475,7 @@ Por padrão de economia de rede, o Orion TN acumula os cartões de autógrafo ab
 
 #### Passo a passo:
 1. No **Orion TN**, certifique-se de que a ficha de firma do cliente está salva com imagem da assinatura e biometria.
-2. Acesse o menu **Administração > Comunicações > Outras Comunicações > E-Notariado**.
+2. Acesse o menu **Administração > Comunicações > Outras comunicações**.
 3. Na aba **Cartões de Autógrafo / Fichas de Firma**, informe o CPF ou número da ficha do cliente.
 4. Selecione o registro na grade e clique no botão **Gerar / Enviar Imediatamente**.
 5. O sistema executará o upload síncrono do payload com as assinaturas para os servidores do Colégio Notarial.
@@ -23518,7 +23518,7 @@ video:
 A CENSEC não utiliza o nome textual dos municípios para cruzamento estatístico, mas sim o código de 7 dígitos da tabela oficial do IBGE. Cidades cadastradas sem esse vínculo impedem o envio da carga.
 
 #### Passo a passo:
-1. Acesse **Notas > Protocolo** e abra o ato apontado com pendência no log da CEP.
+1. Acesse **Notas > Consultas > Protocolos** e abra o ato apontado com pendência no log da CEP.
 2. Na aba **Partes**, edite o endereço das partes: no campo **Município**, utilize a lupa de busca para selecionar a cidade da lista oficial (o sistema preencherá o código IBGE automaticamente).
 3. Na aba **Imóveis**, confira o endereço do bem e repita a seleção assistida do município.
 4. Clique no botão **Salvar** do protocolo.
@@ -23604,7 +23604,7 @@ video:
 O Registro Central de Testamentos e Outros (RCTO) exige que escrituras que modifiquem negócios pretéritos tragam em seus metadados a remissão exata ao livro, folha e data do ato primitivo retificado.
 
 #### Passo a passo:
-1. Abra o protocolo da escritura de rerratificação no menu **Notas > Protocolo**.
+1. Abra o protocolo da escritura de rerratificação no menu **Notas > Consultas > Protocolos**.
 2. Navegue até a aba **Dados do Ato / Retificação**.
 3. Marque a opção **Este Ato Retifica / Adita Negócio Jurídico Anterior**.
 4. Preencha obrigatoriamente os campos:
@@ -23654,7 +23654,7 @@ O software validador oficial da Receita Federal para a DOI é legado e não exib
 3. Abra o arquivo utilizando o **Notepad++** ou **Bloco de Notas** do Windows.
 4. Pressione `Ctrl + G` e digite o número da linha correspondente ao erro.
 5. No início dessa linha ou no registro de controle imediatamente anterior, localize o campo de identificação que contém o **Número do Protocolo** ou a data de lavratura.
-6. Com o número em mãos, abra o protocolo no **Orion TN** em **Notas > Protocolo**.
+6. Com o número em mãos, abra o protocolo no **Orion TN** em **Notas > Consultas > Protocolos**.
 7. Acesse a aba **Imóveis** ou **Partes** e aplique a correção do dado faltante indicado pela Receita.
 8. Exporte o lote novamente e revalide no programa oficial.
 
@@ -23779,7 +23779,7 @@ video:
 A continuidade cronológica dos livros notariais é princípio basilar. Havendo salto ou avaria física de folha, o Orion TN permite registrar a inutilização com certidão circunstanciada, preservando a trilha contábil e fiscal.
 
 #### Passo a passo:
-1. Acesse o menu **Livros > Gestão e Controle de Folhas** (ou **Notas > Livros**).
+1. Acesse o menu **Administração > Controle de Livros**.
 2. Selecione o Livro Notarial ativo no qual ocorreu o salto.
 3. Na grade de controle de páginas, localize as folhas que ficaram em branco (ex.: Folha 089 V e Folha 090 F).
 4. Selecione as páginas correspondentes e clique no botão **Ações > Inutilizar Folha / Declarar Sem Efeito**.
@@ -23823,7 +23823,7 @@ video:
 Quando o operador aciona a rotina de encerramento de livro sem atentar para o saldo de folhas vagas, o sistema bloqueia novos atos. O administrador pode cancelar a operação e reabrir o livro.
 
 #### Passo a passo:
-1. Com login de administrador ou substituto, acesse **Configurações > Livros Notariais > Cadastro e Encerramento**.
+1. Com login de administrador ou substituto, acesse **Administração > Controle de Livros**.
 2. Localize o livro que consta com status `ENCERRADO`.
 3. Selecione o livro e clique no botão **Ações > Reabrir Livro Notarial / Cancelar Encerramento**.
 4. Informe a justificativa formal (ex.: *"Cancelamento de encerramento precoce para consumo dos termos restantes"*).
@@ -23867,7 +23867,7 @@ video:
 O traslado notarial deve ter apresentação sóbria e compacta. Pequenos ajustes de entrelinhas (1.15) e recuos de parágrafo permitem absorver linhas órfãs nas páginas precedentes sem violar normas visuais.
 
 #### Passo a passo:
-1. Abra o protocolo do ato através de **Notas > Protocolo** e selecione a aba **Traslado**.
+1. Abra o protocolo do ato através de **Notas > Consultas > Protocolos** e selecione a aba **Traslado**.
 2. Clique no botão **Editar Traslado / Diagramação**.
 3. Pressione `Ctrl + A` para selecionar todo o texto do documento.
 4. Na barra de formatação, altere o campo **Espaçamento Entrelinhas** para `1.15` (ou `Simples`).
@@ -23956,7 +23956,7 @@ video:
 Todo livro notarial exige termos de abertura (no frontispício) e de encerramento (no fecho), com a qualificação da serventia, capacidade de folhas e assinatura da autoridade delegatária.
 
 #### Passo a passo:
-1. Acesse o menu **Livros > Gestão de Livros Notariais**.
+1. Acesse o menu **Administração > Controle de Livros**.
 2. Selecione o tipo de livro (ex.: **Escrituras**, **Procurações** ou **Testamentos**).
 3. Para **Novo Livro (Abertura)**:
 4. Clique em **Cadastrar Novo Livro**, informe o número, total de folhas e selecione **Emitir Termo de Abertura**.
@@ -24004,7 +24004,7 @@ Quando dois atos ocupam a mesma página física (ex.: ato breve na frente e outr
 #### Passo a passo:
 1. Acesse a tela de fechamento em **Notas > Fechamento de Quinzena / Comunicações**.
 2. Identifique na mensagem de alerta o número exato do Livro e da Folha em conflito.
-3. Abra o protocolo correspondente em **Notas > Protocolo**, aba **Dados do Ato**.
+3. Abra o protocolo correspondente em **Notas > Consultas > Protocolos**, aba **Dados do Ato**.
 4. No campo **Complemento de Folha**, informe a distinção formal (ex.: `V` para Verso, ou `A` / `B` para subdivisões autorizadas).
 5. Salve o protocolo.
 6. No ato correlato, assegure que o campo de complemento esteja devidamente preenchido com a especificação recíproca (ex.: `F` para Frente).
@@ -24404,7 +24404,7 @@ video:
 Certidões emitidas sob assistência judiciária gratuita ou por requisição judicial possuem código de selo e regramento tributário próprio. O sistema exige a especificação do fundamento legal da isenção.
 
 #### Passo a passo:
-1. No **Orion TN**, acesse o menu **Certidões > Novo Pedido de Certidão** (ou **Notas > Certidões**).
+1. No Orion TN, acesse o menu **Notas** > **Nova certidão e serviço**.
 2. No formulário inicial do pedido, altere o campo **Modalidade de Cobrança** de `Normal / Paga` para **Isenta / Gratuita**.
 3. No campo **Motivo Legal da Gratuidade**, selecione o dispositivo correspondente (ex.: **Assistência Judiciária Gratuita**, **Requisição Judicial**, **Defensoria Pública** ou **Poder Público**).
 4. Na aba **Cálculo de Custas**, certifique-se de que todas as linhas de emolumentos exibam `R$ 0,00`.
@@ -24493,7 +24493,7 @@ video:
 Serventias centenárias possuem grande acervo anterior à informatização. O Orion TN dispõe de rotina para emissão avulsa de certidões sobre atos legados, com cobrança no caixa e aposição de selo digital do tribunal.
 
 #### Passo a passo:
-1. No **Orion TN**, acesse o menu **Certidões > Novo Pedido de Certidão**.
+1. No Orion TN, acesse o menu **Notas** > **Nova certidão e serviço**.
 2. Marque a opção **Certidão de Ato Antigo / Não Digitalizado**.
 3. Informe os dados manuais da busca: **Número do Livro**, **Folhas Inicial/Final** e **Data da Lavratura Original**.
 4. Informe os nomes das partes principais para constarem no recibo e no índice de buscas.
@@ -24857,7 +24857,7 @@ video:
 Com o objetivo de prevenir fraudes e adulterações inadvertidas, perfis padrão do grupo de escreventes podem estar configurados com travas que impedem a edição de protocolos após a geração inicial do número de apontamento. Quando a rotina de trabalho exige que múltiplos operadores colaborem no mesmo protocolo, os parâmetros de edição pré-finalização devem ser habilitados no perfil do grupo.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações** > submenu **Grupos e Perfis de Acesso**.
+1. Acesse o menu **Configurações** > submenu **Perfis e permissões de acesso**.
 2. Selecione o grupo operacional correspondente (ex: **Escreventes de Notas**) e clique em **Alterar**.
 3. Na árvore de módulos e rotinas, expanda o nó **Notas** > **Protocolo** > **Operações Básicas**.
 4. Marque as caixas de seleção obrigatórias:
@@ -24906,13 +24906,13 @@ video:
 O relatório de Serviços Praticados é uma ferramenta essencial de prestação de contas no encerramento do turno de balcão, permitindo conferir a quantidade de autenticações, reconhecimentos de firma e certidões expedidas. Quando operadores com perfil auxiliar assumem o caixa do balcão, o perfil de acesso precisa ter essa prerrogativa liberada individualmente ou pelo grupo funcional.
 
 #### Passo a passo:
-1. No Orion TN, acesse o menu **Configurações** > **Grupos e Perfis de Acesso** (ou **Usuários** para ajuste individual).
+1. No Orion TN, acesse o menu **Configurações** > **Perfis e permissões de acesso** (ou **Usuários** para ajuste individual).
 2. Localize o grupo **Auxiliares de Cartório** e clique em **Alterar**.
 3. Na árvore de permissões, expanda **Balcão de Firmas** > pasta **Consultas e Relatórios**.
 4. Localize e marque a opção **[x] Consulta de Serviços Praticados** e o subitem **[x] Permitir Impressão de Extrato Operacional**.
 5. Se a serventia restringe a visualização financeira, desmarque a opção **Exibir Valores de Emolumentos e Caixa Líquido** para apresentar apenas o quantitativo físico de atos.
 6. Clique no botão **Salvar**.
-7. Oriente o colaborador a fechar o módulo e reabri-lo; o menu **Balcão de Firmas** > **Relatórios** > **Serviços Praticados** estará imediatamente disponível.
+7. Oriente o colaborador a fechar o módulo e reabri-lo; o menu **Firmas** > **Consultas** > **Serviços praticados** estará imediatamente disponível.
 
 * **Dica:** Para maior controle de gestão, utilize a restrição de visualização por operador, garantindo que cada atendente visualize apenas os atos que ele próprio selou e praticou.
 ---

@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 Certidões emitidas sob assistência judiciária gratuita ou por requisição judicial possuem código de selo e regramento tributário próprio. O sistema exige a especificação do fundamento legal da isenção.
 
 #### Passo a passo:
-1. No **Orion TN**, acesse o menu **Certidões > Novo Pedido de Certidão** (ou **Notas > Certidões**).
+1. No Orion TN, acesse o menu **Notas** > **Nova certidão e serviço**.
 2. No formulário inicial do pedido, altere o campo **Modalidade de Cobrança** de `Normal / Paga` para **Isenta / Gratuita**.
 3. No campo **Motivo Legal da Gratuidade**, selecione o dispositivo correspondente (ex.: **Assistência Judiciária Gratuita**, **Requisição Judicial**, **Defensoria Pública** ou **Poder Público**).
 4. Na aba **Cálculo de Custas**, certifique-se de que todas as linhas de emolumentos exibam `R$ 0,00`.

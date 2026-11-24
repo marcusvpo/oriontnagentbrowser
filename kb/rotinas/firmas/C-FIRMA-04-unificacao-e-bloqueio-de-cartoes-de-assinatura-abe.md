@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 A legislação veda a exclusão física de fichas numeradas. A duplicidade deve ser tratada elegendo-se a ficha primitiva como principal e inativando a ficha secundária com nota de remissão recíproca.
 
 #### Passo a passo:
-1. Acesse o menu **Balcão de Firmas > Fichas / Cartões de Assinatura**.
+1. Acesse o menu **Firmas > Cadastros > Cartão de assinatura**.
 2. Localize ambas as fichas buscando pelo CPF da parte.
 3. Identifique a ficha mais antiga (ou que possui o maior acervo de imagens e atos) para ser a **Ficha Principal**.
 4. Abra a ficha secundária (duplicada) e clique em **Editar**.

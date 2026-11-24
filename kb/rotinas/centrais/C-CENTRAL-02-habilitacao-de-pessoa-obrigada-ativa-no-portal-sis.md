@@ -37,9 +37,9 @@ As comunicações de operações suspeitas e inocorrências só podem ser transm
 1. O Tabelião Titular deve acessar o portal oficial do **SISCOAF** utilizando seu certificado digital e-CPF.
 2. Navegue até **Pessoas Obrigadas > Habilitações de Usuários / Gerenciar Prepostos**.
 3. Cadastre o CPF do colaborador responsável pelas comunicações, concedendo perfil ativo de remetente da serventia.
-4. No **Orion TN**, acesse **Configurações > Parâmetros Gerais > Comunicação COAF**.
-5. No campo **CPF do Responsável pelo Envio**, informe com exatidão o CPF que foi habilitado no portal.
-6. Clique em **Gravar**.
+4. No **Orion TN**, acesse **Configurações > Parametrizações**, selecione **Comunicações** e clique em **Clique aqui para acessar a tela de configuração no Orion Coaf**.
+5. No campo **CPF/CNPJ**, informe com exatidão o CPF que foi habilitado no portal.
+6. Clique em **Cadastrar**.
 7. Retorne à tela de envio do COAF e faça a transmissão do lote pendente.
 
 * **Responsabilidade Legal:** Mantenha o cadastro de prepostos atualizado no SISCOAF e desative imediatamente o vínculo de funcionários desligados.

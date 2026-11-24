@@ -299,6 +299,12 @@ export interface SmartLocatorDivergence {
   textChange?: { from: string; to: string };
   /** Gatilho revelador que tornou o alvo visível (`investigative_reveal`, ADR-018) */
   reveal?: RevealTriggerInfo;
+  /**
+   * Base da cura de navegação (`menu_path_resolution`): `explicit_equivalence`, `generic_leaf_key`,
+   * `tail_as_screen_section` (ADR-029) ou, na ADR-037, `single_segment_screen` (tela citada sem `>`, Camada 2),
+   * `closed_semantic` (semântica fechada determinística, Camada 3) e `closed_semantic_agy` (Camada 3 via `agy`).
+   */
+  menuBasis?: string;
 }
 
 /** Tipos de gatilho revelador seguro investigados antes de um bloqueio `[!!!]` (ADR-018). */
@@ -506,6 +512,11 @@ export interface MenuPathMissingEvidence {
   treeSize: number;
   /** Nome da folha encontrado em outro ponto da árvore (apenas pista), se houver */
   leafElsewhere?: string[];
+  /**
+   * Camada 3 da ADR-037 (semântica fechada sobre o catálogo canônico) sem destino inequívoco: justificativa e os
+   * melhores candidatos com a pontuação (apenas evidência; nada foi navegado).
+   */
+  closedSemantic?: { justification: string; topCandidates: string[] };
 }
 
 /**
@@ -541,6 +552,12 @@ export interface SmartLocatorResult {
    * bloqueia com a lista real de abas. O texto da cauda nunca é reescrito.
    */
   menuTail?: { segments: string[]; realChain: string[]; documentedPath: string; basis: string };
+  /**
+   * Cura de navegação da ADR-037 que exige a conferência de coerência pós-pouso (Camada 4): equivalência explícita
+   * (Camada 1), tela de segmento único (Camada 2) ou semântica fechada (Camada 3). O executor só aceita a cura se a
+   * tela alcançada contiver algum alvo dos passos seguintes.
+   */
+  menuCure?: { basis: string; documented: string; realChain: string[]; evidence: string };
   /**
    * Divergências de alvos individuais de um passo com múltiplos alvos (ADR-016): rótulos curados para
    * o nome real da tela ou não localizados na zona de conteúdo, mesmo quando o passo foi demarcado.

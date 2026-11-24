@@ -35,7 +35,7 @@ versao_sistema: Orion TN 6.0
 Na Central de Testamentos e Procurações (CTP), outorgantes pessoas jurídicas não podem outorgar poderes diretamente sem a indicação da pessoa física que as representa (sócio, administrador ou procurador).
 
 #### Passo a passo:
-1. Abra o protocolo da procuração no menu **Notas > Protocolo**.
+1. Abra o protocolo da procuração no menu **Notas > Consultas > Protocolos**.
 2. Acesse a aba **Partes** e localize a Pessoa Jurídica outorgante.
 3. Selecione a empresa e clique na sub-aba **Representantes Legais**.
 4. Caso o sócio já esteja listado mas o sistema não valide: exclua o vínculo e adicione novamente.

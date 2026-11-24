@@ -4,18 +4,27 @@ titulo: 'Como Criar um Novo Pedido de Certidão (Dados do Solicitante)'
 modulo: certidoes
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-18'
+  data_execucao: '2026-11-24'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-4'
+  worker_id: 'worker-1'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 1
+  prints_geradas: 2
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
+  auto_cura:
+    acionada: true
+    divergencias_detectadas:
+      - passo: 1
+        alvo_documentado: 'Notas > Pedido de certidão'
+        elemento_real: '(não localizado na tela)'
+        camada: target_not_found
+        confianca: 0
+        texto_alterado: false
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -57,9 +66,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-24'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Notas > Pedido de certidão" não existe na árvore de navegação real do Orion TN. O menu **Notas** existe na barra de navegação e contém: "Protocolos em aberto", "Novo protocolo", "Protocolos", "Orçamento completo"'
+      bloqueio_atual:
+        passo: 1
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 1
-    capturado_em: '2026-11-18T04:59:56.706Z'
+    capturado_em: '2026-11-24T17:39:58.677Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -79,7 +105,7 @@ auditoria_ui:
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. O caminho "Notas > Pedido de certidão" não existe na árvore de navegação real do Orion TN. O menu **Notas** existe na barra de navegação e contém: "Protocolos em aberto", "Novo protocolo", "Protocolos", "Orçamento completo", "Orçamentos", "Orçamento rápido", "Nova certidão e serviço", "Certidões e serviços", "Certidões e serviços em aberto", "Consultas"; "Pedido de certidão" não está entre eles. Nenhum item de nome igual ou parecido existe em outro ponto da árvore (140 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 1, o manual cita um caminho de menu que não existe na versão atual. A tela alcançada por equivalência canônica explícita (Camada 1) ("Notas > Pedido de certidão" -> "Notas > Nova certidão e serviço" (#/certidoesServicos/cadastrar)) não contém "Dados do pedido de certidão", "Tipo de Certidão", "Solicitante", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Certidões e serviços", "Pedido", "Data pedido", "Recibo", "Data recibo", "Previsão de entrega", "Status", "Situação", "Escrevente", "Escrevente assinante (Substituto):", "Auxiliar do escrevente:", "Escrevente que colheu as assinaturas", "Interessado", "Pessoa física". Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
 > Tela alcançada no passo 1: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
@@ -100,7 +126,10 @@ Primeira etapa na emissão de certidão notarial, responsável por registrar os 
 #### Passo a passo (texto original preservado):
 1. Na tela **Notas > Pedido de certidão**, clique no botão **Novo**.
    [aqui vai a print "passo-01.png"]
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Caminho de menu não encontrado na árvore de navegação real: Notas > Pedido de certidão
+   [aqui vai a print "passo-01-b.png"]
+   > [!NOTE] **Demarcações na print:** (1) **Notas** · (2) **Nova certidão e serviço** · (3) **Novo**
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Notas > Pedido de certidão"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Cura de navegação descartada pela coerência pós-pouso: A tela alcançada por equivalência canônica explícita (Camada 1) ("Notas > Pedido de certidão" -> "Notas > Nova certidão e serviço" (#/certidoesServicos/cadastrar)) não contém "Dados do pedido de certidão", "Tipo de Certidão", "Solicitante", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Certidões e serviços", "Pedido", "Data pedido", "Recibo", "Data recibo", "Previsão de entrega", "Status", "Situação", "Escrevente", "Escrevente assinante (Substituto):", "Auxiliar do escrevente:", "Escrevente que colheu as assinaturas", "Interessado", "Pessoa física".
 2. No card **Dados do pedido de certidão**, selecione o **Tipo de Certidão**:
    * **Inteiro Teor**: reprodução integral da escritura ou procuração com todas as suas cláusulas.
    * **Breve Relato / Resumo**: certidão circunstanciada dos pontos essenciais do ato.

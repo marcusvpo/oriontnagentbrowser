@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AgentBrowserClient } from './browser.js';
-import { resolveAndNavigateMenuPath } from './menu-path.js';
+import { resolveAndNavigateMenuPath, type MenuNavigationContext } from './menu-path.js';
 import {
   deriveStepGuard,
   forbiddenCandidateReason,
@@ -1909,6 +1909,11 @@ export interface SmartLocateOptions {
   visualMode?: VisualAuditMode;
   /** Identificador do worker atual para isolamento de imagens efêmeras `som-worker-${workerId}-${ts}.png` */
   workerSessionId?: string;
+  /**
+   * Contexto da rotina para as Camadas 2 (tela citada sem `>`) e 3 (semântica fechada) da navegação (ADR-037).
+   * Ausente = as duas camadas ficam desligadas e a Camada 0 só trata caminhos explícitos `A > B`.
+   */
+  menuContext?: MenuNavigationContext;
 }
 
 /**
@@ -1952,7 +1957,8 @@ async function locateAndCaptureInner(
   const fullAccess =
     isFullAccessSession() || isFullAccessSession(await readSessionIdentity(client).catch(() => null));
   const viaMenuPath = await resolveAndNavigateMenuPath(client, step, rawScreenshotPath, options.priorMenuChains, {
-    ignoreDisabledBlocks: fullAccess
+    ignoreDisabledBlocks: fullAccess,
+    context: options.menuContext
   });
   if (viaMenuPath && (viaMenuPath.found || viaMenuPath.permissionBlocked)) return viaMenuPath;
   // ADR-024: caminho de menu inexistente na árvore real (ou cascata que não abriu). O passo ainda pode ser

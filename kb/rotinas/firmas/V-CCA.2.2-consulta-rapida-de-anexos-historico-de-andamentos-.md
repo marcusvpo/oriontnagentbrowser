@@ -61,7 +61,7 @@ versao_sistema: Orion TN 6.0
 Cada registro listado na tabela de cartões de assinatura possui atalhos de consulta instantânea e recursos de auditoria. Esta rotina aborda a leitura dos indicadores visuais (presença de imagem e foto), o uso da galeria unificada de anexos em tela cheia, o rastreamento do log de andamentos e a ativação de bloqueios cautelares com alertas operacionais para o balcão de firmas.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura** e realize o filtro do registro desejado.
+1. Acesse **Firmas > Cadastros > Cartão de assinatura** e realize o filtro do registro desejado.
 2. Observe os **Indicadores Visuais Rápidos** na linha do registro:
    * **Ícone de Imagem do Cartão**: Se estiver na cor **Verde**, sinaliza que o cartão físico de assinatura está digitalizado e anexado à ficha; se estiver cinza/apagado, indica ausência de imagem anexada.
    * **Indicador de Foto**: Mostra visualmente se a foto facial da pessoa foi capturada via webcam.

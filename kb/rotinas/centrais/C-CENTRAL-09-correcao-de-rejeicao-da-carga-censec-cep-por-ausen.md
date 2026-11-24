@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 A CENSEC não utiliza o nome textual dos municípios para cruzamento estatístico, mas sim o código de 7 dígitos da tabela oficial do IBGE. Cidades cadastradas sem esse vínculo impedem o envio da carga.
 
 #### Passo a passo:
-1. Acesse **Notas > Protocolo** e abra o ato apontado com pendência no log da CEP.
+1. Acesse **Notas > Consultas > Protocolos** e abra o ato apontado com pendência no log da CEP.
 2. Na aba **Partes**, edite o endereço das partes: no campo **Município**, utilize a lupa de busca para selecionar a cidade da lista oficial (o sistema preencherá o código IBGE automaticamente).
 3. Na aba **Imóveis**, confira o endereço do bem e repita a seleção assistida do município.
 4. Clique no botão **Salvar** do protocolo.

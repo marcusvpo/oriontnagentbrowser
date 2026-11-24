@@ -20,7 +20,10 @@
     "auditoria/src/navigation-guard.ts",
     "auditoria/src/semantic-compatibility.ts",
     "auditoria/src/auth.ts",
-    "auditoria/src/modal-scope.ts"
+    "auditoria/src/modal-scope.ts",
+    "auditoria/src/menu-path.ts",
+    "auditoria/src/menu-catalog.ts",
+    "auditoria/src/__tests__/adr037-canonical-menu-catalog.test.ts"
   ],
   "ignore": {
     "useGitignore": true,

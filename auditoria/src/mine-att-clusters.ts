@@ -12,16 +12,20 @@
  *   D — Recurso realmente removido / tela pressuposta / exclusivo de outra rotina (permanece `[ATT]`/`[XRX]`)
  *
  * Saída: `auditoria/cache/att-xrx-cluster-analysis.json` (ignorado pelo Git) + resumo no terminal. A árvore de menus
- * real vem de `auditoria/cache/orion-menu-tree-real.json` (`capture-menu-tree.ts`); sem ela, o cluster A fica sem
- * prova de equivalência e é marcado como tal.
+ * vem de `auditoria/cache/orion-menu-tree-real.json` (`capture-menu-tree.ts`, leitura ao vivo) ou do catálogo canônico
+ * versionado `auditoria/data/orion-menu-tree-canonical.json` (ADR-037, `catalogAsCanonicalItems`):
+ *   --tree auto      (padrão) árvore ao vivo, salvo se ausente ou capturada ANTES do catálogo -> catálogo canônico
+ *   --tree live      só a árvore ao vivo (sem ela, o cluster A fica sem prova de equivalência, como antes)
+ *   --tree canonical sempre o catálogo canônico
  *
- *   npx --prefix auditoria tsx auditoria/src/mine-att-clusters.ts
+ *   npx --prefix auditoria tsx auditoria/src/mine-att-clusters.ts [--tree auto|live|canonical]
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
 import { config } from './config.js';
 import { canonNormalize, EXPLICIT_MENU_EQUIVALENCES, resolveCanonicalMenuPath, type CanonicalMenuItem } from './menu-canonical.js';
+import { catalogAsCanonicalItems, DEFAULT_MENU_CATALOG_FILE, loadMenuCatalog } from './menu-catalog.js';
 import { extractMenuPaths } from './menu-path.js';
 import { PHASES } from './phases.js';
 import { ROUTE_LABEL_SYNONYMS, routeKey } from './route-synonyms.js';
@@ -71,15 +75,70 @@ function pseudoStep(rawText: string): RoutineStep {
   return { rawText, targets: [], stepNumber: 0, routineId: '' } as unknown as RoutineStep;
 }
 
+export type MenuTreeSourceMode = 'auto' | 'live' | 'canonical';
+
 export interface MinerInput {
   rotinasDir: string;
   telemetryDir: string;
   menuTreeFile: string;
+  /** Fonte da árvore (ADR-037). Ausente = `live` (comportamento anterior, compatível com chamadas antigas). */
+  treeSource?: MenuTreeSourceMode;
+  /** Catálogo canônico (padrão: `auditoria/data/orion-menu-tree-canonical.json`) */
+  catalogFile?: string;
+}
+
+/** Instante de captura de uma árvore: campo `capturedAt` do JSON ou, sem ele, a data de modificação do arquivo. */
+function capturedAtOf(file: string, parsed: { capturedAt?: string } | null): number {
+  const t = parsed?.capturedAt ? Date.parse(parsed.capturedAt) : NaN;
+  return Number.isFinite(t) ? t : fs.statSync(file).mtimeMs;
+}
+
+/**
+ * Escolhe a árvore de menus do minerador. `auto`: a leitura ao vivo vale se existir e não for mais antiga que o
+ * catálogo canônico; senão, o catálogo (115 caminhos finais + nós intermediários). Pura sobre os arquivos lidos.
+ */
+export function loadMinerMenuTree(
+  menuTreeFile: string,
+  mode: MenuTreeSourceMode = 'live',
+  catalogFile: string = DEFAULT_MENU_CATALOG_FILE
+): { items: CanonicalMenuItem[]; source: 'live' | 'canonical' | 'none'; reason: string } {
+  let live: { capturedAt?: string; items?: CanonicalMenuItem[] } | null = null;
+  if (mode !== 'canonical' && fs.existsSync(menuTreeFile)) {
+    try {
+      live = JSON.parse(fs.readFileSync(menuTreeFile, 'utf-8'));
+    } catch {
+      live = null;
+    }
+  }
+  const liveItems = Array.isArray(live?.items) ? (live!.items as CanonicalMenuItem[]) : [];
+  if (mode === 'live') {
+    return liveItems.length > 0
+      ? { items: liveItems, source: 'live', reason: 'árvore lida ao vivo (--tree live)' }
+      : { items: [], source: 'none', reason: 'árvore ao vivo ausente (--tree live)' };
+  }
+  const hasCatalog = fs.existsSync(catalogFile);
+  if (mode === 'auto' && liveItems.length > 0) {
+    if (!hasCatalog) return { items: liveItems, source: 'live', reason: 'árvore ao vivo (catálogo canônico ausente)' };
+    const catalog = loadMenuCatalog(catalogFile);
+    const liveAt = capturedAtOf(menuTreeFile, live);
+    const catAt = Date.parse(catalog.capturedAt);
+    if (!Number.isFinite(catAt) || liveAt >= catAt) return { items: liveItems, source: 'live', reason: 'árvore ao vivo não é mais antiga que o catálogo' };
+  }
+  if (!hasCatalog) return { items: [], source: 'none', reason: 'catálogo canônico ausente' };
+  const catalog = loadMenuCatalog(catalogFile);
+  return {
+    items: catalogAsCanonicalItems(catalog),
+    source: 'canonical',
+    reason: mode === 'canonical' ? `catálogo canônico ${catalog.version} (--tree canonical)` : `catálogo canônico ${catalog.version} (árvore ao vivo ausente ou mais antiga)`
+  };
 }
 
 export interface MinerResult {
   generatedAt: string;
   menuTreeItems: number;
+  /** Fonte da árvore usada (ADR-037; campo novo, aditivo) */
+  menuTreeSource: 'live' | 'canonical' | 'none';
+  menuTreeSourceReason: string;
   totals: { analisadas: number; att: number; xrx: number; porCluster: Record<ClusterId, number>; destravaveis: number };
   porFase: Record<string, Record<ClusterId, number>>;
   subcausas: Record<string, number>;
@@ -89,9 +148,8 @@ export interface MinerResult {
 }
 
 export function mineClusters(input: MinerInput): MinerResult {
-  const tree: CanonicalMenuItem[] = fs.existsSync(input.menuTreeFile)
-    ? (JSON.parse(fs.readFileSync(input.menuTreeFile, 'utf-8')).items as CanonicalMenuItem[])
-    : [];
+  const treeChoice = loadMinerMenuTree(input.menuTreeFile, input.treeSource ?? 'live', input.catalogFile);
+  const tree: CanonicalMenuItem[] = treeChoice.items;
   const raioXFieldsByRoute = new Map<string, Set<string>>();
   const routines: MinedRoutine[] = [];
 
@@ -281,6 +339,8 @@ export function mineClusters(input: MinerInput): MinerResult {
   return {
     generatedAt: new Date().toISOString(),
     menuTreeItems: tree.length,
+    menuTreeSource: treeChoice.source,
+    menuTreeSourceReason: treeChoice.reason,
     totals: {
       analisadas: routines.length,
       att: routines.filter(r => r.tags.includes('ATT')).length,
@@ -307,7 +367,7 @@ function printSummary(r: MinerResult): void {
   console.log('\n==================================================================');
   console.log('  MINERAÇÃO DOS BLOQUEIOS [ATT] E [XRX] — CAUSAS RAIZ (ADR-029)');
   console.log('==================================================================');
-  console.log(`Rotinas analisadas: ${r.totals.analisadas} ([ATT] ${r.totals.att} | [XRX] ${r.totals.xrx}) | árvore real: ${r.menuTreeItems} itens`);
+  console.log(`Rotinas analisadas: ${r.totals.analisadas} ([ATT] ${r.totals.att} | [XRX] ${r.totals.xrx}) | árvore: ${r.menuTreeItems} itens (${r.menuTreeSource}: ${r.menuTreeSourceReason})`);
   const names: Record<ClusterId, string> = {
     A: 'A — Falha de caminho de menu',
     B: 'B — Grade vazia que exige filtro/busca',
@@ -328,10 +388,17 @@ function printSummary(r: MinerResult): void {
 
 function main(): void {
   const root = path.join(config.rootDir, 'auditoria');
+  const ti = process.argv.indexOf('--tree');
+  const raw = ti >= 0 ? process.argv[ti + 1] : 'auto';
+  if (!['auto', 'live', 'canonical'].includes(raw)) {
+    console.error(`--tree inválido: "${raw}" (use auto | live | canonical)`);
+    process.exit(2);
+  }
   const result = mineClusters({
     rotinasDir: config.outputDir,
     telemetryDir: path.join(root, 'cache', 'kb-telemetry'),
-    menuTreeFile: path.join(root, 'cache', 'orion-menu-tree-real.json')
+    menuTreeFile: path.join(root, 'cache', 'orion-menu-tree-real.json'),
+    treeSource: raw as MenuTreeSourceMode
   });
   const out = path.join(root, 'cache', 'att-xrx-cluster-analysis.json');
   fs.mkdirSync(path.dirname(out), { recursive: true });

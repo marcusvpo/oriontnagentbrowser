@@ -38,7 +38,7 @@ Por segurança, os tokens de API fornecidos pelo Colégio Notarial do Brasil (CN
 1. Acesse o portal oficial do **SIGNO / CENSEC** (`signo.censec.org.br`) com o certificado digital do Tabelião.
 2. Navegue até **Configurações da Serventia > Integração / API / Tokens**.
 3. Clique no botão **Gerar Novo Token de Integração / API Key** e copie a chave extensa gerada.
-4. No **Orion TN**, acesse com perfil de administrador: **Configurações > Parâmetros Gerais > Integração SIGNO / CENSEC**.
+4. No **Orion TN**, acesse com perfil de administrador: **Configurações > Parametrizações**, na aba **Comunicações**.
 5. Cole a nova chave no campo **Token de Acesso (API Key)**.
 6. Clique no botão **Validar Conexão com SIGNO** e confirme a mensagem de sucesso.
 7. Clique em **Salvar**.

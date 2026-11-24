@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 O Provimento Geral da Justiça autoriza a selagem em modo de contingência offline em casos de instabilidade técnica comprovada, permitindo que a serventia reserve a numeração localmente para envio posterior.
 
 #### Passo a passo:
-1. Com login de administrador ou substituto, acesse no **Orion TN** o menu **Configurações > Parâmetros Gerais > Selo Digital** (ou aba **Integração TJ**).
+1. Com login de administrador ou substituto, acesse no **Orion TN** o menu **Configurações > Parametrizações**.
 2. Localize a opção **Modo de Envio do Selo Digital**.
 3. Altere o parâmetro de **Online** para **Modo de Selagem Offline (Contingência)**.
 4. Clique no botão **Salvar**.

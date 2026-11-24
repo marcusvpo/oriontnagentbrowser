@@ -60,7 +60,10 @@
       "**/*.jpg",
       "**/*.ico",
       "**/*.pdf",
-      "**/*.zip"
+      "**/*.zip",
+      "auditoria/src/__tests__/adr037-canonical-menu-catalog.test.ts",
+      "auditoria/src/__tests__/adr037-menu-integration.test.ts",
+      "auditoria/src/__tests__/adr037-menu-coherence-audit.test.ts"
     ]
   },
   "security": {

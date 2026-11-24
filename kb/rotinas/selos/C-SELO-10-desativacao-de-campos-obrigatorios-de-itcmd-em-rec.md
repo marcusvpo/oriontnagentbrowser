@@ -34,7 +34,7 @@ versao_sistema: Orion TN 6.0
 Por equívoco de configuração cadastral, a flag de obrigatoriedade de conferência fiscal de ITCMD pode ser vinculada globalmente ao protocolo, impedindo o avanço de negócios onerosos em que incide apenas ITBI.
 
 #### Passo a passo:
-1. Acesse o menu **Configurações > Cadastros Auxiliares > Naturezas de Atos**.
+1. Acesse o menu **Configurações > Cadastros auxiliares > Natureza**.
 2. Localize a natureza jurídica do ato que está bloqueado (ex.: **Compra e Venda Pura** ou **Procuração**).
 3. Clique em **Editar** e acesse a aba **Obrigações e Parâmetros Fiscais**.
 4. Desmarque o checkbox **Exigir Comprovante de ITCMD na Conclusão do Protocolo**.

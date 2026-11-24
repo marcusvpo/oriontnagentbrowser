@@ -59,7 +59,7 @@ versao_sistema: Orion TN 6.0
 Após a gravação inicial dos dados cadastrais, consumo do formulário/papel de segurança e aplicação do selo digital, o Orion TN habilita a emissão física do cartão de assinatura. A rotina permite selecionar o modelo gráfico padrão da serventia e direcionar a impressão para a impressora correta de papel de segurança ou formulário contínuo.
 
 #### Passo a passo:
-1. Acesse **Firmas > Cadastros > Cartão de Assinatura**.
+1. Acesse **Firmas > Cadastros > Cartão de assinatura**.
 2. Filtre e abra o cartão de assinatura gravado clicando no ícone da **Caneta** (**Alteração**).
    * **Atenção:** O botão de impressão do cartão pelo menu principal só é liberado na tela de edição após o cartão ter sido gravado previamente no banco de dados.
 3. Verifique se os dados cadastrais, o número do papel de segurança e o selo digital (se aplicável) estão devidamente preenchidos.
