@@ -157,20 +157,40 @@ export const isExternalStep = (step: Pick<RoutineStep, 'scope'>): boolean => ste
 
 const isProductName = (t: string): boolean => normalizeText(t) === 'orion tn';
 
+/** Verbos de contexto que situam o passo no produto ("No **Orion Caixa**, abra...", "Abra o **Orion Caixa**"). */
+const PRODUCT_CONTEXT_PREFIX =
+  '(no|na|ao|dentro do|acesse o|abra o|entre no|retorne ao|volte ao|retorne para o|volte para o|de volta ao|volte para|retorne para)';
+
+const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** O passo situa o texto no produto ativo do Portal Orion (`--product`), por nome normalizado. */
+function mentionsActiveProduct(rawText: string, productNorm: string): boolean {
+  const name = escapeRegExp(productNorm).replace(/ /g, '\\s*');
+  return new RegExp(`\\b${PRODUCT_CONTEXT_PREFIX}\\s+${name}\\b|^${name}\\b`).test(normalizeText(rawText));
+}
+
 /**
  * O nome do produto em negrito num passo de retorno ("No **Orion TN**, acesse...") não é um elemento de tela:
  * procurá-lo na home bloqueava a rotina ("o manual cita Orion TN, que não foi localizado") antes mesmo do
  * primeiro alvo real (C-CENTRAL-08, passo 1). Só sai da lista de alvos quando o passo de fato retorna ao
  * sistema; o texto do passo (`rawText`) nunca muda. Sem alvo restante, o passo vira captura limpa da tela.
+ *
+ * Fase 4: o mesmo vale para o produto ativo do Portal (`--product "Orion Caixa"`): a sessão já foi aberta pelo
+ * card desse produto, então "Abra o **Orion Caixa**" / "No **Orion Caixa**, abra..." situa o passo, não cita
+ * um controle. O nome de OUTRO produto continua alvo (e bloqueia, se não estiver na tela).
  */
-export function stripProductNameTargets(step: RoutineStep): { step: RoutineStep; removed: string[] } {
-  if (!ORION_RETURN.test(normalizeText(step.rawText))) return { step, removed: [] };
-  const removed = step.targets.filter(isProductName);
+export function stripProductNameTargets(step: RoutineStep, activeProduct = 'Orion TN'): { step: RoutineStep; removed: string[] } {
+  const activeNorm = normalizeText(activeProduct);
+  const isActive = (t: string): boolean => activeNorm !== 'orion tn' && activeNorm !== '' && normalizeText(t) === activeNorm;
+  const tnReturn = ORION_RETURN.test(normalizeText(step.rawText));
+  const activeContext = activeNorm !== 'orion tn' && mentionsActiveProduct(step.rawText, activeNorm);
+  const drop = (t: string): boolean => (tnReturn && isProductName(t)) || (activeContext && isActive(t));
+  const removed = step.targets.filter(drop);
   if (removed.length === 0) return { step, removed };
   const mainCount = step.mainTargetCount ?? step.targets.length;
-  const removedFromMain = step.targets.slice(0, mainCount).filter(isProductName).length;
+  const removedFromMain = step.targets.slice(0, mainCount).filter(drop).length;
   return {
-    step: { ...step, targets: step.targets.filter(t => !isProductName(t)), mainTargetCount: mainCount - removedFromMain },
+    step: { ...step, targets: step.targets.filter(t => !drop(t)), mainTargetCount: mainCount - removedFromMain },
     removed
   };
 }

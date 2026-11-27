@@ -99,7 +99,19 @@ export const ROUTE_LABEL_SYNONYMS: RouteLabelSynonym[] = [
   // Cadastro de natureza: a busca por descrição é o campo de texto "Natureza" do filtro
   { route: '#/natureza', documented: 'Pesquisar por descrição', real: ['Natureza'], kind: 'field', evidence: 'único campo de texto do filtro; os demais são seleções e marcação' },
   // Cadastro de livro (M-22.0): o campo select chama-se "Tipo livro"
-  { route: '#/livro/cadastrar', documented: 'Tipo de Livro', real: ['Tipo livro'], kind: 'field', evidence: 'campo select "Tipo livro" em #/livro/cadastrar (Raio-X de M-22.0; único campo de tipologia de livro)' }
+  { route: '#/livro/cadastrar', documented: 'Tipo de Livro', real: ['Tipo livro'], kind: 'field', evidence: 'campo select "Tipo livro" em #/livro/cadastrar (Raio-X de M-22.0; único campo de tipologia de livro)' },
+  { route: '#/tipoMovimentacaoFinanceira/cadastrar', documented: 'Tipo de Lançamento', real: ['Tipo lançamento'], kind: 'field', evidence: 'tela 102 (modal:Adicionar) tem o único campo de natureza do lançamento como "Tipo lançamento" (Raio-X de M-65.0, Fase 4; "Tipo de movimentação" é outro campo)' },
+  // Curadoria Catálogo Nível 2.5 (Etapa 2): renomeações inequívocas escopadas por rota (ADR-035/040)
+  { route: '#/configuracaoImpressaoModelo/cadastrar', documented: 'Salto (Gap)', real: ['Salto de etiquetas (cm)'], kind: 'field', evidence: 'tela 075 (modal:Adicionar) nomeia o campo de gap como "Salto de etiquetas (cm)" (M-26.0)' },
+  { route: '#/configuracoes', documented: 'Prazo de entrega padrão (dias)', real: ['Previsão de entrega'], kind: 'field', evidence: 'tela 110 (tab:Certidão) tem o único campo de prazo de entrega como "Previsão de entrega" (M-16.13)' },
+  { route: '#/configuracoes', documented: 'Agência', real: ['Nº agência'], kind: 'field', evidence: 'tela 110 (tab:Faturamento) chama o campo de agência bancária de "Nº agência"' },
+  { route: '#/sinalPublico/cadastrar', documented: 'data de recebimento/envio', real: ['Data recebimento'], kind: 'field', evidence: 'tela 010 (modal:Adicionar) tem o campo de data do sinal como "Data recebimento" (V-1.0)' },
+  { route: '#/categoria/cadastrar', documented: 'Nome da Categoria', real: ['Descrição'], kind: 'field', evidence: 'tela 054 (modal:Adicionar) identifica a categoria pelo campo "Descrição" (D-2.4)' },
+  { route: '#/ficha/cadastrar', documented: 'Preencher com IA', real: ['Preencher cartão usando I.A.'], kind: 'button', evidence: 'tela 009 (modal:Adicionar) exibe o botão "Preencher cartão usando I.A." (D-3.3)' },
+  { route: '#/produto/cadastrar', documented: 'Salvar', real: ['Concluir'], kind: 'button', evidence: 'tela 056 (modal:Adicionar) conclui o cadastro pelo botão "Concluir" (D-2.7)' },
+  { route: '#/pedidoFirmas/cadastrar', documented: 'CPF/CNPJ', real: ['CPF ou CIN/CNPJ'], kind: 'field', evidence: 'tela 006 (root) renomeou o campo de filtro de documento para "CPF ou CIN/CNPJ"' },
+  { route: '#/protocolo/cadastrar', documented: 'Data do recibo', real: ['Data recibo'], kind: 'field', evidence: 'tela 014 (root) chama o campo de data do recibo de "Data recibo"' },
+  { route: '#/protocolo/cadastrar', documented: 'Escrevente assinante', real: ['Escrevente assinante (Substituto):'], kind: 'field', evidence: 'tela 014 (root) rotula o select como "Escrevente assinante (Substituto):"' }
 ];
 
 const normalize = (text: string): string =>

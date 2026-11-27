@@ -4,7 +4,8 @@
 
 # 1. Autenticação, sessões, cookies e tokens WildFly SSO
 auditoria/auth/
-session-*.json
+*session*.json
+*auth*.json
 
 # 2. Variáveis de ambiente e segredos (libera apenas os templates .env.example)
 .env
@@ -31,6 +32,8 @@ auditoria/test-output/*.png
 
 # 5. Prints PNG pesados ficam apenas localmente (versionar *-revisado.md e .webp)
 auditoria/rotinas/**/*.png
+auditoria/mapeamento-telas/**/*.png
+auditoria/mapeamento-telas/**/*.webp
 
 # 6. Super-Contexto (repomix -> Google Drive/NotebookLM, ADR-034): saidas geradas e credenciais
 .repomix-output/

@@ -4,7 +4,7 @@ titulo: 'Como Cadastrar e Gerenciar o Sinal Público'
 modulo: firmas
 secao: V
 auditoria_ui:
-  data_execucao: '2026-11-18'
+  data_execucao: '2026-11-26'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
@@ -86,9 +86,25 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-26'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 3, o manual cita "data de recebimento/envio", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. A Exploração Investigativa varreu a'
+      bloqueio_atual:
+        passo: 3
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 3
-    capturado_em: '2026-11-18T05:44:41.960Z'
+    capturado_em: '2026-11-26T15:13:47.291Z'
     rota: '#/sinalPublico/cadastrar'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -182,7 +198,7 @@ Esta rotina orienta sobre o fluxo completo de gerenciamento do Sinal Público, d
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
 
 #### Passo a passo (texto original preservado):
-1. Acesse o menu **Firmas > Cadastros > Sinal Público**.
+1. Acesse o menu **Firmas > Cadastros > Sinal público**.
    [aqui vai a print "passo-01.png"]
    > [!NOTE] **Demarcações na print:** (1) **Firmas** · (2) **Cadastros** · (3) **Sinal público**
    > [!NOTE] **Tela sem dados (Evidência de Tela):** grade vazia (Nº Sinal, Cartório, Data digitação, Situação).
@@ -198,8 +214,8 @@ Esta rotina orienta sobre o fluxo completo de gerenciamento do Sinal Público, d
    * Defina se o sinal público é **recebido** ou **enviado**.
    * Informe a **data de recebimento/envio**.
    * Ao inserir o **CEP**, o sistema preencherá automaticamente os campos de endereço (Logradouro, Cidade, UF, etc.).
-4. Na aba **Pessoas**, preencha o nome e o cargo do escrevente. Para adicionar mais de um, clique no botão **+**.
-5. Na aba **Arquivos Anexos**, você pode:
+4. Na seção **Pessoas**, preencha o **Nome** e o **Cargo** do escrevente. Para adicionar mais de um, clique no botão **+**.
+5. Na seção **Arquivos anexos**, você pode:
    * Clicar em **Selecionar** para anexar documentos já existentes (PDF, JPG, etc.).
    * Clicar em **Capturar** para tirar uma foto do escrevente com a webcam.
    * Clicar em **Digitalizar** para escanear um documento na hora.

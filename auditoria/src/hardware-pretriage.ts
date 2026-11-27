@@ -21,7 +21,8 @@ import type { AuditRoutineReport, RoutineBlockInfo } from './types.js';
  * `-revisado.md` (`report.ts`) é o mesmo do executor do KB.
  */
 export async function writePreTriagedDddReport(
-  entry: Phase3RoutineEntry,
+  // Só a carga e o motivo são lidos: a Fase 3 passa a entrada do manifesto; a Fase 4 (caixa), uma entrada mínima
+  entry: Pick<Phase3RoutineEntry, 'workloadType' | 'hardwarePreTriage'>,
   routineFile: string,
   options: { syncToSupabase?: boolean } = {}
 ): Promise<AuditRoutineReport> {

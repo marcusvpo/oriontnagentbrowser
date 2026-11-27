@@ -4,6 +4,14 @@ import { ACTIVE_MODAL_SELECTOR, dismissTopModalOnce } from './modal-scope.js';
 import { RESOLVED_COMMIT_SOURCE } from './mutation-guard.js';
 import { deriveStepGuard } from './navigation-guard.js';
 import { PERMISSION_MARK_SELECTOR } from './rbac.js';
+import { findScreenCatalogEntryByHash } from './route-crawler.js';
+import { routeSynonymsFor } from './route-synonyms.js';
+import type {
+  AllKnownElements,
+  ElementWhereLocation,
+  ScreenCatalogEntry as L2ScreenCatalogEntry,
+  ScreenSubState
+} from './screen-catalog-extractor.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 import type {
   BoundingBox,
@@ -47,11 +55,24 @@ export interface RevealTrigger {
   label: string;
   /** O alvo já existia oculto no DOM sob este gatilho */
   directed: boolean;
+  /** O alvo foi localizado no Catálogo Nível 2 sob este gatilho (ADR-039) */
+  catalogDirected?: boolean;
   /** Carimbo do nó a clicar */
   selector: string;
   /** Carimbo do nó que desfaz o gatilho (aba antes ativa, radio antes marcado) */
   restoreSelector?: string;
   box: BoundingBox;
+}
+
+export interface CatalogRevealHint {
+  target: string;
+  matchedLabel: string;
+  where: ElementWhereLocation;
+  triggerKind: RevealTriggerKind;
+  triggerLabel: string;
+  parentTab?: string;
+  nestedTab?: string;
+  score: number;
 }
 
 interface ScreenFingerprint {
@@ -79,6 +100,8 @@ export interface RevealSuccess {
   revealedRawPath: string;
   /** Alvos do manual agora medidos, como citados */
   revealed: string[];
+  /** Sinônimos de rota usados na medição pós-abertura de sub-estado (documentado -> rótulo(s) real(is)) */
+  revealedSynonyms?: Record<string, string[]>;
   /** Caixa do gatilho no frame pós-clique, quando ele continua inteiro no viewport */
   triggerBoxAfter?: BoundingBox;
 }
@@ -381,56 +404,165 @@ function affinity(trigger: RevealTrigger, missing: string[], stepText: string): 
 /** Seletor condicional (checkbox/radio) só entra com afinidade semântica ao campo procurado. */
 const eligible = (t: RevealTrigger, a: number) => t.directed || (t.kind !== 'checkbox' && t.kind !== 'radio') || a >= 0.45;
 
-function rankTriggers(triggers: RevealTrigger[], missing: string[], stepText: string): RevealTrigger[] {
-  return triggers
-    .map(t => ({ t, a: affinity(t, missing, stepText) }))
-    .filter(({ t, a }) => eligible(t, a))
-    .map(({ t, a }) => ({ t, score: (t.directed ? 100 : 0) + a * 10 + KIND_WEIGHT[t.kind] }))
-    .sort((x, y) => y.score - x.score)
-    .map(x => x.t);
+const CATALOG_HINT_MIN_SCORE = 0.65;
+
+/**
+ * Converte uma anotação `where` do Catálogo Nível 2 no gatilho seguro correspondente (aba, accordion,
+ * botão de abertura de modal/formulário ou botão de busca em grade vazia).
+ */
+export function parseWhereLocation(
+  where: ElementWhereLocation,
+  subStates?: ScreenSubState[]
+): { triggerKind: RevealTriggerKind; triggerLabel: string; parentTab?: string; nestedTab?: string } | null {
+  if (!where || where === 'root') return null;
+  if (where.startsWith('tab:')) {
+    const label = where.slice(4).trim();
+    return label ? { triggerKind: 'tab', triggerLabel: label } : null;
+  }
+  if (where.startsWith('accordion:')) {
+    const label = where.slice(10).trim();
+    if (!label) return null;
+    const sub = subStates?.find(
+      s => (s.kind === 'accordion' || s.kind === 'advanced_filters') && normalizeText(s.triggerLabel) === normalizeText(label)
+    );
+    return { triggerKind: 'accordion', triggerLabel: label, parentTab: sub?.parentTab };
+  }
+  if (where.startsWith('modal:')) {
+    const raw = where.slice(6).trim();
+    if (!raw) return null;
+    const nestedIdx = raw.indexOf(' > tab:');
+    if (nestedIdx !== -1) {
+      const opener = raw.slice(0, nestedIdx).trim();
+      const nestedTab = raw.slice(nestedIdx + 7).trim();
+      if (!opener) return null;
+      const sub = subStates?.find(
+        s => (s.kind === 'modal_opener' || s.kind === 'form_opener') && normalizeText(s.triggerLabel) === normalizeText(opener)
+      );
+      return {
+        triggerKind: 'button',
+        triggerLabel: opener,
+        ...(sub?.parentTab ? { parentTab: sub.parentTab } : {}),
+        ...(nestedTab ? { nestedTab } : {})
+      };
+    }
+    const sub = subStates?.find(
+      s => (s.kind === 'modal_opener' || s.kind === 'form_opener') && normalizeText(s.triggerLabel) === normalizeText(raw)
+    );
+    return { triggerKind: 'button', triggerLabel: raw, parentTab: sub?.parentTab };
+  }
+  if (where.startsWith('view:')) {
+    const label = where.slice(5).trim();
+    return label ? { triggerKind: 'button', triggerLabel: label } : null;
+  }
+  if (where === 'grid_row') {
+    const sub = subStates?.find(s => s.kind === 'search_grid_reveal');
+    return {
+      triggerKind: 'button',
+      triggerLabel: sub?.triggerLabel || 'Pesquisar',
+      parentTab: sub?.parentTab
+    };
+  }
+  return null;
+}
+
+function scoreCatalogMatch(target: string, candidate: string): number {
+  const tNorm = normalizeText(target);
+  const cNorm = normalizeText(candidate);
+  if (!tNorm || !cNorm) return 0;
+  if (tNorm === cNorm) return 1;
+  return computeDiceSimilarity(tNorm, cNorm);
 }
 
 /**
- * LLM contextual (opcional): quando há mais gatilhos do que o teto de tentativas e nenhum foi deduzido
- * do DOM, uma chamada única reordena os candidatos. O modelo só devolve índices de gatilhos já
- * carimbados na tela: não cria candidato nem texto. Sem `OPENAI_API_KEY`, vale a ordem por afinidade.
+ * Consulta `allKnownElements` do Catálogo Nível 2 para a rota atual e retorna pistas diretas de
+ * onde os alvos ausentes residem (`tab:...`, `accordion:...`, `modal:...`, `grid_row`).
+ * Nunca fabrica evidência: apenas orienta a ordem dos gatilhos reais do DOM.
  */
-async function rerankWithLLM(step: RoutineStep, missing: string[], ranked: RevealTrigger[]): Promise<RevealTrigger[]> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return ranked;
-  const list = ranked.slice(0, 30);
-  const prompt = [
-    'Você audita telas do ERP Orion TN. Um elemento citado no manual não está visível na tela.',
-    `Passo do manual: "${step.rawText}"`,
-    `Elementos não localizados: ${JSON.stringify(missing)}`,
-    'Gatilhos seguros presentes na tela (abas, painéis, botões de abertura, seletores):',
-    ...list.map((t, i) => `${i} [${t.kind}] "${t.label}"`),
-    'Responda APENAS um JSON {"ordem":[índices]} com os gatilhos mais prováveis de revelar o elemento, do mais ao menos provável. Use só índices da lista.'
-  ].join('\n');
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        temperature: 0,
-        max_tokens: 120,
-        response_format: { type: 'json_object' },
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    if (!response.ok) return ranked;
-    const data = (await response.json()) as any;
-    const order: unknown = JSON.parse(data?.choices?.[0]?.message?.content || '{}').ordem;
-    if (!Array.isArray(order)) return ranked;
-    const picked = order
-      .filter((i): i is number => Number.isInteger(i) && i >= 0 && i < list.length)
-      .map(i => list[i]);
-    const unique = Array.from(new Set(picked));
-    return [...unique, ...ranked.filter(t => !unique.includes(t))];
-  } catch {
-    return ranked;
+export function findCatalogRevealHints(routeHash: string, missing: string[]): CatalogRevealHint[] {
+  if (!routeHash || missing.length === 0) return [];
+  const entry = findScreenCatalogEntryByHash(routeHash) as unknown as Partial<L2ScreenCatalogEntry> | null;
+  const all = entry?.allKnownElements as AllKnownElements | undefined;
+  if (!all) return [];
+
+  const candidates: Array<{ label: string; where: ElementWhereLocation }> = [
+    ...all.tabs.map(t => ({ label: t.label, where: t.where })),
+    ...all.buttons.flatMap(b => [
+      ...(b.label ? [{ label: b.label, where: b.where }] : []),
+      ...(b.tooltip ? [{ label: b.tooltip, where: b.where }] : [])
+    ]),
+    ...all.fields.map(f => ({ label: f.label, where: f.where })),
+    ...all.tableHeaders.map(h => ({ label: h.header, where: h.where })),
+    ...all.rowActions.flatMap(r => [
+      ...(r.tooltip ? [{ label: r.tooltip, where: r.where }] : []),
+      ...(r.iconClass ? [{ label: r.iconClass, where: r.where }] : [])
+    ])
+  ].filter(c => c.label && c.where && c.where !== 'root');
+
+  const hints: CatalogRevealHint[] = [];
+  const seen = new Set<string>();
+
+  for (const target of missing) {
+    const searchTerms = [target, ...routeSynonymsFor(routeHash, target).flatMap(s => s.real)];
+    for (const term of searchTerms) {
+      for (const cand of candidates) {
+        const score = scoreCatalogMatch(term, cand.label);
+        if (score < CATALOG_HINT_MIN_SCORE) continue;
+        const parsed = parseWhereLocation(cand.where, entry?.subStates);
+        if (!parsed) continue;
+        const key = `${normalizeText(target)}|${parsed.triggerKind}|${normalizeText(parsed.triggerLabel)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        hints.push({
+          target,
+          matchedLabel: cand.label,
+          where: cand.where,
+          triggerKind: parsed.triggerKind,
+          triggerLabel: parsed.triggerLabel,
+          ...(parsed.parentTab ? { parentTab: parsed.parentTab } : {}),
+          ...(parsed.nestedTab ? { nestedTab: parsed.nestedTab } : {}),
+          score: Number(score.toFixed(3))
+        });
+      }
+    }
   }
+
+  return hints.sort((a, b) => b.score - a.score);
+}
+
+function matchCatalogHint(
+  trigger: RevealTrigger,
+  catalogHints: CatalogRevealHint[]
+): { hint: CatalogRevealHint; direct: boolean } | undefined {
+  if (catalogHints.length === 0) return undefined;
+  const tNorm = normalizeText(trigger.label);
+  const direct = catalogHints.find(h => h.triggerKind === trigger.kind && normalizeText(h.triggerLabel) === tNorm);
+  if (direct) return { hint: direct, direct: true };
+  if (trigger.kind === 'tab') {
+    const viaParent = catalogHints.find(h => h.parentTab && normalizeText(h.parentTab) === tNorm);
+    if (viaParent) return { hint: viaParent, direct: false };
+  }
+  return undefined;
+}
+
+export function rankTriggers(
+  triggers: RevealTrigger[],
+  missing: string[],
+  stepText: string,
+  catalogHints: CatalogRevealHint[] = []
+): RevealTrigger[] {
+  return triggers
+    .map(t => ({ t, a: affinity(t, missing, stepText), matched: matchCatalogHint(t, catalogHints) }))
+    .filter(({ t, a, matched }) => eligible(t, a) || !!matched)
+    .map(({ t, a, matched }) => {
+      const enriched: RevealTrigger = matched ? { ...t, catalogDirected: true } : t;
+      const catalogBoost = matched ? (matched.direct ? 60 : 40) + matched.hint.score * 20 : 0;
+      return {
+        t: enriched,
+        score: (t.directed ? 100 : 0) + catalogBoost + a * 10 + KIND_WEIGHT[t.kind]
+      };
+    })
+    .sort((x, y) => y.score - x.score)
+    .map(x => x.t);
 }
 
 // ---------------------------------------------------------------------------
@@ -637,12 +769,18 @@ export async function exploreRevealTriggers(client: AgentBrowserClient, request:
   let scan = await scanTriggers(client, missing);
   if (!scan) return { log };
   const origin = scan.fingerprint;
-  let queue = rankTriggers(scan.triggers, missing, step.rawText);
+  const catalogHints = origin.hash ? findCatalogRevealHints(origin.hash, missing) : [];
+  if (catalogHints.length > 0) {
+    console.log(
+      `   [Exploração L2] Catálogo Nível 2 aponta ${catalogHints.length} pista(s) direta(s): ${catalogHints
+        .slice(0, 4)
+        .map(h => `"${h.target}" -> ${h.where}`)
+        .join('; ')}.`
+    );
+  }
+  let queue = rankTriggers(scan.triggers, missing, step.rawText, catalogHints);
   log.candidates = queue.length;
   log.selectorsWithoutAffinity = scan.triggers.length - queue.length;
-  if (queue.length > max && !queue.some(t => t.directed)) {
-    queue = await rerankWithLLM(step, missing, queue);
-  }
   const preferred = queue.map(triggerKey);
   for (const l of scan.latent) {
     console.log(
@@ -688,6 +826,40 @@ export async function exploreRevealTriggers(client: AgentBrowserClient, request:
       });
       if (after && isGenericContainerMatch(after)) after = null;
       const revealed = (after?.groupMembers || []).map(m => m.query).filter(q => missing.includes(q));
+      const revealedSynonyms: Record<string, string[]> = {};
+      const stillUnresolved = missing.filter(t => !revealed.includes(t));
+      if (stillUnresolved.length > 0) {
+        const afterHash =
+          (await client.evalJson<string>('JSON.stringify(window.location.hash || "")').catch(() => origin.hash)) || origin.hash;
+        for (const t of stillUnresolved) {
+          for (const syn of routeSynonymsFor(afterHash, t)) {
+            let probe = await client.getDOMGeometry(syn.real, {
+              scrollIntoView: true,
+              zone: zonePolicy,
+              groupTargets: syn.real,
+              ...deriveStepGuard(step)
+            });
+            if (probe && isGenericContainerMatch(probe)) probe = null;
+            const foundReal = (probe?.groupMembers || []).map(m => m.query);
+            if (!probe || foundReal.length !== syn.real.length) continue;
+            revealed.push(t);
+            revealedSynonyms[t] = syn.real;
+            if (!after) {
+              after = probe;
+            } else {
+              const existingMembers = after.groupMembers || [];
+              const addedMembers = (probe.groupMembers || []).filter(
+                pm => !existingMembers.some(em => em.query === pm.query)
+              );
+              after = {
+                ...after,
+                groupMembers: [...existingMembers, ...addedMembers]
+              };
+            }
+            break;
+          }
+        }
+      }
       if (after && revealed.length > 0) {
         const triggerBoxAfter = await readTriggerBox(client, trigger.selector);
         const revealedRawPath = rawPathFor('revelado');
@@ -697,7 +869,19 @@ export async function exploreRevealTriggers(client: AgentBrowserClient, request:
         console.log(
           `   ⚡ [Exploração] ${trigger.kind} "${trigger.label}" revelou: ${revealed.map(r => `"${r}"`).join(', ')}.`
         );
-        return { success: { trigger, triggerGeometry, triggerRawPath, geometry: after, revealedRawPath, revealed, triggerBoxAfter }, log };
+        return {
+          success: {
+            trigger,
+            triggerGeometry,
+            triggerRawPath,
+            geometry: after,
+            revealedRawPath,
+            revealed,
+            ...(Object.keys(revealedSynonyms).length > 0 ? { revealedSynonyms } : {}),
+            triggerBoxAfter
+          },
+          log
+        };
       }
     }
 
@@ -713,7 +897,7 @@ export async function exploreRevealTriggers(client: AgentBrowserClient, request:
     // A restauração pode recriar nós: os carimbos são refeitos e a ordem preferida é mantida
     scan = await scanTriggers(client, missing);
     if (!scan) break;
-    const fresh = rankTriggers(scan.triggers, missing, step.rawText);
+    const fresh = rankTriggers(scan.triggers, missing, step.rawText, catalogHints);
     const rank = (t: RevealTrigger) => {
       const i = preferred.indexOf(triggerKey(t));
       return i === -1 ? preferred.length : i;

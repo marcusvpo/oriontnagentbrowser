@@ -727,3 +727,24 @@ Passo com `targets.length === 0`, verbo de ação e substantivo de controle: `in
 
 ### 24.5. Testes
 * `auditoria/src/__tests__/adr037-canonical-menu-catalog.test.ts` (15), `adr037-menu-coherence-audit.test.ts` (23) e `adr037-menu-integration.test.ts` (32).
+
+## 25. Fase 4 (`caixa`): Produto do Portal, Submenu Homônimo, Produto Ativo e Modal Herdado (ADR-041)
+
+### 25.1. Seleção do produto (`config.ts`, `auth.ts`, `cli.ts`)
+* `tsx src/cli.ts --product "Orion TN" | "Orion Caixa" | "Orion Estoque" ...` (aceita `orion-caixa`, `caixa`, sem acento/caixa; inválido = saída 1). Padrão **Orion TN**.
+* `setActivePortalProduct(product)` define `config.portalProduct`, `config.sessionFile` e `config.appHomeFile`: TN = `session-homolog.json`/`app-home.json`; demais = `session-homolog-<slug>.json`/`app-home-<slug>.json`, todos em `auditoria/auth/` (ignorado pelo Git).
+* Entrada: `loginOrion` → `/webPortal/#/produtos` → `openPortalProductCard` (texto exato do card, `withNewTabDetection`, fecha a guia do portal, `ensureViewport(1440, 900)`, persiste `moduleHomeFromLanding`). Orion Caixa e Orion Estoque abrem em nova guia (`/webCaixa/#/inicio`, `/webEstoque/#/inicio`).
+* Lotes de produtos diferentes **em sequência** (sessões `worker-N` compartilhadas). Logs com `maskUrlHost`.
+
+### 25.2. Submenu homônimo (`menu-path.ts`, `chooseMenuItem`)
+* Item exato com filhos cujo único filho direto de mesmo nome normalizado é folha habilitada → retorna o filho (`exact: false`, 0,95, motivo "termina num submenu em cascata; a única tela homônima é o item filho").
+
+### 25.3. Produto ativo (`step-scope.ts`)
+* `stripProductNameTargets(step, config.portalProduct)`: com produto ativo ≠ Orion TN, o negrito igual ao produto ativo precedido de verbo de contexto sai dos alvos (`[Produto Ativo]` no log). Outro produto continua alvo; Orion TN segue a ADR-024.
+
+### 25.4. Modal herdado (`modal-scope.ts`, `executor.ts`)
+* `buildInheritedModalProbeScript(targets)` (leitura) → `shouldDismissInheritedModal` (fecha só se 0 alvos dentro do modal e todos fora dele) → `closeActiveModals` (X/Cancelar/Fechar). Log `[Modal Herdado]`.
+* Regex dentro de template literal de script de navegador: escape duplo no fonte TypeScript (duas barras antes de `p{M}` e de `s`), para o navegador receber `\p{M}` e `\s`; o teste `modal-scope.test.ts` compila o script com `new Function`.
+
+### 25.5. Testes
+* `portal-product-selection.test.ts` (26), `triage-att-level25.test.ts` (bloco Fase 4) e `modal-scope.test.ts` (7).

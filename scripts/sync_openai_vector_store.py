@@ -98,16 +98,15 @@ def extract_attributes(filepath):
 
 def main():
     parser = argparse.ArgumentParser(description="Sincronizador OpenAI Vector Store - Orion TN")
-    parser.add_argument("--api-key", help="OpenAI API Key (ou defina a variável OPENAI_API_KEY)")
     parser.add_argument("--vector-store-id", help="ID da Vector Store existente (ex: vs_abc123)")
     parser.add_argument("--force", action="store_true", help="Força reupload de 100% dos arquivos")
     parser.add_argument("--dry-run", action="store_true", help="Apenas simula o fatiamento e checagem de hashes")
     args = parser.parse_args()
 
-    api_key = args.api_key or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key and not args.dry_run:
         print("[!] ERRO: OPENAI_API_KEY não encontrada.")
-        print("    Passe via argumento --api-key ou defina no ambiente: export OPENAI_API_KEY='sk-...'")
+        print("    Defina a variável de ambiente OPENAI_API_KEY antes de executar (nunca passe chaves via CLI).")
         print("    Você também pode rodar com '--dry-run' para testar a checagem local sem chamar a API.")
         sys.exit(1)
 

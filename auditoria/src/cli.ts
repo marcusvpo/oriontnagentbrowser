@@ -9,7 +9,7 @@ import { getRoutinesForPhase, findRoutineFileById, PHASES } from './phases.js';
 import { executePhase1 } from './execute-phase1.js';
 import { executePhase2 } from './execute-phase2.js';
 import { ROUTINES as PHASE2_MANIFEST } from './run-phase2-master.js';
-import { config } from './config.js';
+import { config, normalizePortalProduct, PORTAL_PRODUCTS, setActivePortalProduct } from './config.js';
 import { preflightOrionReachability, PreflightError } from './preflight.js';
 import { selectPendingRoutineIds } from './hardware-registry.js';
 import { PHASE3_MANIFEST } from './manifests/phase3-manifest.js';
@@ -34,6 +34,18 @@ async function main() {
   console.log('  ORION TN — ORQUESTRADOR DE AUDITORIA VISUAL V2.4  ');
   console.log('  (Worker Pool Paralelo + SmartLocator Auto-Cura)   ');
   console.log('====================================================');
+
+  // Fase 4: produto do Portal Orion (`/webPortal/#/produtos`). Padrão `Orion TN` (comportamento anterior intacto).
+  const productArg = argValue(args, '--product');
+  if (productArg !== null || args.includes('--product')) {
+    const product = normalizePortalProduct(productArg);
+    if (!product) {
+      console.error(`✕ --product inválido: "${productArg ?? ''}". Use um de: ${PORTAL_PRODUCTS.map(p => `"${p}"`).join(', ')} (ou orion-tn / orion-caixa / orion-estoque).`);
+      process.exit(1);
+    }
+    setActivePortalProduct(product);
+  }
+  console.log(`  Produto do Portal Orion: ${config.portalProduct}${config.appHomeUrl ? '' : ' (URL do módulo será descoberta pelo card do Portal)'}`);
 
   const isDryRun = args.includes('--dry-run');
   const isHeaded = args.includes('--headed');
@@ -416,6 +428,7 @@ async function main() {
       console.log('  --export-docs       gera Base de Ajuda limpa em auditoria/exports/manual-publicado/ (--include-unapproved inclui validadas não aprovadas)');
       console.log('  --export-playwright gera suíte E2E @playwright/test em auditoria/exports/playwright-e2e/<modulo>/<ID>.spec.ts');
       console.log('  --no-sync           desliga sincronização automática com o Supabase (apenas testes offline)');
+      console.log('  --product "<Orion TN|Orion Caixa|Orion Estoque>"  card do Portal Orion a abrir (padrão Orion TN; aceita orion-caixa/orion-estoque)');
     }
   } catch (err: any) {
     console.error(err instanceof PreflightError ? `✕ [Preflight] ${err.message}` : `✕ Erro na execução: ${err.message}`);

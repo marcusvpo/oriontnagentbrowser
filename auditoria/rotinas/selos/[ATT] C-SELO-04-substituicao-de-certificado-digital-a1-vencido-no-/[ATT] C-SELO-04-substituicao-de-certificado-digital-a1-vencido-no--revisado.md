@@ -4,7 +4,7 @@ titulo: 'Substituição de Certificado Digital A1 Vencido no Servidor Daemon de 
 modulo: selos
 secao: C
 auditoria_ui:
-  data_execucao: '2026-11-18'
+  data_execucao: '2026-11-26'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: read_only
@@ -16,6 +16,15 @@ auditoria_ui:
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
+  auto_cura:
+    acionada: true
+    divergencias_detectadas:
+      - passo: 5
+        alvo_documentado: 'Configurações > Parâmetros de Integração > Certificado Digital'
+        elemento_real: '(não localizado na tela)'
+        camada: target_not_found
+        confianca: 0
+        texto_alterado: false
   historico_reauditoria:
     - data: '2026-11-17'
       ambiente_anterior: 'não registrado (anterior ao ADR-025)'
@@ -51,9 +60,26 @@ auditoria_ui:
         tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-26'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 5, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros de Integração > Certificado Digital" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de'
+      bloqueio_atual:
+        passo: 5
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 5
-    capturado_em: '2026-11-18T02:45:28.527Z'
+    capturado_em: '2026-11-26T15:28:00.525Z'
     rota: '#/inicio'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -66,6 +92,15 @@ auditoria_ui:
     alvos_do_passo: []
     correspondencias_sugeridas: []
     alvos_sem_correspondencia: []
+    contexto_catalogo_nivel1:
+      id_tela: '016'
+      menu: 'Notas > Orçamento rápido'
+      rota: '#/inicio'
+      nivel: 2
+      estado_nivel2: 'explored'
+      abas: []
+      secoes: ['Orçamento rápido Vigência 08/01/2026 02/01/2026 08/01/2025 08/01/2024 11/02/2023 07/01/2022', 'Orçamento rápido', 'Dados do solicitante', 'Custas', 'R$ 362,98', 'Outros serviços']
+      tabelas: ['Item', 'Descrição', 'Qtd. Adicional', 'Cálculo', 'Base de cálculo', 'UF', 'Cidade', '%ITBI', 'ITBI', 'Registro de Imóveis', 'Tabelião', 'Estado', 'SEFAZ', 'ISS', 'M. Público', 'Reg. Civil', 'T.J', 'Sta. Casa', 'Total', 'Serviço', 'Quantidade', 'Valor un.', 'Valor total']
     print_contexto: 'passo-05.png'
 ---
 
@@ -73,13 +108,14 @@ auditoria_ui:
 > **ROTINA QUE REQUER REVISÃO HUMANA ([ATT]):**  
 > A auditoria automática foi interrompida: **Defasagem Editorial do Manual (Recurso Inexistente na Tela)**.
 >
-> **Motivo Técnico:** No passo 5, o manual cita um caminho de menu que não existe na versão atual. O caminho "Configurações > Parâmetros de Integração > Certificado Digital" não existe na árvore de navegação real do Orion TN. O menu **Configurações** existe na barra de navegação e contém: "Dados do cartório", "Modelos de impressão", "Tabela de custas", "Cadastros auxiliares", "Perfis e permissões de acesso", "Usuários", "Parametrizações"; "Parâmetros de Integração" não está entre eles. Nenhum item de nome igual ou parecido existe em outro ponto da árvore (140 itens lidos). Nenhum campo de texto nem a barra de pesquisa global (CTRL + B) foi usado como substituto. Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
+> **Motivo Técnico:** No passo 5, o manual cita um caminho de menu que não existe na versão atual. A tela alcançada por equivalência canônica explícita (Camada 1) ("Configurações > Parâmetros de Integração > Certificado Digital" -> "Configurações > Parametrizações" (#/configuracoes)) não contém "Testar Conexão", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Configurações", "Cartão de assinatura", "Cálculo de custas", "Controle de guia", "Geral", "Consumo NFS", "Tipo", "Qtd. na busca", "Produto", "Consumo selo digital", "Configurações da rotina de bloqueio de cartões de assinatura", "Ativar rotina de bloqueio automático de cartões de assinatura", "Horário de execução", "Arredondamento". Pela Regra da Evidência Estrita, o texto original foi preservado e nada foi reescrito.
 
 > [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**
 > Tela alcançada no passo 5: rota **#/inicio**, título **OrionTN - Tabelionatos de Notas**. Leitura ao vivo do DOM; nada foi acionado.
 > * **Campos:** **Pesquise aqui o nome da tela que deseja acessar. Atalho: CTRL + B**.
 > * **Botões:** **Clique aqui para ativar agora**.
 > * **Caminho de menu:** o passo cita um caminho de navegação; a evidência lida da árvore de menus consta no motivo do bloqueio e a rota não foi adivinhada.
+> * **Contexto do Catálogo Nível 2 (`016`, consultivo):** tela **Notas > Orçamento rápido** | tabelas: **Item**, **Descrição**, **Qtd. Adicional**, **Cálculo**, **Base de cálculo**.
 > * **Referência visual:** passo-05.png (tela exata no momento do bloqueio).
 
 #### Descrição:
@@ -102,7 +138,9 @@ A comunicação segura e a assinatura dos lotes de selos exigem certificado ICP-
    [aqui vai a print "passo-04.png"]
 5. No **Orion TN**, acesse **Configurações > Parâmetros de Integração > Certificado Digital**.
    [aqui vai a print "passo-05.png"]
-   > [!WARNING] **Bloqueio de auditoria neste passo:** Caminho de menu não encontrado na árvore de navegação real: Configurações > Parâmetros de Integração > Certificado Digital
+   > [!NOTE] **Demarcações na print:** (1) **Configurações** · (2) **Parametrizações**
+   > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Configurações > Parâmetros de Integração > Certificado Digital"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
+   > [!WARNING] **Bloqueio de auditoria neste passo:** Cura de navegação descartada pela coerência pós-pouso: A tela alcançada por equivalência canônica explícita (Camada 1) ("Configurações > Parâmetros de Integração > Certificado Digital" -> "Configurações > Parametrizações" (#/configuracoes)) não contém "Testar Conexão", citado(s) nos passos seguintes: a equivalência foi descartada e a tela restaurada (Camada 4, coerência pós-pouso). Elementos lidos na tela alcançada: "OrionTN - Tabelionatos de Notas", "Configurações", "Cartão de assinatura", "Cálculo de custas", "Controle de guia", "Geral", "Consumo NFS", "Tipo", "Qtd. na busca", "Produto", "Consumo selo digital", "Configurações da rotina de bloqueio de cartões de assinatura", "Ativar rotina de bloqueio automático de cartões de assinatura", "Horário de execução", "Arredondamento".
 6. Aponte o novo caminho do arquivo, digite a nova senha e clique em **Testar Conexão**.
 7. Reinicie o serviço de background executando `systemctl restart orionselos` (ou reinicie o serviço no Windows).
 8. Gere um selo de teste em qualquer ato de balcão para validar a autorização pelo tribunal.

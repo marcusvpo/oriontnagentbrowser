@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { AgentBrowserClient } from './browser.js';
-import { config, persistDiscoveredAppHome } from './config.js';
+import { config, DEFAULT_PORTAL_PRODUCT, persistDiscoveredAppHome, portalProductsUrl, type PortalProductName } from './config.js';
 
-/** Path do módulo Orion TN descoberto (ex.: `/webFirmas`), para o teste de sessão ativa aceitar outro contexto (ADR-025). */
-function discoveredModulePath(): string {
+/** Path do módulo do produto ativo descoberto (ex.: `/webFirmas`), para o teste de sessão ativa aceitar outro contexto (ADR-025). */
+export function discoveredModulePath(): string {
   try {
     const p = new URL(config.appHomeUrl).pathname.replace(/\/+$/, '');
     return p && p !== '/' ? p : '';
@@ -57,7 +57,11 @@ export async function isSessionActiveInPage(client: AgentBrowserClient): Promise
         const hash = window.location.hash || '';
         const inPortal = /\\/webPortal/i.test(url);
         const modulePath = ${JSON.stringify(discoveredModulePath())};
-        const inApp = /\\/webFirmas/i.test(url) || (modulePath !== '' && url.indexOf(modulePath) !== -1 && !inPortal);
+        // Fase 4: com --product "Orion Caixa"/"Orion Estoque", só o módulo do produto ativo conta como sessão no
+        // módulo; uma página aberta em /webFirmas (Orion TN) não pode ser confundida com o Caixa ou o Estoque.
+        const tnProduct = ${JSON.stringify(config.portalProduct === DEFAULT_PORTAL_PRODUCT)};
+        const inModule = modulePath !== '' && url.indexOf(modulePath) !== -1 && !inPortal;
+        const inApp = tnProduct ? /\\/webFirmas/i.test(url) || inModule : inModule;
         const onLogin = /\\/login/i.test(url) || /#\\/login/i.test(hash);
         const loginFields = Array.from(document.querySelectorAll('#username, #password, input[type="password"]')).filter(vis).length;
         const greeting = Array.from(document.querySelectorAll('body a, body button, body span, body li, body p')).some(e => {
@@ -100,6 +104,32 @@ export async function ensureAuthenticated(client: AgentBrowserClient): Promise<b
     stats.sessionsReused++;
     console.log(`✓ [Auth] Sessão ativa na própria página (${live.where}); login e recarga dispensados (${live.reason}).`);
     return true;
+  }
+
+  // Fase 4: Orion Caixa/Estoque ainda sem URL do módulo descoberta. Com sessão salva, entra pelo card do Portal
+  // reaproveitando o SSO (sem login); sem sessão, o login completo também passa pelo card.
+  if (!config.appHomeUrl && config.portalProduct !== DEFAULT_PORTAL_PRODUCT) {
+    if (fs.existsSync(config.sessionFile)) {
+      try {
+        await client.stateLoad(config.sessionFile);
+        await client.open(portalProductsUrl());
+        await client.wait(2500);
+        const atPortal = await isSessionActiveInPage(client);
+        if (atPortal.active && atPortal.where === 'portal') {
+          const ok = await openPortalProductCard(client, config.portalProduct);
+          if (ok && config.appHomeUrl) {
+            stats.sessionsReused++;
+            try {
+              await client.stateSave(config.sessionFile);
+            } catch {}
+            return true;
+          }
+        }
+      } catch {
+        // segue para o login completo
+      }
+    }
+    return loginOrion(client, { force: true });
   }
 
   // Se já temos sessão salva, tenta carregá-la primeiro
@@ -153,7 +183,7 @@ export async function loginOrion(client: AgentBrowserClient, opts: { force?: boo
   }
   const portalLoginUrl = config.homologUrl;
   stats.loginsPerformed++;
-  console.log(`[Auth] Iniciando autenticação no Portal Orion (login #${stats.loginsPerformed} neste processo): ${portalLoginUrl}`);
+  console.log(`[Auth] Iniciando autenticação no Portal Orion (login #${stats.loginsPerformed} neste processo): ${maskUrlHost(portalLoginUrl)}`);
   console.log(`[Auth] Usuário: ${config.user}`);
 
   // 1. Abrir a página oficial de login do Portal
@@ -194,50 +224,17 @@ export async function loginOrion(client: AgentBrowserClient, opts: { force?: boo
     console.log('[Auth] Credenciais enviadas. Aguardando transição de rota do SPA...');
     await client.wait(4000);
 
-    // 4. Se estiver no webPortal pós-login (`#/produtos` ou `#/inicio` do portal), clicar no card 'Orion TN'.
-    // O card pode abrir o módulo numa NOVA guia (ADR-025): o diff de guias a detecta e transfere o foco.
-    const curUrl = await client.eval('window.location.href');
-    console.log('[Auth] URL atual pós-login:', curUrl);
+    // 4. Se estiver no webPortal pós-login (`#/produtos` ou `#/inicio` do portal), clicar no card do produto
+    // ativo (`--product`, padrão 'Orion TN'). O card pode abrir o módulo numa NOVA guia (ADR-025): o diff de
+    // guias a detecta e transfere o foco. 4b: a URL real da tela inicial do módulo é persistida em
+    // `config.appHomeFile` (auth/, ignorado pelo Git).
+    const curUrl = String(await client.eval('window.location.href'));
+    console.log('[Auth] URL atual pós-login:', maskUrlHost(curUrl));
 
     if (curUrl.includes('webPortal')) {
-      console.log('[Auth] Clicando no card do módulo Orion TN...');
-      const portalTab = await client.markPrimaryTab();
-      const { openedTab } = await client.withNewTabDetection(async () => {
-        await client.eval(`
-          (() => {
-            const cards = Array.from(document.querySelectorAll('div, a, span, p, h1, h2, h3, h4, h5')).filter(el => el.textContent && el.textContent.trim() === 'Orion TN');
-            if (cards.length > 0) {
-              const card = cards[cards.length - 1];
-              (card.closest('a, [ng-click], [onclick], button') || card).click();
-            }
-          })()
-        `);
-        await client.wait(4500);
-      });
-      if (openedTab) {
-        console.log(`[Auth] O módulo abriu em nova guia (${openedTab.tabId}); a guia do portal será fechada.`);
-        if (portalTab && portalTab !== openedTab.tabId) {
-          await client.closeTab(portalTab).catch(() => undefined);
-          await client.switchTab(openedTab.tabId).catch(() => undefined);
-        }
-        client.setPrimaryTab(openedTab.tabId);
-        await client.ensureViewport(config.viewportWidth, config.viewportHeight);
-      }
-    }
-
-    const finalUrl = await client.eval('window.location.href');
-    console.log('[Auth] URL final no módulo:', finalUrl);
-
-    // 4b. Descobre e persiste a URL real da tela inicial do módulo (auth/app-home.json, ignorado pelo Git)
-    try {
-      const final = new URL(String(finalUrl).replace(/^"|"$/g, ''));
-      if (!/webPortal/i.test(final.pathname)) {
-        const home = `${final.origin}${final.pathname.replace(/\/+$/, '')}/#/inicio`;
-        persistDiscoveredAppHome(home);
-        console.log(`[Auth] URL inicial do módulo descoberta e persistida (${final.pathname}).`);
-      }
-    } catch {
-      // URL ilegível: segue com o valor configurado/derivado
+      await openPortalProductCard(client, config.portalProduct);
+    } else {
+      persistModuleHome(curUrl);
     }
 
     // 5. Salvar estado da sessão para reaproveitamento nas próximas rotinas
@@ -252,4 +249,82 @@ export async function loginOrion(client: AgentBrowserClient, opts: { force?: boo
     console.warn(`[Auth] Erro durante preenchimento: ${err.message}`);
     return false;
   }
+}
+
+/** Mascara o host IPv4 da URL nos logs (`http://10.0.3.x:porta/...`): nenhum IP interno completo no console. */
+export function maskUrlHost(url: string): string {
+  return String(url)
+    .replace(/^"|"$/g, '')
+    .replace(/(\/\/\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}/, '$1.x');
+}
+
+/**
+ * URL inicial do módulo a persistir a partir da URL de pouso após o card do Portal (pura; testes offline).
+ * Orion TN: `<origem><path>/#/inicio` (comportamento da ADR-025, inalterado). Orion Caixa/Estoque: a própria
+ * URL de pouso (origem + path + hash real), sem derivar `/webFirmas` nem supor `#/inicio`. Portal, protocolo
+ * não HTTP ou URL ilegível devolvem `''`.
+ */
+export function moduleHomeFromLanding(landingUrl: string, product: PortalProductName): string {
+  try {
+    const final = new URL(String(landingUrl).replace(/^"|"$/g, ''));
+    if (!/^https?:$/.test(final.protocol) || /webPortal/i.test(final.pathname)) return '';
+    const base = `${final.origin}${final.pathname.replace(/\/+$/, '')}`;
+    if (product === DEFAULT_PORTAL_PRODUCT) return `${base}/#/inicio`;
+    return `${base}/${final.hash || ''}`;
+  } catch {
+    return '';
+  }
+}
+
+function persistModuleHome(landingUrl: string): void {
+  const home = moduleHomeFromLanding(landingUrl, config.portalProduct);
+  if (!home) return;
+  persistDiscoveredAppHome(home);
+  try {
+    const u = new URL(home);
+    console.log(`[Auth] URL inicial do módulo ${config.portalProduct} descoberta e persistida (${u.pathname}${u.hash}).`);
+  } catch {}
+}
+
+/**
+ * Clica no card do produto em `/webPortal/#/produtos` (`Orion TN`, `Orion Caixa` ou `Orion Estoque`, igualdade
+ * exata do texto do card), detecta a nova guia pelo diff de `tab list` (ADR-025), fecha a guia do portal,
+ * reaplica o viewport 1440x900 e persiste a URL real do módulo em `config.appHomeFile`.
+ * Devolve `true` quando a página saiu do portal para o módulo.
+ */
+export async function openPortalProductCard(client: AgentBrowserClient, product: PortalProductName): Promise<boolean> {
+  console.log(`[Auth] Clicando no card do produto ${product} no Portal Orion...`);
+  const portalTab = await client.markPrimaryTab();
+  let clicked = false;
+  const { openedTab } = await client.withNewTabDetection(async () => {
+    const raw = await client.eval(`
+      (() => {
+        const want = ${JSON.stringify(product)};
+        const cards = Array.from(document.querySelectorAll('div, a, span, p, h1, h2, h3, h4, h5')).filter(el => el.textContent && el.textContent.trim() === want);
+        if (cards.length === 0) return 'none';
+        const card = cards[cards.length - 1];
+        (card.closest('a, [ng-click], [onclick], button') || card).click();
+        return 'clicked';
+      })()
+    `);
+    clicked = String(raw).includes('clicked');
+    await client.wait(4500);
+  });
+  if (!clicked) {
+    console.warn(`[Auth] Card "${product}" não encontrado no Portal Orion.`);
+    return false;
+  }
+  if (openedTab) {
+    console.log(`[Auth] O módulo abriu em nova guia (${openedTab.tabId}); a guia do portal será fechada.`);
+    if (portalTab && portalTab !== openedTab.tabId) {
+      await client.closeTab(portalTab).catch(() => undefined);
+      await client.switchTab(openedTab.tabId).catch(() => undefined);
+    }
+    client.setPrimaryTab(openedTab.tabId);
+    await client.ensureViewport(config.viewportWidth, config.viewportHeight);
+  }
+  const finalUrl = String(await client.eval('window.location.href'));
+  console.log('[Auth] URL final no módulo:', maskUrlHost(finalUrl));
+  persistModuleHome(finalUrl);
+  return !/webPortal/i.test(finalUrl);
 }

@@ -31,7 +31,7 @@ import { installToastObserver, readEmptyState, hasNoData, countGridRows, ADD_BUT
 import { autoFilterEmptyGrid, stepNeedsGridRows, type GridPrefilterOutcome } from './grid-prefilter.js';
 import { resolveMenuTail, describeMenuTailMissing, type MenuTailOutcome } from './menu-tail.js';
 import { autoSeedMockRecord, routineNeedsExistingRows } from './auto-seed.js';
-import { ACTIVE_MODAL_SELECTOR, closeActiveModals } from './modal-scope.js';
+import { ACTIVE_MODAL_SELECTOR, closeActiveModals, dismissInheritedModalForStep } from './modal-scope.js';
 import { detectImplicitTargets } from './implicit-targets.js';
 import { classifyBlock, describeStatus } from './review-classifier.js';
 import { buildScreenInventoryScript, captureAttScreenDiagnosis, contextPrintName, parseScreenInventory, type AttScreenDiagnosis } from './att-screen-advisor.js';
@@ -668,9 +668,10 @@ export async function executeRoutineAudit(
     // Passo de pré-requisito de perfil (ADR-018): os papéis em negrito não são elementos de tela
     const { step: roleStrippedStep, removedRoles } = stripPrerequisiteRoles(originalStep, gate.requirement);
     // ADR-024: "No **Orion TN**, ..." cita o produto, não um elemento de tela
-    const { step: manualStep, removed: removedProduct } = stripProductNameTargets(roleStrippedStep);
+    // Fase 4: idem para o produto ativo do Portal ("Abra o **Orion Caixa**" com `--product "Orion Caixa"`)
+    const { step: manualStep, removed: removedProduct } = stripProductNameTargets(roleStrippedStep, config.portalProduct);
     if (removedProduct.length > 0) {
-      console.log(`   [Retorno ao Orion TN] "${removedProduct.join('", "')}" é o nome do produto, não um alvo de tela; removido da lista de alvos.`);
+      console.log(`   [Produto Ativo] "${removedProduct.join('", "')}" é o nome do produto em que a sessão já está (${config.portalProduct}), não um alvo de tela; removido da lista de alvos.`);
     }
     await installToastObserver(client).catch(() => undefined);
 
@@ -710,6 +711,18 @@ export async function executeRoutineAudit(
     console.log(`   Alvos esperados: ${step.targets.join(', ') || '(ação genérica)'}`);
     // Trava de Viewport antes de medir: o passo anterior pode ter aberto uma aba sem a emulação 1440x900
     await client.ensureViewport(config.viewportWidth, config.viewportHeight);
+
+    // Modal herdado (Fase 4, M-7.0): o passo anterior abriu um modal (ex.: **Imprimir** -> "Seleção de modelo")
+    // que este passo não cita; todos os alvos estão na tela de trás. Fecha só por controle de saída, sem gravar.
+    if (step.stepNumber > 1 && mainTargets.length > 0) {
+      const inherited = await dismissInheritedModalForStep(client, mainTargets).catch(() => null);
+      if (inherited && inherited.closed > 0) {
+        console.log(
+          `   [Modal Herdado] ${inherited.closed} modal(is) aberto(s) pelo passo anterior fechado(s) por controle de saída: ${mainTargets.join(', ')} está(ão) na tela principal.`
+        );
+        await client.wait(500);
+      }
+    }
 
     // ADR-016: screenshot limpo da tela atual — sem moldura, badge ou rótulo (Anti-Mock: nada é demarcado
     // quando não há alvo). Mantém apenas a verificação de que a tela carregou sem erros.
@@ -891,8 +904,31 @@ export async function executeRoutineAudit(
         }
       };
       return success.revealed.map(name => {
-        const member = (geometry.groupMembers || []).find(m => m.query === name);
-        const elementText = member?.innerText || name;
+        const mappedNames = success.revealedSynonyms?.[name];
+        const member =
+          (geometry.groupMembers || []).find(m => m.query === name) ??
+          (mappedNames ? (geometry.groupMembers || []).find(m => mappedNames.includes(m.query)) : undefined);
+        const elementText = member?.innerText || (mappedNames ? mappedNames.join(' + ') : name);
+        if (mappedNames && mappedNames.length > 0) {
+          const single = mappedNames.length === 1;
+          return {
+            stepNumber: step.stepNumber,
+            documentedTarget: name,
+            actualElementText: mappedNames.join(' + '),
+            resolutionLayer: 'dom_synonym_heuristic' as const,
+            confidence: 0.9,
+            reason: `Sinônimo de rota medido ao vivo após acionar ${trigger.kind === 'tab' ? 'a aba' : 'o gatilho'} "${trigger.label}": "${name}" -> ${mappedNames.map(m => `"${m}"`).join(' + ')}`,
+            detectedAt: new Date().toISOString(),
+            evidence: {
+              source: 'dom-measured' as const,
+              matchedSelector: member?.matchedSelector ?? geometry.matchedSelector,
+              elementText,
+              box: member?.cssBox ?? geometry.cssBox
+            },
+            reveal,
+            textChange: single && step.rawText.includes(`**${name}**`) ? { from: `**${name}**`, to: `**${mappedNames[0]}**` } : undefined
+          };
+        }
         return {
           stepNumber: step.stepNumber,
           documentedTarget: name,

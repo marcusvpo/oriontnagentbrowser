@@ -284,6 +284,28 @@ export function chooseMenuItem(
     const pool = options.ignoreDisabledBlocks ? usable : eligible;
     const exact = pool.find(i => sameChain(i.chain, documented.segments));
     if (exact) {
+      // Fase 4 (piloto M-1.0): o caminho do manual termina num SUBMENU em cascata (`Administração > Mensalistas`)
+      // cuja única tela homônima é o filho direto de mesmo nome (`Administração > Mensalistas > Mensalistas`).
+      // Clicar no submenu não abre tela; desce-se ao filho homônimo, só quando ele é único, e a cura vai ao relatório.
+      if (exact.hasChildren && !exact.disabled) {
+        const leafNorm = normalizeText(exact.chain[exact.chain.length - 1]);
+        const homonymChildren = pool.filter(
+          i =>
+            i.chain.length === exact.chain.length + 1 &&
+            sameChain(i.chain.slice(0, -1), exact.chain) &&
+            normalizeText(i.chain[i.chain.length - 1]) === leafNorm
+        );
+        if (homonymChildren.length === 1 && !homonymChildren[0].disabled && !homonymChildren[0].hasChildren) {
+          const child = homonymChildren[0];
+          return {
+            item: child,
+            documented,
+            exact: false,
+            confidence: 0.95,
+            reason: `O caminho documentado "${exact.chain.join(' > ')}" termina num submenu em cascata; a única tela homônima é o item filho "${child.chain.join(' > ')}"`
+          };
+        }
+      }
       return exact.disabled
         ? { item: exact, documented, exact: true, blocked: true, confidence: 1, reason: exact.blockTitle || 'Item bloqueado para o perfil logado' }
         : { item: exact, documented, exact: true, confidence: 1, reason: 'Caminho de menu idêntico ao documentado' };

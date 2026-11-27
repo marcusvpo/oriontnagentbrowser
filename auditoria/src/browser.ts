@@ -1143,6 +1143,15 @@ export class AgentBrowserClient {
     return outputPath;
   }
 
+  async screenshotFullPage(outputPath: string): Promise<string> {
+    try {
+      await this.run(['screenshot', '--full', outputPath]);
+    } catch {
+      await this.run(['screenshot', outputPath]);
+    }
+    return outputPath;
+  }
+
   async click(refOrSelector: string): Promise<string> {
     try {
       return await this.run(['click', refOrSelector]);

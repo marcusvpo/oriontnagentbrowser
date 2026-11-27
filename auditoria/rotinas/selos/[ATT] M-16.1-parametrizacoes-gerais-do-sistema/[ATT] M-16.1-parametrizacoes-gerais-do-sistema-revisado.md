@@ -4,15 +4,15 @@ titulo: 'Parametrizações Gerais do Sistema'
 modulo: selos
 secao: M
 auditoria_ui:
-  data_execucao: '2026-11-18'
+  data_execucao: '2026-11-26'
   status: atualizacao_editorial
   review_tags: ['ATT']
   carga: mutation
-  worker_id: 'worker-3'
+  worker_id: 'worker-2'
   versao_homologacao: 'WildFly 22 / Orion 06.04.01'
   ambiente: 'Produtos (homologacao interna Siplan)'
   tipo_bloqueio: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
-  prints_geradas: 3
+  prints_geradas: 2
   dry_run_mutations: true
   sessao_usuario: 'marcus'
   sessao_perfil_pleno: true
@@ -52,20 +52,6 @@ auditoria_ui:
   auto_cura:
     acionada: true
     divergencias_detectadas:
-      - passo: 1
-        alvo_documentado: 'Administração > Parâmetros > Parâmetros gerais'
-        elemento_real: 'Configurações > Parametrizações'
-        camada: menu_path_resolution
-        confianca: 0.9
-        texto_alterado: false
-        evidencia: 'menu-tree | [data-orion-audit-menu-mmwlkibur8yurup-130] | x=850, y=171, 175x20'
-      - passo: 1
-        alvo_documentado: 'Parâmetros gerais'
-        elemento_real: 'Geral'
-        camada: dom_synonym_heuristic
-        confianca: 0.9
-        texto_alterado: false
-        evidencia: 'dom-measured | group:[data-orion-stateful-stmwlkj6ef1qtg-0] | x=26, y=94, 211x34'
       - passo: 2
         alvo_documentado: 'Papel de Segurança (NFS)'
         elemento_real: '(não localizado na tela)'
@@ -140,9 +126,36 @@ auditoria_ui:
           usada_como_dica: false
       notas_editoriais_reconfirmadas: 0
       notas_editoriais_nao_reconfirmadas: 0
+    - data: '2026-11-26'
+      ambiente_anterior: 'Produtos (homologacao interna Siplan)'
+      ambiente_atual: 'Produtos (homologacao interna Siplan)'
+      status_anterior: 'atualizacao_editorial'
+      tags_anteriores: ['ATT']
+      status_atual: 'atualizacao_editorial'
+      tags_atuais: ['ATT']
+      bloqueio_superado: false
+      bloqueio_anterior:
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+        motivo: 'No passo 2, o manual cita "Papel de Segurança (NFS)", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inve'
+      bloqueio_atual:
+        passo: 2
+        tipo: 'Defasagem Editorial do Manual (Recurso Inexistente na Tela)'
+      curas_reaproveitadas:
+        - passo: 1
+          alvo: 'Parâmetros gerais'
+          real: 'Geral'
+          confirmada_ao_vivo: false
+          usada_como_dica: false
+        - passo: 1
+          alvo: 'Administração > Parâmetros > Parâmetros gerais'
+          real: 'Configurações > Parametrizações'
+          confirmada_ao_vivo: false
+          usada_como_dica: false
+      notas_editoriais_reconfirmadas: 0
+      notas_editoriais_nao_reconfirmadas: 0
   diagnostico_tela_att:
     passo: 2
-    capturado_em: '2026-11-18T03:40:59.701Z'
+    capturado_em: '2026-11-26T15:35:57.158Z'
     rota: '#/configuracoes'
     titulo_painel: 'OrionTN - Tabelionatos de Notas'
     em_modal: false
@@ -194,6 +207,23 @@ auditoria_ui:
         tipo: 'seção'
         similaridade: 0.85
     alvos_sem_correspondencia: ['Papel de Segurança (NFS)']
+    contexto_catalogo_nivel1:
+      id_tela: '110'
+      menu: 'Configurações > Parametrizações'
+      rota: '#/configuracoes'
+      nivel: 2
+      estado_nivel2: 'explored'
+      abas: ['Geral', 'Captura e digitalização', 'Parâmetros por estação', 'Sequência', 'Comunicações', 'Campos obrigatórios', 'Painel de atalhos', 'Pedido de firmas', 'Comissões e mensalistas', 'E-mail', 'Faturamento', 'Protocolo', 'Certidão', 'Editor', 'Produtos Orion', 'Inteligência Artificial', 'WhatsApp', 'Impressão']
+      secoes: ['Configurações', 'Cartão de assinatura', 'Cálculo de custas', 'Controle de guia', 'Geral']
+      tabelas: []
+      pistas_consultivas:
+        - alvo: 'Papel de Segurança (NFS)'
+          tipo: 'field'
+          rotulo: 'Marcação de segurança no final do traslado?'
+          onde: 'tab:Editor'
+          em_subestado_nao_visitado: true
+          similaridade: 0.48
+      alvos_em_subestados: ['Papel de Segurança (NFS)']
     sugestao_reescrita: 'Sugestão de reescrita: Geral existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. Papel de Segurança (NFS) não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida.'
     print_contexto: 'passo-02.png'
 ---
@@ -211,6 +241,8 @@ auditoria_ui:
 > * **Botões:** **Concluir**, **Voltar**.
 > * **Correspondência sugerida para "Geral":** **Geral** (seção, 85% — termo(s) em comum: geral).
 > * **Sem correspondência funcional na tela:** **Papel de Segurança (NFS)**.
+> * **Contexto do Catálogo Nível 2 (`110`, consultivo):** tela **Configurações > Parametrizações** | pistas para alvos ausentes no recorte atual: "Papel de Segurança (NFS)" ~ campo **Marcação de segurança no final do traslado?** em aba **Editor** (48%).
+> * **Alvos em sub-estados não visitados (Catálogo Nível 2):** **Papel de Segurança (NFS)** (existem na tela sob aba/accordion/modal específico; o passo deve explicitar a abertura).
 > * Sugestão de reescrita: **Geral** existe na tela com o mesmo nome; o passo deve indicar a seção/aba correta onde aparece. **Papel de Segurança (NFS)** não tem correspondente funcional nesta tela; avaliar a remoção do trecho ou confirmar com Produtos onde a função foi movida. O texto original do manual foi preservado nesta rotina.
 > * **Referência visual:** passo-02.png (tela exata no momento do bloqueio).
 
@@ -224,13 +256,9 @@ Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo
 * **Regra da Evidência Estrita:** O passo a passo abaixo é o texto original do manual, preservado sem nenhuma alteração.
 
 #### Passo a passo (texto original preservado):
-1. Acesse o menu **Administração > Parâmetros > Parâmetros gerais**.
+1. Acesse o menu **Configurações > Parametrizações**.
    [aqui vai a print "passo-01.png"]
-   [aqui vai a print "passo-01-b.png"]
-   > [!NOTE] **Demarcações na print:** (1) **Configurações** · (2) **Parametrizações** · (3) **Geral**
-   > [!NOTE] **Divergência de caminho de menu (Auto-Cura de Rota):** O manual documentava o caminho **"Administração > Parâmetros > Parâmetros gerais"**, porém na versão atual do Orion TN a tela fica em **"Configurações > Parametrizações"** (confiança: 90% — Equivalência canônica "Administração > Parâmetros" -> "Configurações > Parametrizações": o submenu legado "Administração > Parâmetros" virou a tela única "Configurações > Parametrizações" (abas laterais Geral, Captura e digitalização, E-mail, Protocolo, Certidão, Impressão...)). O texto do manual não foi alterado.
-   > [!NOTE] **Divergência de rótulo (Auto-Cura SmartLocator, dom_synonym_heuristic):** O manual cita **"Parâmetros gerais"**, porém na tela atual do Orion TN o elemento se chama **"Geral"** (confiança: 90% — Na tela #/configuracoes, o manual cita "Parâmetros gerais" e a tela real chama a aba de "Geral" (aba "Geral" é a primeira aba de Parametrizações)). O texto do manual não foi alterado.
-   > [!NOTE] Rota real: **Configurações > Parametrizações**; a aba/seção **Geral** foi medida ao vivo (sinônimo contextual da rota) e acionada.
+   > [!NOTE] **Demarcações na print:** (1) **Configurações** · (2) **Parametrizações**
 2. Na aba **Geral**, configure o comportamento de insumos: marque se o sistema deve exigir o consumo de **Papel de Segurança (NFS)** na emissão de atos.
    [aqui vai a print "passo-02.png"]
    > [!WARNING] **Alvo sem evidência na tela:** O manual cita **"Papel de Segurança (NFS)"**, que não foi localizado na tela auditada do Orion TN. O texto do manual não foi alterado; revisar o nome do elemento.
@@ -238,7 +266,7 @@ Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo
 3. Na seção **Selo Digital**, defina o modo de geração preferencial (**Online** para envio em tempo real ou **Offline** para envio agrupado).
 4. No campo **Arredondamento de custas**, selecione o critério homologado para frações de centavos (Arredondamento ABNT, Truncamento ou Superior).
 5. Na seção **Guias**, ative o controle de numeração automática e regras de controle fiscal se aplicável.
-6. Clique no botão **Salvar** para aplicar as diretrizes globais do cartório.
+6. Clique no botão **Concluir** para aplicar as diretrizes globais do cartório.
 
 * **Importante: Alterações nos parâmetros gerais exigem atenção da administração do cartório, pois impactam o cálculo financeiro e o fluxo de todos os escreventes.**
 * **Dica / Caso Real do 0800: Ao realizar a carga de selos ou papéis no **Orion Estoque**, confira sempre os dígitos verificadores e a série física antes de confirmar para evitar desalinhamento na sequência mecânica de lavratura.**
@@ -247,5 +275,5 @@ Configura as diretrizes macro do Orion TN, englobando obrigatoriedade de consumo
 * **Ambiente:** Produtos (homologacao interna Siplan) → Produtos (homologacao interna Siplan)
 * **Status:** [ATT] atualizacao_editorial → [ATT] atualizacao_editorial
 * **Bloqueio anterior:** passo não registrado — Defasagem Editorial do Manual (Recurso Inexistente na Tela): No passo 2, o manual cita "Papel de Segurança (NFS)", que não foi localizado na tela auditada. A conta "marcus" é um perfil administrativo pleno (marcus) e a aplicação não marca o elemento como bloqueado ou oculto para o perfil; não é insuficiência de privilégio. Antes do bloqueio, a Exploração Inve → **mantido** (agora: passo 2, Defasagem Editorial do Manual (Recurso Inexistente na Tela))
-* **Cura reaproveitada (passo 1):** "Parâmetros gerais" → "Geral" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
-* **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Parâmetros gerais" → "Configurações > Parametrizações" — reconfirmada ao vivo nesta execução (medida de novo pelo próprio motor, sem depender da dica)
+* **Cura reaproveitada (passo 1):** "Parâmetros gerais" → "Geral" — não reconfirmada nesta execução (a dica não foi usada)
+* **Cura reaproveitada (passo 1):** "Administração > Parâmetros > Parâmetros gerais" → "Configurações > Parametrizações" — não reconfirmada nesta execução (a dica não foi usada)

@@ -19,12 +19,64 @@ function deriveAppHomeUrl(homologUrl: string): string {
   }
 }
 
-/** Arquivo (em `auth/`, ignorado pelo Git) com a URL real do módulo Orion TN descoberta após o login (ADR-025). */
-const appHomeFile = path.join(auditoriaRoot, 'auth', 'app-home.json');
+/** Diretório (ignorado pelo Git) com sessões e URLs de módulo descobertas ao vivo. */
+const authDir = path.join(auditoriaRoot, 'auth');
 
-function readDiscoveredAppHome(): string {
+/**
+ * Produtos do Portal Orion (`/webPortal/#/produtos`) selecionáveis por `--product` (Fase 4). O padrão é o
+ * Orion TN, com os mesmos arquivos de antes (`app-home.json`, `session-homolog.json`): 100% retrocompatível.
+ */
+export type PortalProductName = 'Orion TN' | 'Orion Caixa' | 'Orion Estoque';
+export const PORTAL_PRODUCTS: readonly PortalProductName[] = ['Orion TN', 'Orion Caixa', 'Orion Estoque'];
+export const DEFAULT_PORTAL_PRODUCT: PortalProductName = 'Orion TN';
+
+const PRODUCT_SLUGS: Record<PortalProductName, string> = {
+  'Orion TN': 'orion-tn',
+  'Orion Caixa': 'orion-caixa',
+  'Orion Estoque': 'orion-estoque'
+};
+
+/** `orion-tn` | `orion-caixa` | `orion-estoque`. */
+export const portalProductSlug = (product: PortalProductName): string => PRODUCT_SLUGS[product];
+
+/**
+ * Normaliza o valor de `--product`: aceita o nome do card (`"Orion Caixa"`), o slug (`orion-caixa`) ou o nome
+ * curto (`caixa`), sem diferenciar caixa, acento, hífen ou sublinhado. Valor desconhecido devolve `null`.
+ */
+export function normalizePortalProduct(input: string | null | undefined): PortalProductName | null {
+  if (input == null) return null;
+  const key = String(input)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[\s_-]+/g, ' ')
+    .trim()
+    .replace(/^orion\s*/, '');
+  if (key === 'tn') return 'Orion TN';
+  if (key === 'caixa') return 'Orion Caixa';
+  if (key === 'estoque') return 'Orion Estoque';
+  return null;
+}
+
+/** URL do módulo descoberta ao vivo, por produto: o Orion TN mantém `auth/app-home.json`; os demais, `auth/app-home-<slug>.json`. */
+export function appHomeFileFor(product: PortalProductName, dir: string = authDir): string {
+  return path.join(dir, product === DEFAULT_PORTAL_PRODUCT ? 'app-home.json' : `app-home-${portalProductSlug(product)}.json`);
+}
+
+/**
+ * Sessão mestre por produto: o Orion TN mantém `auth/session-homolog.json`; os demais, `auth/session-homolog-<slug>.json`,
+ * para que o estado salvo dentro de um módulo nunca seja reaproveitado como se fosse de outro.
+ */
+export function sessionFileFor(product: PortalProductName, dir: string = authDir): string {
+  return path.join(dir, product === DEFAULT_PORTAL_PRODUCT ? 'session-homolog.json' : `session-homolog-${portalProductSlug(product)}.json`);
+}
+
+/** Arquivo (em `auth/`, ignorado pelo Git) com a URL real do módulo Orion TN descoberta após o login (ADR-025). */
+const appHomeFile = appHomeFileFor(DEFAULT_PORTAL_PRODUCT);
+
+function readDiscoveredAppHome(file: string = appHomeFile): string {
   try {
-    const raw = JSON.parse(fs.readFileSync(appHomeFile, 'utf-8'));
+    const raw = JSON.parse(fs.readFileSync(file, 'utf-8'));
     return typeof raw?.appHomeUrl === 'string' ? raw.appHomeUrl : '';
   } catch {
     return '';
@@ -48,8 +100,10 @@ export interface AuditorConfig {
   maxReadConcurrency: number;
   timeoutMs: number;
   sessionFile: string;
-  /** Persistência da URL do módulo descoberta ao vivo (ADR-025) */
+  /** Persistência da URL do módulo descoberta ao vivo (ADR-025), por produto do Portal */
   appHomeFile: string;
+  /** Produto do Portal Orion auditado (`--product`); padrão `Orion TN` */
+  portalProduct: PortalProductName;
   rootDir: string;
   kbDir: string;
   outputDir: string;
@@ -76,8 +130,9 @@ export const config: AuditorConfig = {
   maxWriteConcurrency: 1,
   maxReadConcurrency: 4, // Concorrência para consultas
   timeoutMs: parseInt(process.env.BROWSER_TIMEOUT_MS || '20000', 10),
-  sessionFile: path.join(auditoriaRoot, 'auth', 'session-homolog.json'),
+  sessionFile: sessionFileFor(DEFAULT_PORTAL_PRODUCT),
   appHomeFile,
+  portalProduct: DEFAULT_PORTAL_PRODUCT,
   rootDir: projectRoot,
   kbDir: path.join(projectRoot, 'kb', 'rotinas'),
   outputDir: path.join(auditoriaRoot, 'rotinas'),
@@ -86,12 +141,43 @@ export const config: AuditorConfig = {
   autoSeedDefault: process.env.ORION_AUTO_SEED !== 'false'
 };
 
-/** Grava e adota em memória a URL real do módulo Orion TN descoberta no login (ADR-025). */
+/**
+ * Ativa o produto do Portal Orion (`--product`). `Orion TN` mantém exatamente o comportamento anterior
+ * (`app-home.json`, `ORION_APP_HOME_URL` e o fallback `/webFirmas/#/inicio`). `Orion Caixa` e `Orion Estoque`
+ * usam só a URL descoberta ao vivo no clique do card (`app-home-<slug>.json`), sem derivar `/webFirmas`:
+ * enquanto ela não existe, `appHomeUrl` fica vazia e a autenticação passa pelo card do Portal.
+ */
+export function setActivePortalProduct(product: PortalProductName, dir: string = authDir): AuditorConfig {
+  config.portalProduct = product;
+  config.appHomeFile = appHomeFileFor(product, dir);
+  config.sessionFile = sessionFileFor(product, dir);
+  config.appHomeUrl =
+    product === DEFAULT_PORTAL_PRODUCT
+      ? readDiscoveredAppHome(config.appHomeFile) || process.env.ORION_APP_HOME_URL || deriveAppHomeUrl(homologUrl)
+      : readDiscoveredAppHome(config.appHomeFile);
+  return config;
+}
+
+/** Tela de seleção de produtos do Portal Orion (`/webPortal/#/produtos`), na origem de `ORION_BASE_URL`. */
+export function portalProductsUrl(): string {
+  try {
+    return `${new URL(config.homologUrl).origin}/webPortal/#/produtos`;
+  } catch {
+    return '';
+  }
+}
+
+/** Grava e adota em memória a URL real do módulo do produto ativo descoberta no login (ADR-025). */
 export function persistDiscoveredAppHome(url: string): void {
   if (!/^https?:\/\//i.test(url)) return;
+  const file = config.appHomeFile;
   try {
-    fs.mkdirSync(path.dirname(appHomeFile), { recursive: true });
-    fs.writeFileSync(appHomeFile, JSON.stringify({ appHomeUrl: url, descobertoEm: new Date().toISOString() }, null, 2), 'utf-8');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ appHomeUrl: url, produto: config.portalProduct, descobertoEm: new Date().toISOString() }, null, 2),
+      'utf-8'
+    );
   } catch {
     // sem persistência o valor vale apenas neste processo
   }

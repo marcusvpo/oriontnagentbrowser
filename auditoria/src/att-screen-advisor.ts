@@ -1,7 +1,20 @@
 import type { AgentBrowserClient } from './browser.js';
 import { NAV_ZONE_SELECTOR } from './dom-geometry.js';
 import { ACTIVE_MODAL_SELECTOR } from './modal-scope.js';
-import { findRouteEntriesByTabOrSection } from './route-crawler.js';
+import {
+  extractCatalogLabels,
+  findRouteEntriesByTabOrSection,
+  findScreenCatalogEntryByHash,
+  findScreenCatalogHints,
+  normalizeCatalogTableLabels,
+  type ScreenCatalogHint
+} from './route-crawler.js';
+import type {
+  AllKnownElements,
+  ElementWhereLocation,
+  Level2Status,
+  ScreenCatalogEntry as L2ScreenCatalogEntry
+} from './screen-catalog-extractor.js';
 import { computeDiceSimilarity, normalizeText } from './smart-locator.js';
 
 /**
@@ -66,8 +79,36 @@ export interface CrossRouteHint {
   target: string;
   route: string;
   menuPath: string;
-  matchedIn: 'tab' | 'section' | 'title';
+  matchedIn: 'tab' | 'section' | 'title' | 'field' | 'button' | 'table';
   matchedLabel: string;
+  source?: 'route-graph' | 'screen-catalog';
+}
+
+export interface AttCatalogMatchedElement {
+  target: string;
+  kind: 'tab' | 'heading' | 'button' | 'field' | 'table' | 'rowAction';
+  label: string;
+  similarity: number;
+  where?: ElementWhereLocation;
+  inUnvisitedSubState?: boolean;
+}
+
+/** Contexto consultivo do Catálogo Nível 1/2 (`orion-screen-catalog.json`) para a tela alcançada (não substitui medição ao vivo). */
+export interface AttCatalogContext {
+  screenId: string;
+  menuPath: string;
+  routeHash: string;
+  pageTitle: string;
+  level?: 1 | 2;
+  level2Status?: Level2Status;
+  tabs: string[];
+  headings: string[];
+  tables: string[];
+  matchedElements?: AttCatalogMatchedElement[];
+  /** Alvos que existem no Catálogo Nível 2 dentro de aba/accordion/modal/grade não visitados na captura atual */
+  unvisitedSubStateTargets?: string[];
+  /** Alvos sem correspondência em toda a tela (root + sub-estados) em catálogo L2 explorado */
+  genuinelyMissingTargets?: string[];
 }
 
 export interface AttScreenDiagnosis {
@@ -79,8 +120,10 @@ export interface AttScreenDiagnosis {
   suggestions: ScreenMatchSuggestion[];
   /** Alvos sem nenhum elemento real de afinidade suficiente */
   unmatched: string[];
-  /** Pistas consultivas em outras rotas do grafo vivo (`orion-route-graph.json`, ADR-030) */
+  /** Pistas consultivas em outras rotas do grafo vivo (`orion-route-graph.json`, ADR-030) ou catálogo Nível 1 (ADR-038) */
   crossRouteHints?: CrossRouteHint[];
+  /** Contexto consultivo da tela atual no Catálogo Nível 1 (`orion-screen-catalog.json`, ADR-038) */
+  catalogContext?: AttCatalogContext;
   /** Print de referência da tela (a do passo bloqueado ou `passo-NN-contexto-att.png`) */
   contextPrint?: string;
   /** Instrução de reescrita do passo, derivada das sugestões */
@@ -377,6 +420,130 @@ export function buildRewriteHint(stepNumber: number, suggestions: ScreenMatchSug
   return out.length > 0 ? `Sugestão de reescrita: ${out.join('. ')}.` : undefined;
 }
 
+const CATALOG_KIND_MAP: Record<ScreenCatalogHint['matchedIn'], CrossRouteHint['matchedIn']> = {
+  tab: 'tab',
+  heading: 'section',
+  title: 'title',
+  field: 'field',
+  button: 'button',
+  table: 'table'
+};
+
+function isWhereUnvisited(where: ElementWhereLocation | undefined, inventory?: ScreenStructuralInventory): boolean {
+  if (!where || where === 'root') return false;
+  if (where.startsWith('tab:')) {
+    const tabName = normalizeText(where.slice(4));
+    if (!tabName) return true;
+    return !inventory?.tabs.some(t => t.active && normalizeText(t.label) === tabName);
+  }
+  if (where.startsWith('modal:')) {
+    const raw = where.slice(6);
+    const nestedIdx = raw.indexOf(' > tab:');
+    if (nestedIdx !== -1) {
+      const nestedTab = normalizeText(raw.slice(nestedIdx + 7));
+      if (!inventory?.inModal) return true;
+      return !inventory?.tabs.some(t => t.active && normalizeText(t.label) === nestedTab);
+    }
+    return !inventory?.inModal;
+  }
+  if (where.startsWith('view:')) {
+    return true;
+  }
+  return true;
+}
+
+function buildCatalogContextForScreen(
+  route: string,
+  queryTargets: string[],
+  inventory?: ScreenStructuralInventory
+): AttCatalogContext | undefined {
+  if (!route) return undefined;
+  const rawEntry = findScreenCatalogEntryByHash(route);
+  if (!rawEntry) return undefined;
+  const l2 = rawEntry as unknown as Partial<L2ScreenCatalogEntry>;
+
+  const tabs = extractCatalogLabels(rawEntry.tabs);
+  const headings = extractCatalogLabels(rawEntry.headings);
+  const buttons = extractCatalogLabels(rawEntry.buttons);
+  const fields = extractCatalogLabels(rawEntry.fields);
+  const tables = normalizeCatalogTableLabels(rawEntry.tables);
+
+  const all = l2.allKnownElements as AllKnownElements | undefined;
+  const hasL2 = !!all;
+
+  const pool: Array<{ kind: AttCatalogMatchedElement['kind']; label: string; where?: ElementWhereLocation }> = hasL2
+    ? [
+        ...all.tabs.map(t => ({ kind: 'tab' as const, label: t.label, where: t.where })),
+        ...headings.map(label => ({ kind: 'heading' as const, label, where: 'root' as ElementWhereLocation })),
+        ...all.buttons.flatMap(b => {
+          const lbl = b.label || b.tooltip || '';
+          return lbl ? [{ kind: 'button' as const, label: lbl, where: b.where }] : [];
+        }),
+        ...all.fields.map(f => ({ kind: 'field' as const, label: f.label, where: f.where })),
+        ...all.tableHeaders.map(h => ({ kind: 'table' as const, label: h.header, where: h.where })),
+        ...all.rowActions.flatMap(r => {
+          const lbl = r.tooltip || r.iconClass || '';
+          return lbl ? [{ kind: 'rowAction' as const, label: lbl, where: r.where }] : [];
+        })
+      ]
+    : [
+        ...tabs.map(label => ({ kind: 'tab' as const, label })),
+        ...headings.map(label => ({ kind: 'heading' as const, label })),
+        ...buttons.map(label => ({ kind: 'button' as const, label })),
+        ...fields.map(label => ({ kind: 'field' as const, label })),
+        ...tables.map(label => ({ kind: 'table' as const, label }))
+      ];
+
+  const matchedElements: AttCatalogMatchedElement[] = [];
+  const unvisitedSubStateTargets: string[] = [];
+  const genuinelyMissingTargets: string[] = [];
+
+  for (const target of queryTargets) {
+    const ranked = pool
+      .map(c => ({ c, score: textAffinity(target, c.label).score }))
+      .filter(x => x.score >= SUGGESTION_MIN_SCORE)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2);
+
+    let hasUnvisitedMatch = false;
+    for (const r of ranked) {
+      const inUnvisited = hasL2 ? isWhereUnvisited(r.c.where, inventory) : undefined;
+      if (inUnvisited) hasUnvisitedMatch = true;
+      matchedElements.push({
+        target,
+        kind: r.c.kind,
+        label: r.c.label,
+        similarity: Number(r.score.toFixed(2)),
+        ...(r.c.where ? { where: r.c.where } : {}),
+        ...(inUnvisited !== undefined ? { inUnvisitedSubState: inUnvisited } : {})
+      });
+    }
+
+    if (hasL2) {
+      if (hasUnvisitedMatch) {
+        unvisitedSubStateTargets.push(target);
+      } else if (ranked.length === 0 && (l2.level2Status === 'explored' || l2.level2Status === 'no_substates')) {
+        genuinelyMissingTargets.push(target);
+      }
+    }
+  }
+
+  return {
+    screenId: rawEntry.id,
+    menuPath: rawEntry.chain.join(' > '),
+    routeHash: rawEntry.routeHash,
+    pageTitle: rawEntry.pageTitle,
+    ...(hasL2 ? { level: 2 as const } : {}),
+    ...(l2.level2Status ? { level2Status: l2.level2Status } : {}),
+    tabs,
+    headings,
+    tables,
+    ...(matchedElements.length > 0 ? { matchedElements } : {}),
+    ...(unvisitedSubStateTargets.length > 0 ? { unvisitedSubStateTargets } : {}),
+    ...(genuinelyMissingTargets.length > 0 ? { genuinelyMissingTargets } : {})
+  };
+}
+
 /** Monta o diagnóstico a partir de um inventário já lido (puro; coberto por teste offline). */
 export function buildAttDiagnosis(input: {
   stepNumber: number;
@@ -397,19 +564,48 @@ export function buildAttDiagnosis(input: {
         .filter(Boolean)
     : unmatched;
   for (const term of queryTerms) {
+    const seen = new Set<string>();
     const hints = findRouteEntriesByTabOrSection(term, undefined, { excludeHash: input.inventory.route })
       .filter(h => h.score >= 0.8)
       .slice(0, 2);
     for (const h of hints) {
+      const menuPath = h.entry.chain.join(' > ');
+      const key = `${menuPath}|${h.entry.hash}`;
+      seen.add(key);
       crossRouteHints.push({
         target: term,
         route: h.entry.hash,
-        menuPath: h.entry.chain.join(' > '),
+        menuPath,
         matchedIn: h.matchedIn,
         matchedLabel: h.matchedLabel
       });
     }
+    if (crossRouteHints.filter(x => x.target === term).length < 2) {
+      const catHints = findScreenCatalogHints(term, undefined, { excludeHash: input.inventory.route })
+        .filter(h => h.score >= 0.8);
+      for (const h of catHints) {
+        if (crossRouteHints.filter(x => x.target === term).length >= 2) break;
+        const menuPath = h.entry.chain.join(' > ');
+        const key = `${menuPath}|${h.entry.routeHash}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        crossRouteHints.push({
+          target: term,
+          route: h.entry.routeHash,
+          menuPath,
+          matchedIn: CATALOG_KIND_MAP[h.matchedIn],
+          matchedLabel: h.matchedLabel,
+          source: 'screen-catalog'
+        });
+      }
+    }
   }
+
+  const catalogContext = buildCatalogContextForScreen(
+    input.inventory.route,
+    unmatched.length > 0 ? unmatched : targets,
+    input.inventory
+  );
 
   return {
     stepNumber: input.stepNumber,
@@ -419,6 +615,7 @@ export function buildAttDiagnosis(input: {
     suggestions,
     unmatched,
     ...(crossRouteHints.length > 0 ? { crossRouteHints } : {}),
+    ...(catalogContext ? { catalogContext } : {}),
     contextPrint: input.contextPrint,
     rewriteHint: buildRewriteHint(input.stepNumber, suggestions, unmatched),
     menuPath: input.menuPath || undefined
@@ -472,6 +669,25 @@ export const contextPrintName = (stepNumber: number): string => `passo-${String(
 const bold = (s: string) => `**${s}**`;
 const clip = <T,>(items: T[], max: number) => ({ shown: items.slice(0, max), extra: Math.max(0, items.length - max) });
 
+function formatWherePt(where: ElementWhereLocation): string {
+  if (where === 'root') return 'superfície principal';
+  if (where.startsWith('tab:')) return `aba **${where.slice(4)}**`;
+  if (where.startsWith('modal:')) {
+    const raw = where.slice(6);
+    const nestedIdx = raw.indexOf(' > tab:');
+    if (nestedIdx !== -1) {
+      const opener = raw.slice(0, nestedIdx);
+      const tab = raw.slice(nestedIdx + 7);
+      return `modal/formulário **${opener}** (aba **${tab}**)`;
+    }
+    return `modal/formulário **${raw}**`;
+  }
+  if (where.startsWith('accordion:')) return `accordion **${where.slice(10)}**`;
+  if (where.startsWith('view:')) return `modo/visão **${where.slice(5)}**`;
+  if (where === 'grid_row') return 'ações da grade';
+  return where;
+}
+
 /**
  * Bloco `> [!TIP] **Raio-X da Tela Atual (Subsídio para Atualização do Manual):**` do relatório `[ATT]`.
  * Linhas de citação contínuas (cada uma com `>`); o texto do manual não é tocado.
@@ -518,12 +734,54 @@ export function renderAttDiagnosisTip(d: AttScreenDiagnosis): string {
     lines.push(`> * **Sem correspondência funcional na tela:** ${d.unmatched.map(bold).join(', ')}.`);
   }
   if (d.crossRouteHints && d.crossRouteHints.length > 0) {
-    const kindPt: Record<CrossRouteHint['matchedIn'], string> = { tab: 'aba', section: 'seção', title: 'título' };
+    const kindPt: Record<CrossRouteHint['matchedIn'], string> = {
+      tab: 'aba',
+      section: 'seção',
+      title: 'título',
+      field: 'campo',
+      button: 'botão',
+      table: 'tabela'
+    };
     lines.push(
       `> * **Pistas em outras rotas (\`orion-route-graph.json\`):** ${d.crossRouteHints
         .map(h => `"${h.target}" aparece em **${h.menuPath}** (${h.route || 'sem hash'}, ${kindPt[h.matchedIn]} **${h.matchedLabel}**)`)
         .join('; ')}.`
     );
+  }
+  if (d.catalogContext) {
+    const c = d.catalogContext;
+    const catKindPt: Record<AttCatalogMatchedElement['kind'], string> = {
+      tab: 'aba',
+      heading: 'seção',
+      button: 'botão',
+      field: 'campo',
+      table: 'tabela',
+      rowAction: 'ação da grade'
+    };
+    const parts: string[] = [`tela **${c.menuPath}**`];
+    if (c.tables.length > 0) parts.push(`tabelas: ${c.tables.slice(0, 5).map(bold).join(', ')}`);
+    if (c.matchedElements && c.matchedElements.length > 0) {
+      parts.push(
+        `pistas para alvos ausentes no recorte atual: ${c.matchedElements
+          .map(
+            m =>
+              `"${m.target}" ~ ${catKindPt[m.kind]} **${m.label}**${m.where ? ` em ${formatWherePt(m.where)}` : ''} (${Math.round(m.similarity * 100)}%)`
+          )
+          .join('; ')}`
+      );
+    }
+    const levelLabel = c.level === 2 ? 'Nível 2' : 'Nível 1';
+    lines.push(`> * **Contexto do Catálogo ${levelLabel} (\`${c.screenId}\`, consultivo):** ${parts.join(' | ')}.`);
+    if (c.unvisitedSubStateTargets && c.unvisitedSubStateTargets.length > 0) {
+      lines.push(
+        `> * **Alvos em sub-estados não visitados (Catálogo Nível 2):** ${c.unvisitedSubStateTargets.map(bold).join(', ')} (existem na tela sob aba/accordion/modal específico; o passo deve explicitar a abertura).`
+      );
+    }
+    if (c.genuinelyMissingTargets && c.genuinelyMissingTargets.length > 0) {
+      lines.push(
+        `> * **Ausentes em toda a tela (incluindo sub-estados L2):** ${c.genuinelyMissingTargets.map(bold).join(', ')} (candidatos fortes a remoção/renomeação no manual).`
+      );
+    }
   }
   if (d.rewriteHint) lines.push(`> * ${d.rewriteHint} O texto original do manual foi preservado nesta rotina.`);
   if (d.contextPrint) lines.push(`> * **Referência visual:** ${d.contextPrint} (tela exata no momento do bloqueio).`);
@@ -577,6 +835,34 @@ export function attDiagnosisYamlLines(d: AttScreenDiagnosis): string[] {
       lines.push(`        rota: ${q(h.route)}`);
       lines.push(`        encontrado_em: ${q(h.matchedIn)}`);
       lines.push(`        rotulo_real: ${q(h.matchedLabel)}`);
+    }
+  }
+  if (d.catalogContext) {
+    lines.push(`    contexto_catalogo_nivel1:`);
+    lines.push(`      id_tela: ${q(d.catalogContext.screenId)}`);
+    lines.push(`      menu: ${q(d.catalogContext.menuPath)}`);
+    lines.push(`      rota: ${q(d.catalogContext.routeHash)}`);
+    if (d.catalogContext.level) lines.push(`      nivel: ${d.catalogContext.level}`);
+    if (d.catalogContext.level2Status) lines.push(`      estado_nivel2: ${q(d.catalogContext.level2Status)}`);
+    lines.push(`      abas: ${qList(d.catalogContext.tabs)}`);
+    lines.push(`      secoes: ${qList(d.catalogContext.headings)}`);
+    lines.push(`      tabelas: ${qList(d.catalogContext.tables)}`);
+    if (d.catalogContext.matchedElements && d.catalogContext.matchedElements.length > 0) {
+      lines.push(`      pistas_consultivas:`);
+      for (const m of d.catalogContext.matchedElements) {
+        lines.push(`        - alvo: ${q(m.target)}`);
+        lines.push(`          tipo: ${q(m.kind)}`);
+        lines.push(`          rotulo: ${q(m.label)}`);
+        if (m.where) lines.push(`          onde: ${q(m.where)}`);
+        if (m.inUnvisitedSubState !== undefined) lines.push(`          em_subestado_nao_visitado: ${m.inUnvisitedSubState}`);
+        lines.push(`          similaridade: ${m.similarity}`);
+      }
+    }
+    if (d.catalogContext.unvisitedSubStateTargets && d.catalogContext.unvisitedSubStateTargets.length > 0) {
+      lines.push(`      alvos_em_subestados: ${qList(d.catalogContext.unvisitedSubStateTargets)}`);
+    }
+    if (d.catalogContext.genuinelyMissingTargets && d.catalogContext.genuinelyMissingTargets.length > 0) {
+      lines.push(`      alvos_ausentes_nivel2: ${qList(d.catalogContext.genuinelyMissingTargets)}`);
     }
   }
   if (d.rewriteHint) lines.push(`    sugestao_reescrita: ${q(d.rewriteHint.replace(/\*\*/g, ''))}`);
